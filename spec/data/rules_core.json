@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "startingCash": {
+    "cash": 5000,
+    "homeMoney": 0,
+    "confidence": "VERIFIED",
+    "codeRef": "0x404065 mov [player+0x28],0x1388; 0x40406c [player+0x2c]=0; loop 4 players in FUN_00404050"
+  },
+  "bankJackpotInit": {
+    "amount": 5000,
+    "confidence": "VERIFIED",
+    "codeRef": "0x404031 mov [game+0x1c],0x1388"
+  },
+  "playerFields": {
+    "cash": "+0x28",
+    "homeMoney": "+0x2c",
+    "status": "+0x34",
+    "isHumanFlag": "+0x3c",
+    "statusValues": {
+      "-1": "eliminated (bankrupt/out)",
+      "0": "normal (init)",
+      "1": "hospital",
+      "2": "jail",
+      "note": "other positive values used for card/god statuses (PARTIAL)"
+    },
+    "confidence": "VERIFIED"
+  },
+  "gameFields": {
+    "weekCounter": "+0x0c",
+    "maxWeeks": "+0x18",
+    "jackpot": "+0x1c",
+    "phase": "+0x10",
+    "weekIncWhen": "phase==7 then inc week (0x402e1b-0x402e25)",
+    "yearFromWeek": "week // 52 (0x34); season = (week%52)//13 (0xd) — VERIFIED 0x402e80-0x402eaa"
+  },
+  "yearOptions": {
+    "uiIndexToWeeks": [
+      156,
+      260,
+      520,
+      -1
+    ],
+    "uiLabels_INFERRED": [
+      "3年",
+      "5年",
+      "10年",
+      "∞"
+    ],
+    "tableVA": "0x441568",
+    "selectIndexGlobal": "DAT_004481d4",
+    "confidence": "VERIFIED_TABLE",
+    "note": "156/260/520 = 3*52 / 5*52 / 10*52 weeks; -1 unlimited"
+  },
+  "winConditions": {
+    "predicate": "FUN_00403200 @ 0x403200",
+    "confidence": "VERIFIED",
+    "rules": [
+      {
+        "id": "year_limit",
+        "when": "game.weekCounter == game.maxWeeks (and maxWeeks!=-1 effectively; -1 never equals)",
+        "result": "game ends"
+      },
+      {
+        "id": "last_standing",
+        "when": "exactly 1 player with status != -1",
+        "result": "game ends"
+      }
+    ],
+    "pickWinner": "FUN_004031a0 @ 0x4031a0: among status!=-1, maximize FUN_00418050(netWorth); store index DAT_004480d4",
+    "winnerUI": "register handlers via FUN_0040e2f0; ctor FUN_0040e330 loads dat\\\\winner\\\\winner.spr + character spr, plays Winner music",
+    "earlyExitCheck": "FUN_00403240: if no remaining humans (player+0x3c==0 & alive) take alternate path (music/quit)"
+  },
+  "bankruptcy": {
+    "netWorth": "FUN_00418050 @ 0x418050 = cash + homeMoney + sum(yearScaled building values via 0x40e9a0/0e9f0)",
+    "trigger": "When payment required: if netWorth < 0 (callers 0x40fdf4, 0x41229c), enter eliminate state machine",
+    "eliminate": "FUN_004180c0 @ 0x4180c0 sets player+0x34 = -1 (after FUN_004149c0 cleanup)",
+    "ui": "dat\\\\map\\\\nomoney.spr (string @0x4412a4, xref 0x402532)",
+    "confidence": "VERIFIED",
+    "note": "Forced asset liquidation before eliminate not fully traced; remake should sell/downgrade until debt cleared else eliminate"
+  },
+  "gameSpeed": {
+    "iniKey": "GAME_SPEED",
+    "default": 60,
+    "clamp": [
+      40,
+      80
+    ],
+    "uiOptions": [
+      {
+        "index": 0,
+        "label": "慢速",
+        "value": 40
+      },
+      {
+        "index": 1,
+        "label": "正常速度",
+        "value": 60
+      },
+      {
+        "index": 2,
+        "label": "快速",
+        "value": 80
+      }
+    ],
+    "convert": "FUN_004238c0 @ 0x4238c0: DAT_004437c8 = 1000 / GAME_SPEED",
+    "tickUnitMs": {
+      "40": 25,
+      "60": 16,
+      "80": 12
+    },
+    "usage": "DAT_004437c8 stored as countdown per queued timer event (0x4238f7); drives animation/UI pacing",
+    "movementAnimation": {
+      "confidence": "INFERRED",
+      "recommend": "per-tile stepDurationMs = tickUnitMs * framesPerStep; framesPerStep tunable (~2..4) to match walk.spr",
+      "note": "Exact walk frames/step not bound in static pass"
+    },
+    "confidence": "VERIFIED_VALUES"
+  }
+}

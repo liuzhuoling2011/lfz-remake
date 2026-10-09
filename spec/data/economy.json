@@ -1,0 +1,28 @@
+{
+  "level_pct": [
+    41,
+    100,
+    200,
+    400
+  ],
+  "type_mult": [
+    100,
+    300,
+    200,
+    100
+  ],
+  "notes": {
+    "level_pct_addr": "0x442408",
+    "type_mult_addr": "0x442418",
+    "year_scale": "FUN_0040e9a0: for each 13 years, price *= 110/100",
+    "rent_formula": "FUN_0040e9f0: (level_pct[level]*base/100)*type_mult[type]/100; type 4 treated as 0",
+    "pay_visitor": "FUN_00417b90: if type==4 pay (5..10)% of cash; else pay rent/2; free if wealth-god or owner in hospital/jail"
+  },
+  "building_types": {
+    "0": "undeveloped_or_mapped_from_4",
+    "1": "shop_commercial_GiveMoney2_mult300",
+    "2": "restaurant_GiveMoney1_mult200",
+    "3": "house_residential_mult100",
+    "4": "visit_gift_uses_percent_of_cash_mapped_to_0_for_table"
+  }
+}

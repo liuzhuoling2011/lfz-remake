@@ -1,0 +1,9587 @@
+{
+  "id": 2,
+  "key": "ancient",
+  "nameZh": "古代",
+  "nameEn": "Ancient",
+  "width": 100,
+  "height": 100,
+  "tileW": 80,
+  "tileH": 40,
+  "renderOrigin": {
+    "x": 41,
+    "y": -9
+  },
+  "renderPx": {
+    "w": 2118,
+    "h": 1490
+  },
+  "lattice": {
+    "note": "Staggered isometric half-tile lattice: gx=round(x/40), gy=round(y/20); neighbours at (±1,±1). World hotspot (x,y) from MAB; image pixel = (x-origin.x, y-origin.y).",
+    "stepX": 40,
+    "stepY": 20,
+    "tileW": 80,
+    "tileH": 40
+  },
+  "startTileIds": [
+    51,
+    66,
+    76,
+    80,
+    195
+  ],
+  "startTileId": 51,
+  "pathComponents": [
+    134,
+    10,
+    20,
+    8,
+    12,
+    12,
+    18,
+    13,
+    12,
+    7,
+    5
+  ],
+  "tiles": [
+    {
+      "id": 0,
+      "x": 1400,
+      "y": 340,
+      "ix": 1359,
+      "iy": 349,
+      "gx": 35,
+      "gy": 17,
+      "type": "walk",
+      "basePrice": 530,
+      "lotId": "17",
+      "next": [
+        1
+      ],
+      "neighbours": [
+        1,
+        232
+      ],
+      "buildingAnchor": {
+        "x": 1360,
+        "y": 360,
+        "ix": 1319,
+        "iy": 369,
+        "gx": 34,
+        "gy": 18,
+        "lotId": "17",
+        "basePrice": 530
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "17",
+          "basePrice": 530,
+          "x": 1360,
+          "y": 360,
+          "ix": 1319,
+          "iy": 369,
+          "gx": 34,
+          "gy": 18
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 1,
+      "x": 1360,
+      "y": 320,
+      "ix": 1319,
+      "iy": 329,
+      "gx": 34,
+      "gy": 16,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        2
+      ],
+      "neighbours": [
+        0,
+        2
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 2,
+      "x": 1320,
+      "y": 300,
+      "ix": 1279,
+      "iy": 309,
+      "gx": 33,
+      "gy": 15,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        3
+      ],
+      "neighbours": [
+        1,
+        3
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 3,
+      "x": 1280,
+      "y": 280,
+      "ix": 1239,
+      "iy": 289,
+      "gx": 32,
+      "gy": 14,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        4
+      ],
+      "neighbours": [
+        2,
+        4
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 4,
+      "x": 1240,
+      "y": 260,
+      "ix": 1199,
+      "iy": 269,
+      "gx": 31,
+      "gy": 13,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        5
+      ],
+      "neighbours": [
+        3,
+        5
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 5,
+      "x": 1200,
+      "y": 240,
+      "ix": 1159,
+      "iy": 249,
+      "gx": 30,
+      "gy": 12,
+      "type": "tram",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        6
+      ],
+      "neighbours": [
+        4,
+        6
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "horse_cart_transport",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 6,
+      "x": 1160,
+      "y": 220,
+      "ix": 1119,
+      "iy": 229,
+      "gx": 29,
+      "gy": 11,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        7
+      ],
+      "neighbours": [
+        5,
+        7
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 7,
+      "x": 1120,
+      "y": 240,
+      "ix": 1079,
+      "iy": 249,
+      "gx": 28,
+      "gy": 12,
+      "type": "walk",
+      "basePrice": 180,
+      "lotId": "12",
+      "next": [
+        8
+      ],
+      "neighbours": [
+        6,
+        8
+      ],
+      "buildingAnchor": {
+        "x": 1080,
+        "y": 220,
+        "ix": 1039,
+        "iy": 229,
+        "gx": 27,
+        "gy": 11,
+        "lotId": "12",
+        "basePrice": 180
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "12",
+          "basePrice": 180,
+          "x": 1080,
+          "y": 220,
+          "ix": 1039,
+          "iy": 229,
+          "gx": 27,
+          "gy": 11
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 8,
+      "x": 1080,
+      "y": 260,
+      "ix": 1039,
+      "iy": 269,
+      "gx": 27,
+      "gy": 13,
+      "type": "walk",
+      "basePrice": 470,
+      "lotId": "11",
+      "next": [
+        9
+      ],
+      "neighbours": [
+        7,
+        9
+      ],
+      "buildingAnchor": {
+        "x": 1040,
+        "y": 240,
+        "ix": 999,
+        "iy": 249,
+        "gx": 26,
+        "gy": 12,
+        "lotId": "11",
+        "basePrice": 470
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "11",
+          "basePrice": 470,
+          "x": 1040,
+          "y": 240,
+          "ix": 999,
+          "iy": 249,
+          "gx": 26,
+          "gy": 12
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 9,
+      "x": 1040,
+      "y": 280,
+      "ix": 999,
+      "iy": 289,
+      "gx": 26,
+      "gy": 14,
+      "type": "walk",
+      "basePrice": 470,
+      "lotId": "10",
+      "next": [
+        10
+      ],
+      "neighbours": [
+        8,
+        10
+      ],
+      "buildingAnchor": {
+        "x": 1000,
+        "y": 260,
+        "ix": 959,
+        "iy": 269,
+        "gx": 25,
+        "gy": 13,
+        "lotId": "10",
+        "basePrice": 470
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "10",
+          "basePrice": 470,
+          "x": 1000,
+          "y": 260,
+          "ix": 959,
+          "iy": 269,
+          "gx": 25,
+          "gy": 13
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 10,
+      "x": 1000,
+      "y": 300,
+      "ix": 959,
+      "iy": 309,
+      "gx": 25,
+      "gy": 15,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "9",
+      "next": [
+        11
+      ],
+      "neighbours": [
+        9,
+        11
+      ],
+      "buildingAnchor": {
+        "x": 960,
+        "y": 280,
+        "ix": 919,
+        "iy": 289,
+        "gx": 24,
+        "gy": 14,
+        "lotId": "9",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "9",
+          "basePrice": 480,
+          "x": 960,
+          "y": 280,
+          "ix": 919,
+          "iy": 289,
+          "gx": 24,
+          "gy": 14
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 11,
+      "x": 960,
+      "y": 320,
+      "ix": 919,
+      "iy": 329,
+      "gx": 24,
+      "gy": 16,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        12
+      ],
+      "neighbours": [
+        10,
+        12
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 12,
+      "x": 1000,
+      "y": 340,
+      "ix": 959,
+      "iy": 349,
+      "gx": 25,
+      "gy": 17,
+      "type": "walk",
+      "basePrice": 500,
+      "lotId": "5",
+      "next": [
+        13
+      ],
+      "neighbours": [
+        11,
+        13
+      ],
+      "buildingAnchor": {
+        "x": 960,
+        "y": 360,
+        "ix": 919,
+        "iy": 369,
+        "gx": 24,
+        "gy": 18,
+        "lotId": "5",
+        "basePrice": 500
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "5",
+          "basePrice": 500,
+          "x": 960,
+          "y": 360,
+          "ix": 919,
+          "iy": 369,
+          "gx": 24,
+          "gy": 18
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 13,
+      "x": 1040,
+      "y": 360,
+      "ix": 999,
+      "iy": 369,
+      "gx": 26,
+      "gy": 18,
+      "type": "walk",
+      "basePrice": 500,
+      "lotId": "6",
+      "next": [
+        14
+      ],
+      "neighbours": [
+        12,
+        14
+      ],
+      "buildingAnchor": {
+        "x": 1000,
+        "y": 380,
+        "ix": 959,
+        "iy": 389,
+        "gx": 25,
+        "gy": 19,
+        "lotId": "6",
+        "basePrice": 500
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "6",
+          "basePrice": 500,
+          "x": 1000,
+          "y": 380,
+          "ix": 959,
+          "iy": 389,
+          "gx": 25,
+          "gy": 19
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 14,
+      "x": 1080,
+      "y": 380,
+      "ix": 1039,
+      "iy": 389,
+      "gx": 27,
+      "gy": 19,
+      "type": "walk",
+      "basePrice": 520,
+      "lotId": "7",
+      "next": [
+        15
+      ],
+      "neighbours": [
+        13,
+        15
+      ],
+      "buildingAnchor": {
+        "x": 1040,
+        "y": 400,
+        "ix": 999,
+        "iy": 409,
+        "gx": 26,
+        "gy": 20,
+        "lotId": "7",
+        "basePrice": 520
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "7",
+          "basePrice": 520,
+          "x": 1040,
+          "y": 400,
+          "ix": 999,
+          "iy": 409,
+          "gx": 26,
+          "gy": 20
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 15,
+      "x": 1120,
+      "y": 400,
+      "ix": 1079,
+      "iy": 409,
+      "gx": 28,
+      "gy": 20,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        16
+      ],
+      "neighbours": [
+        14,
+        16,
+        230
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 16,
+      "x": 1080,
+      "y": 420,
+      "ix": 1039,
+      "iy": 429,
+      "gx": 27,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": 520,
+      "lotId": "7",
+      "next": [
+        17
+      ],
+      "neighbours": [
+        15,
+        17
+      ],
+      "buildingAnchor": {
+        "x": 1040,
+        "y": 400,
+        "ix": 999,
+        "iy": 409,
+        "gx": 26,
+        "gy": 20,
+        "lotId": "7",
+        "basePrice": 520
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "7",
+          "basePrice": 520,
+          "x": 1040,
+          "y": 400,
+          "ix": 999,
+          "iy": 409,
+          "gx": 26,
+          "gy": 20
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 17,
+      "x": 1040,
+      "y": 440,
+      "ix": 999,
+      "iy": 449,
+      "gx": 26,
+      "gy": 22,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        18
+      ],
+      "neighbours": [
+        16,
+        18
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 18,
+      "x": 1000,
+      "y": 460,
+      "ix": 959,
+      "iy": 469,
+      "gx": 25,
+      "gy": 23,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        19
+      ],
+      "neighbours": [
+        17,
+        19
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 19,
+      "x": 960,
+      "y": 480,
+      "ix": 919,
+      "iy": 489,
+      "gx": 24,
+      "gy": 24,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        20
+      ],
+      "neighbours": [
+        18,
+        20
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 20,
+      "x": 920,
+      "y": 500,
+      "ix": 879,
+      "iy": 509,
+      "gx": 23,
+      "gy": 25,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        21
+      ],
+      "neighbours": [
+        19,
+        21
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 21,
+      "x": 880,
+      "y": 520,
+      "ix": 839,
+      "iy": 529,
+      "gx": 22,
+      "gy": 26,
+      "type": "walk",
+      "basePrice": 120,
+      "lotId": "4",
+      "next": [
+        22
+      ],
+      "neighbours": [
+        20,
+        22
+      ],
+      "buildingAnchor": {
+        "x": 840,
+        "y": 500,
+        "ix": 799,
+        "iy": 509,
+        "gx": 21,
+        "gy": 25,
+        "lotId": "4",
+        "basePrice": 120
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "4",
+          "basePrice": 120,
+          "x": 840,
+          "y": 500,
+          "ix": 799,
+          "iy": 509,
+          "gx": 21,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 22,
+      "x": 840,
+      "y": 540,
+      "ix": 799,
+      "iy": 549,
+      "gx": 21,
+      "gy": 27,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        23
+      ],
+      "neighbours": [
+        21,
+        23,
+        41,
+        81
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 23,
+      "x": 800,
+      "y": 520,
+      "ix": 759,
+      "iy": 529,
+      "gx": 20,
+      "gy": 26,
+      "type": "walk",
+      "basePrice": 120,
+      "lotId": "4",
+      "next": [
+        24
+      ],
+      "neighbours": [
+        22,
+        24
+      ],
+      "buildingAnchor": {
+        "x": 840,
+        "y": 500,
+        "ix": 799,
+        "iy": 509,
+        "gx": 21,
+        "gy": 25,
+        "lotId": "4",
+        "basePrice": 120
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "4",
+          "basePrice": 120,
+          "x": 840,
+          "y": 500,
+          "ix": 799,
+          "iy": 509,
+          "gx": 21,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 24,
+      "x": 760,
+      "y": 500,
+      "ix": 719,
+      "iy": 509,
+      "gx": 19,
+      "gy": 25,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "3",
+      "next": [
+        25
+      ],
+      "neighbours": [
+        23,
+        25
+      ],
+      "buildingAnchor": {
+        "x": 800,
+        "y": 480,
+        "ix": 759,
+        "iy": 489,
+        "gx": 20,
+        "gy": 24,
+        "lotId": "3",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "3",
+          "basePrice": 100,
+          "x": 800,
+          "y": 480,
+          "ix": 759,
+          "iy": 489,
+          "gx": 20,
+          "gy": 24
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 25,
+      "x": 720,
+      "y": 480,
+      "ix": 679,
+      "iy": 489,
+      "gx": 18,
+      "gy": 24,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "2",
+      "next": [
+        26
+      ],
+      "neighbours": [
+        24,
+        26
+      ],
+      "buildingAnchor": {
+        "x": 760,
+        "y": 460,
+        "ix": 719,
+        "iy": 469,
+        "gx": 19,
+        "gy": 23,
+        "lotId": "2",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "2",
+          "basePrice": 100,
+          "x": 760,
+          "y": 460,
+          "ix": 719,
+          "iy": 469,
+          "gx": 19,
+          "gy": 23
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 26,
+      "x": 680,
+      "y": 460,
+      "ix": 639,
+      "iy": 469,
+      "gx": 17,
+      "gy": 23,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "1",
+      "next": [
+        27
+      ],
+      "neighbours": [
+        25,
+        27
+      ],
+      "buildingAnchor": {
+        "x": 720,
+        "y": 440,
+        "ix": 679,
+        "iy": 449,
+        "gx": 18,
+        "gy": 22,
+        "lotId": "1",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "1",
+          "basePrice": 100,
+          "x": 720,
+          "y": 440,
+          "ix": 679,
+          "iy": 449,
+          "gx": 18,
+          "gy": 22
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 27,
+      "x": 640,
+      "y": 440,
+      "ix": 599,
+      "iy": 449,
+      "gx": 16,
+      "gy": 22,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        28
+      ],
+      "neighbours": [
+        26,
+        28
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 28,
+      "x": 600,
+      "y": 420,
+      "ix": 559,
+      "iy": 429,
+      "gx": 15,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        29
+      ],
+      "neighbours": [
+        27,
+        29
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 29,
+      "x": 560,
+      "y": 400,
+      "ix": 519,
+      "iy": 409,
+      "gx": 14,
+      "gy": 20,
+      "type": "walk",
+      "basePrice": 250,
+      "lotId": "74",
+      "next": [
+        30
+      ],
+      "neighbours": [
+        28,
+        30
+      ],
+      "buildingAnchor": {
+        "x": 520,
+        "y": 380,
+        "ix": 479,
+        "iy": 389,
+        "gx": 13,
+        "gy": 19,
+        "lotId": "74",
+        "basePrice": 250
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "74",
+          "basePrice": 250,
+          "x": 520,
+          "y": 380,
+          "ix": 479,
+          "iy": 389,
+          "gx": 13,
+          "gy": 19
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 30,
+      "x": 520,
+      "y": 420,
+      "ix": 479,
+      "iy": 429,
+      "gx": 13,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": 250,
+      "lotId": "73",
+      "next": [
+        31
+      ],
+      "neighbours": [
+        29,
+        31
+      ],
+      "buildingAnchor": {
+        "x": 480,
+        "y": 400,
+        "ix": 439,
+        "iy": 409,
+        "gx": 12,
+        "gy": 20,
+        "lotId": "73",
+        "basePrice": 250
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "73",
+          "basePrice": 250,
+          "x": 480,
+          "y": 400,
+          "ix": 439,
+          "iy": 409,
+          "gx": 12,
+          "gy": 20
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 31,
+      "x": 480,
+      "y": 440,
+      "ix": 439,
+      "iy": 449,
+      "gx": 12,
+      "gy": 22,
+      "type": "walk",
+      "basePrice": 250,
+      "lotId": "71",
+      "next": [
+        32
+      ],
+      "neighbours": [
+        30,
+        32
+      ],
+      "buildingAnchor": {
+        "x": 440,
+        "y": 420,
+        "ix": 399,
+        "iy": 429,
+        "gx": 11,
+        "gy": 21,
+        "lotId": "71",
+        "basePrice": 250
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "71",
+          "basePrice": 250,
+          "x": 440,
+          "y": 420,
+          "ix": 399,
+          "iy": 429,
+          "gx": 11,
+          "gy": 21
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 32,
+      "x": 440,
+      "y": 460,
+      "ix": 399,
+      "iy": 469,
+      "gx": 11,
+      "gy": 23,
+      "type": "walk",
+      "basePrice": 250,
+      "lotId": "70",
+      "next": [
+        33
+      ],
+      "neighbours": [
+        31,
+        33
+      ],
+      "buildingAnchor": {
+        "x": 400,
+        "y": 440,
+        "ix": 359,
+        "iy": 449,
+        "gx": 10,
+        "gy": 22,
+        "lotId": "70",
+        "basePrice": 250
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "70",
+          "basePrice": 250,
+          "x": 400,
+          "y": 440,
+          "ix": 359,
+          "iy": 449,
+          "gx": 10,
+          "gy": 22
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 33,
+      "x": 400,
+      "y": 480,
+      "ix": 359,
+      "iy": 489,
+      "gx": 10,
+      "gy": 24,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "69",
+      "next": [
+        34
+      ],
+      "neighbours": [
+        32,
+        34
+      ],
+      "buildingAnchor": {
+        "x": 440,
+        "y": 500,
+        "ix": 399,
+        "iy": 509,
+        "gx": 11,
+        "gy": 25,
+        "lotId": "69",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "69",
+          "basePrice": 150,
+          "x": 440,
+          "y": 500,
+          "ix": 399,
+          "iy": 509,
+          "gx": 11,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 34,
+      "x": 360,
+      "y": 500,
+      "ix": 319,
+      "iy": 509,
+      "gx": 9,
+      "gy": 25,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        35
+      ],
+      "neighbours": [
+        33,
+        35
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 35,
+      "x": 400,
+      "y": 520,
+      "ix": 359,
+      "iy": 529,
+      "gx": 10,
+      "gy": 26,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "69",
+      "next": [
+        36
+      ],
+      "neighbours": [
+        34,
+        36
+      ],
+      "buildingAnchor": {
+        "x": 440,
+        "y": 500,
+        "ix": 399,
+        "iy": 509,
+        "gx": 11,
+        "gy": 25,
+        "lotId": "69",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "69",
+          "basePrice": 150,
+          "x": 440,
+          "y": 500,
+          "ix": 399,
+          "iy": 509,
+          "gx": 11,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 36,
+      "x": 440,
+      "y": 540,
+      "ix": 399,
+      "iy": 549,
+      "gx": 11,
+      "gy": 27,
+      "type": "walk",
+      "basePrice": 90,
+      "lotId": "68",
+      "next": [
+        37
+      ],
+      "neighbours": [
+        35,
+        37
+      ],
+      "buildingAnchor": {
+        "x": 480,
+        "y": 520,
+        "ix": 439,
+        "iy": 529,
+        "gx": 12,
+        "gy": 26,
+        "lotId": "68",
+        "basePrice": 90
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "68",
+          "basePrice": 90,
+          "x": 480,
+          "y": 520,
+          "ix": 439,
+          "iy": 529,
+          "gx": 12,
+          "gy": 26
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 37,
+      "x": 480,
+      "y": 560,
+      "ix": 439,
+      "iy": 569,
+      "gx": 12,
+      "gy": 28,
+      "type": "walk",
+      "basePrice": 90,
+      "lotId": "67",
+      "next": [
+        38
+      ],
+      "neighbours": [
+        36,
+        38
+      ],
+      "buildingAnchor": {
+        "x": 520,
+        "y": 540,
+        "ix": 479,
+        "iy": 549,
+        "gx": 13,
+        "gy": 27,
+        "lotId": "67",
+        "basePrice": 90
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "67",
+          "basePrice": 90,
+          "x": 520,
+          "y": 540,
+          "ix": 479,
+          "iy": 549,
+          "gx": 13,
+          "gy": 27
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 38,
+      "x": 520,
+      "y": 580,
+      "ix": 479,
+      "iy": 589,
+      "gx": 13,
+      "gy": 29,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "66",
+      "next": [
+        39
+      ],
+      "neighbours": [
+        37,
+        39
+      ],
+      "buildingAnchor": {
+        "x": 560,
+        "y": 560,
+        "ix": 519,
+        "iy": 569,
+        "gx": 14,
+        "gy": 28,
+        "lotId": "66",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "66",
+          "basePrice": 100,
+          "x": 560,
+          "y": 560,
+          "ix": 519,
+          "iy": 569,
+          "gx": 14,
+          "gy": 28
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 39,
+      "x": 560,
+      "y": 600,
+      "ix": 519,
+      "iy": 609,
+      "gx": 14,
+      "gy": 30,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "65",
+      "next": [
+        40
+      ],
+      "neighbours": [
+        38,
+        40
+      ],
+      "buildingAnchor": {
+        "x": 600,
+        "y": 580,
+        "ix": 559,
+        "iy": 589,
+        "gx": 15,
+        "gy": 29,
+        "lotId": "65",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "65",
+          "basePrice": 100,
+          "x": 600,
+          "y": 580,
+          "ix": 559,
+          "iy": 589,
+          "gx": 15,
+          "gy": 29
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 40,
+      "x": 600,
+      "y": 620,
+      "ix": 559,
+      "iy": 629,
+      "gx": 15,
+      "gy": 31,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "64",
+      "next": [],
+      "neighbours": [
+        39,
+        85
+      ],
+      "buildingAnchor": {
+        "x": 640,
+        "y": 600,
+        "ix": 599,
+        "iy": 609,
+        "gx": 16,
+        "gy": 30,
+        "lotId": "64",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "64",
+          "basePrice": 150,
+          "x": 640,
+          "y": 600,
+          "ix": 599,
+          "iy": 609,
+          "gx": 16,
+          "gy": 30
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 41,
+      "x": 880,
+      "y": 560,
+      "ix": 839,
+      "iy": 569,
+      "gx": 22,
+      "gy": 28,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        42
+      ],
+      "neighbours": [
+        22,
+        42
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 42,
+      "x": 920,
+      "y": 580,
+      "ix": 879,
+      "iy": 589,
+      "gx": 23,
+      "gy": 29,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        43
+      ],
+      "neighbours": [
+        41,
+        43
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 43,
+      "x": 960,
+      "y": 600,
+      "ix": 919,
+      "iy": 609,
+      "gx": 24,
+      "gy": 30,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        44
+      ],
+      "neighbours": [
+        42,
+        44
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 44,
+      "x": 1000,
+      "y": 620,
+      "ix": 959,
+      "iy": 629,
+      "gx": 25,
+      "gy": 31,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        45
+      ],
+      "neighbours": [
+        43,
+        45
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 45,
+      "x": 1040,
+      "y": 640,
+      "ix": 999,
+      "iy": 649,
+      "gx": 26,
+      "gy": 32,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        46
+      ],
+      "neighbours": [
+        44,
+        46
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 46,
+      "x": 1000,
+      "y": 660,
+      "ix": 959,
+      "iy": 669,
+      "gx": 25,
+      "gy": 33,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        47
+      ],
+      "neighbours": [
+        45,
+        47
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 47,
+      "x": 1040,
+      "y": 680,
+      "ix": 999,
+      "iy": 689,
+      "gx": 26,
+      "gy": 34,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        48
+      ],
+      "neighbours": [
+        46,
+        48
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 48,
+      "x": 1080,
+      "y": 700,
+      "ix": 1039,
+      "iy": 709,
+      "gx": 27,
+      "gy": 35,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        49
+      ],
+      "neighbours": [
+        47,
+        49
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 49,
+      "x": 1120,
+      "y": 720,
+      "ix": 1079,
+      "iy": 729,
+      "gx": 28,
+      "gy": 36,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        50
+      ],
+      "neighbours": [
+        48,
+        50,
+        80
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 50,
+      "x": 1160,
+      "y": 740,
+      "ix": 1119,
+      "iy": 749,
+      "gx": 29,
+      "gy": 37,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        51
+      ],
+      "neighbours": [
+        49,
+        51
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 51,
+      "x": 1200,
+      "y": 760,
+      "ix": 1159,
+      "iy": 769,
+      "gx": 30,
+      "gy": 38,
+      "type": "bank",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        52
+      ],
+      "neighbours": [
+        50,
+        52,
+        64
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "welcome/start?",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 52,
+      "x": 1240,
+      "y": 740,
+      "ix": 1199,
+      "iy": 749,
+      "gx": 31,
+      "gy": 37,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        53
+      ],
+      "neighbours": [
+        51,
+        53
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 53,
+      "x": 1280,
+      "y": 720,
+      "ix": 1239,
+      "iy": 729,
+      "gx": 32,
+      "gy": 36,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        54
+      ],
+      "neighbours": [
+        52,
+        54
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 54,
+      "x": 1320,
+      "y": 700,
+      "ix": 1279,
+      "iy": 709,
+      "gx": 33,
+      "gy": 35,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        55
+      ],
+      "neighbours": [
+        53,
+        55
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 55,
+      "x": 1280,
+      "y": 680,
+      "ix": 1239,
+      "iy": 689,
+      "gx": 32,
+      "gy": 34,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        56
+      ],
+      "neighbours": [
+        54,
+        56
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 56,
+      "x": 1240,
+      "y": 660,
+      "ix": 1199,
+      "iy": 669,
+      "gx": 31,
+      "gy": 33,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        57
+      ],
+      "neighbours": [
+        55,
+        57
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 57,
+      "x": 1280,
+      "y": 640,
+      "ix": 1239,
+      "iy": 649,
+      "gx": 32,
+      "gy": 32,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        58
+      ],
+      "neighbours": [
+        56,
+        58
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 58,
+      "x": 1320,
+      "y": 620,
+      "ix": 1279,
+      "iy": 629,
+      "gx": 33,
+      "gy": 31,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        59
+      ],
+      "neighbours": [
+        57,
+        59
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 59,
+      "x": 1360,
+      "y": 600,
+      "ix": 1319,
+      "iy": 609,
+      "gx": 34,
+      "gy": 30,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        60
+      ],
+      "neighbours": [
+        58,
+        60
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 60,
+      "x": 1400,
+      "y": 580,
+      "ix": 1359,
+      "iy": 589,
+      "gx": 35,
+      "gy": 29,
+      "type": "walk",
+      "basePrice": 340,
+      "lotId": "75",
+      "next": [
+        61
+      ],
+      "neighbours": [
+        59,
+        61
+      ],
+      "buildingAnchor": {
+        "x": 1360,
+        "y": 560,
+        "ix": 1319,
+        "iy": 569,
+        "gx": 34,
+        "gy": 28,
+        "lotId": "75",
+        "basePrice": 340
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "75",
+          "basePrice": 340,
+          "x": 1360,
+          "y": 560,
+          "ix": 1319,
+          "iy": 569,
+          "gx": 34,
+          "gy": 28
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 61,
+      "x": 1440,
+      "y": 560,
+      "ix": 1399,
+      "iy": 569,
+      "gx": 36,
+      "gy": 28,
+      "type": "walk",
+      "basePrice": 340,
+      "lotId": "76",
+      "next": [
+        62
+      ],
+      "neighbours": [
+        60,
+        62
+      ],
+      "buildingAnchor": {
+        "x": 1400,
+        "y": 540,
+        "ix": 1359,
+        "iy": 549,
+        "gx": 35,
+        "gy": 27,
+        "lotId": "76",
+        "basePrice": 340
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "76",
+          "basePrice": 340,
+          "x": 1400,
+          "y": 540,
+          "ix": 1359,
+          "iy": 549,
+          "gx": 35,
+          "gy": 27
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 62,
+      "x": 1480,
+      "y": 540,
+      "ix": 1439,
+      "iy": 549,
+      "gx": 37,
+      "gy": 27,
+      "type": "walk",
+      "basePrice": 340,
+      "lotId": "77",
+      "next": [
+        63
+      ],
+      "neighbours": [
+        61,
+        63
+      ],
+      "buildingAnchor": {
+        "x": 1440,
+        "y": 520,
+        "ix": 1399,
+        "iy": 529,
+        "gx": 36,
+        "gy": 26,
+        "lotId": "77",
+        "basePrice": 340
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "77",
+          "basePrice": 340,
+          "x": 1440,
+          "y": 520,
+          "ix": 1399,
+          "iy": 529,
+          "gx": 36,
+          "gy": 26
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 63,
+      "x": 1520,
+      "y": 520,
+      "ix": 1479,
+      "iy": 529,
+      "gx": 38,
+      "gy": 26,
+      "type": "walk",
+      "basePrice": 380,
+      "lotId": "78",
+      "next": [],
+      "neighbours": [
+        62,
+        220
+      ],
+      "buildingAnchor": {
+        "x": 1480,
+        "y": 500,
+        "ix": 1439,
+        "iy": 509,
+        "gx": 37,
+        "gy": 25,
+        "lotId": "78",
+        "basePrice": 380
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "78",
+          "basePrice": 380,
+          "x": 1480,
+          "y": 500,
+          "ix": 1439,
+          "iy": 509,
+          "gx": 37,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 64,
+      "x": 1240,
+      "y": 780,
+      "ix": 1199,
+      "iy": 789,
+      "gx": 31,
+      "gy": 39,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        65
+      ],
+      "neighbours": [
+        51,
+        65
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 65,
+      "x": 1200,
+      "y": 800,
+      "ix": 1159,
+      "iy": 809,
+      "gx": 30,
+      "gy": 40,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        66
+      ],
+      "neighbours": [
+        64,
+        66
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 66,
+      "x": 1160,
+      "y": 820,
+      "ix": 1119,
+      "iy": 829,
+      "gx": 29,
+      "gy": 41,
+      "type": "bank",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        67
+      ],
+      "neighbours": [
+        65,
+        67
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "welcome/start?",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 67,
+      "x": 1120,
+      "y": 840,
+      "ix": 1079,
+      "iy": 849,
+      "gx": 28,
+      "gy": 42,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        68
+      ],
+      "neighbours": [
+        66,
+        68,
+        76
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 68,
+      "x": 1160,
+      "y": 860,
+      "ix": 1119,
+      "iy": 869,
+      "gx": 29,
+      "gy": 43,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        69
+      ],
+      "neighbours": [
+        67,
+        69
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 69,
+      "x": 1120,
+      "y": 880,
+      "ix": 1079,
+      "iy": 889,
+      "gx": 28,
+      "gy": 44,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        70
+      ],
+      "neighbours": [
+        68,
+        70
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 70,
+      "x": 1160,
+      "y": 900,
+      "ix": 1119,
+      "iy": 909,
+      "gx": 29,
+      "gy": 45,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        71
+      ],
+      "neighbours": [
+        69,
+        71
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 71,
+      "x": 1200,
+      "y": 920,
+      "ix": 1159,
+      "iy": 929,
+      "gx": 30,
+      "gy": 46,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        72
+      ],
+      "neighbours": [
+        70,
+        72
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 72,
+      "x": 1240,
+      "y": 940,
+      "ix": 1199,
+      "iy": 949,
+      "gx": 31,
+      "gy": 47,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        73
+      ],
+      "neighbours": [
+        71,
+        73
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 73,
+      "x": 1280,
+      "y": 960,
+      "ix": 1239,
+      "iy": 969,
+      "gx": 32,
+      "gy": 48,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        74
+      ],
+      "neighbours": [
+        72,
+        74
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 74,
+      "x": 1320,
+      "y": 980,
+      "ix": 1279,
+      "iy": 989,
+      "gx": 33,
+      "gy": 49,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        75
+      ],
+      "neighbours": [
+        73,
+        75
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 75,
+      "x": 1360,
+      "y": 1000,
+      "ix": 1319,
+      "iy": 1009,
+      "gx": 34,
+      "gy": 50,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "38",
+      "next": [],
+      "neighbours": [
+        74,
+        184
+      ],
+      "buildingAnchor": {
+        "x": 1320,
+        "y": 1020,
+        "ix": 1279,
+        "iy": 1029,
+        "gx": 33,
+        "gy": 51,
+        "lotId": "38",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "38",
+          "basePrice": 150,
+          "x": 1320,
+          "y": 1020,
+          "ix": 1279,
+          "iy": 1029,
+          "gx": 33,
+          "gy": 51
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 76,
+      "x": 1080,
+      "y": 820,
+      "ix": 1039,
+      "iy": 829,
+      "gx": 27,
+      "gy": 41,
+      "type": "bank",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        77
+      ],
+      "neighbours": [
+        67,
+        77
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "welcome/start?",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 77,
+      "x": 1040,
+      "y": 800,
+      "ix": 999,
+      "iy": 809,
+      "gx": 26,
+      "gy": 40,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        78
+      ],
+      "neighbours": [
+        76,
+        78
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 78,
+      "x": 1000,
+      "y": 780,
+      "ix": 959,
+      "iy": 789,
+      "gx": 25,
+      "gy": 39,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        79
+      ],
+      "neighbours": [
+        77,
+        79,
+        107
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 79,
+      "x": 1040,
+      "y": 760,
+      "ix": 999,
+      "iy": 769,
+      "gx": 26,
+      "gy": 38,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        80
+      ],
+      "neighbours": [
+        78,
+        80
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 80,
+      "x": 1080,
+      "y": 740,
+      "ix": 1039,
+      "iy": 749,
+      "gx": 27,
+      "gy": 37,
+      "type": "bank",
+      "basePrice": null,
+      "lotId": null,
+      "next": [],
+      "neighbours": [
+        49,
+        79
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "welcome/start?",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 81,
+      "x": 800,
+      "y": 560,
+      "ix": 759,
+      "iy": 569,
+      "gx": 20,
+      "gy": 28,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        82
+      ],
+      "neighbours": [
+        22,
+        82
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 82,
+      "x": 760,
+      "y": 580,
+      "ix": 719,
+      "iy": 589,
+      "gx": 19,
+      "gy": 29,
+      "type": "smallman",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        83
+      ],
+      "neighbours": [
+        81,
+        83
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "villain_hitting(打小人)",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 83,
+      "x": 720,
+      "y": 600,
+      "ix": 679,
+      "iy": 609,
+      "gx": 18,
+      "gy": 30,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        84
+      ],
+      "neighbours": [
+        82,
+        84
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 84,
+      "x": 680,
+      "y": 620,
+      "ix": 639,
+      "iy": 629,
+      "gx": 17,
+      "gy": 31,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "64",
+      "next": [
+        85
+      ],
+      "neighbours": [
+        83,
+        85
+      ],
+      "buildingAnchor": {
+        "x": 640,
+        "y": 600,
+        "ix": 599,
+        "iy": 609,
+        "gx": 16,
+        "gy": 30,
+        "lotId": "64",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "64",
+          "basePrice": 150,
+          "x": 640,
+          "y": 600,
+          "ix": 599,
+          "iy": 609,
+          "gx": 16,
+          "gy": 30
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 85,
+      "x": 640,
+      "y": 640,
+      "ix": 599,
+      "iy": 649,
+      "gx": 16,
+      "gy": 32,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        86
+      ],
+      "neighbours": [
+        40,
+        84,
+        86
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 86,
+      "x": 600,
+      "y": 660,
+      "ix": 559,
+      "iy": 669,
+      "gx": 15,
+      "gy": 33,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        87
+      ],
+      "neighbours": [
+        85,
+        87
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 87,
+      "x": 560,
+      "y": 680,
+      "ix": 519,
+      "iy": 689,
+      "gx": 14,
+      "gy": 34,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        88
+      ],
+      "neighbours": [
+        86,
+        88
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 88,
+      "x": 520,
+      "y": 700,
+      "ix": 479,
+      "iy": 709,
+      "gx": 13,
+      "gy": 35,
+      "type": "minigame",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        89
+      ],
+      "neighbours": [
+        87,
+        89
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "minigame",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 89,
+      "x": 480,
+      "y": 720,
+      "ix": 439,
+      "iy": 729,
+      "gx": 12,
+      "gy": 36,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        90
+      ],
+      "neighbours": [
+        88,
+        90
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 90,
+      "x": 440,
+      "y": 740,
+      "ix": 399,
+      "iy": 749,
+      "gx": 11,
+      "gy": 37,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        91
+      ],
+      "neighbours": [
+        89,
+        91
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 91,
+      "x": 400,
+      "y": 760,
+      "ix": 359,
+      "iy": 769,
+      "gx": 10,
+      "gy": 38,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        92
+      ],
+      "neighbours": [
+        90,
+        92
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 92,
+      "x": 360,
+      "y": 780,
+      "ix": 319,
+      "iy": 789,
+      "gx": 9,
+      "gy": 39,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        93
+      ],
+      "neighbours": [
+        91,
+        93
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 93,
+      "x": 400,
+      "y": 800,
+      "ix": 359,
+      "iy": 809,
+      "gx": 10,
+      "gy": 40,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        94
+      ],
+      "neighbours": [
+        92,
+        94
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 94,
+      "x": 440,
+      "y": 820,
+      "ix": 399,
+      "iy": 829,
+      "gx": 11,
+      "gy": 41,
+      "type": "jockey",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        95
+      ],
+      "neighbours": [
+        93,
+        95
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "jockey_club_lottery",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 95,
+      "x": 480,
+      "y": 840,
+      "ix": 439,
+      "iy": 849,
+      "gx": 12,
+      "gy": 42,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        96
+      ],
+      "neighbours": [
+        94,
+        96
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 96,
+      "x": 520,
+      "y": 860,
+      "ix": 479,
+      "iy": 869,
+      "gx": 13,
+      "gy": 43,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        97
+      ],
+      "neighbours": [
+        95,
+        97,
+        116
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 97,
+      "x": 560,
+      "y": 880,
+      "ix": 519,
+      "iy": 889,
+      "gx": 14,
+      "gy": 44,
+      "type": "walk",
+      "basePrice": 380,
+      "lotId": "61",
+      "next": [
+        98
+      ],
+      "neighbours": [
+        96,
+        98
+      ],
+      "buildingAnchor": {
+        "x": 520,
+        "y": 900,
+        "ix": 479,
+        "iy": 909,
+        "gx": 13,
+        "gy": 45,
+        "lotId": "61",
+        "basePrice": 380
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "61",
+          "basePrice": 380,
+          "x": 520,
+          "y": 900,
+          "ix": 479,
+          "iy": 909,
+          "gx": 13,
+          "gy": 45
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 98,
+      "x": 600,
+      "y": 900,
+      "ix": 559,
+      "iy": 909,
+      "gx": 15,
+      "gy": 45,
+      "type": "walk",
+      "basePrice": 320,
+      "lotId": "63",
+      "next": [
+        99
+      ],
+      "neighbours": [
+        97,
+        99
+      ],
+      "buildingAnchor": {
+        "x": 640,
+        "y": 880,
+        "ix": 599,
+        "iy": 889,
+        "gx": 16,
+        "gy": 44,
+        "lotId": "63",
+        "basePrice": 320
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "63",
+          "basePrice": 320,
+          "x": 640,
+          "y": 880,
+          "ix": 599,
+          "iy": 889,
+          "gx": 16,
+          "gy": 44
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 99,
+      "x": 640,
+      "y": 920,
+      "ix": 599,
+      "iy": 929,
+      "gx": 16,
+      "gy": 46,
+      "type": "walk",
+      "basePrice": 300,
+      "lotId": "62",
+      "next": [
+        100
+      ],
+      "neighbours": [
+        98,
+        100
+      ],
+      "buildingAnchor": {
+        "x": 680,
+        "y": 900,
+        "ix": 639,
+        "iy": 909,
+        "gx": 17,
+        "gy": 45,
+        "lotId": "62",
+        "basePrice": 300
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "62",
+          "basePrice": 300,
+          "x": 680,
+          "y": 900,
+          "ix": 639,
+          "iy": 909,
+          "gx": 17,
+          "gy": 45
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 100,
+      "x": 680,
+      "y": 940,
+      "ix": 639,
+      "iy": 949,
+      "gx": 17,
+      "gy": 47,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        101
+      ],
+      "neighbours": [
+        99,
+        101,
+        108
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 101,
+      "x": 720,
+      "y": 920,
+      "ix": 679,
+      "iy": 929,
+      "gx": 18,
+      "gy": 46,
+      "type": "walk",
+      "basePrice": 300,
+      "lotId": "62",
+      "next": [
+        102
+      ],
+      "neighbours": [
+        100,
+        102
+      ],
+      "buildingAnchor": {
+        "x": 680,
+        "y": 900,
+        "ix": 639,
+        "iy": 909,
+        "gx": 17,
+        "gy": 45,
+        "lotId": "62",
+        "basePrice": 300
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "62",
+          "basePrice": 300,
+          "x": 680,
+          "y": 900,
+          "ix": 639,
+          "iy": 909,
+          "gx": 17,
+          "gy": 45
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 102,
+      "x": 760,
+      "y": 900,
+      "ix": 719,
+      "iy": 909,
+      "gx": 19,
+      "gy": 45,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        103
+      ],
+      "neighbours": [
+        101,
+        103
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 103,
+      "x": 800,
+      "y": 880,
+      "ix": 759,
+      "iy": 889,
+      "gx": 20,
+      "gy": 44,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        104
+      ],
+      "neighbours": [
+        102,
+        104
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 104,
+      "x": 840,
+      "y": 860,
+      "ix": 799,
+      "iy": 869,
+      "gx": 21,
+      "gy": 43,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        105
+      ],
+      "neighbours": [
+        103,
+        105
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 105,
+      "x": 880,
+      "y": 840,
+      "ix": 839,
+      "iy": 849,
+      "gx": 22,
+      "gy": 42,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        106
+      ],
+      "neighbours": [
+        104,
+        106
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 106,
+      "x": 920,
+      "y": 820,
+      "ix": 879,
+      "iy": 829,
+      "gx": 23,
+      "gy": 41,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        107
+      ],
+      "neighbours": [
+        105,
+        107
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 107,
+      "x": 960,
+      "y": 800,
+      "ix": 919,
+      "iy": 809,
+      "gx": 24,
+      "gy": 40,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [],
+      "neighbours": [
+        78,
+        106
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "海石路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 108,
+      "x": 720,
+      "y": 960,
+      "ix": 679,
+      "iy": 969,
+      "gx": 18,
+      "gy": 48,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        109
+      ],
+      "neighbours": [
+        100,
+        109
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 109,
+      "x": 760,
+      "y": 980,
+      "ix": 719,
+      "iy": 989,
+      "gx": 19,
+      "gy": 49,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        110
+      ],
+      "neighbours": [
+        108,
+        110
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 110,
+      "x": 720,
+      "y": 1000,
+      "ix": 679,
+      "iy": 1009,
+      "gx": 18,
+      "gy": 50,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        111
+      ],
+      "neighbours": [
+        109,
+        111
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 111,
+      "x": 680,
+      "y": 1020,
+      "ix": 639,
+      "iy": 1029,
+      "gx": 17,
+      "gy": 51,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        112
+      ],
+      "neighbours": [
+        110,
+        112
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 112,
+      "x": 640,
+      "y": 1040,
+      "ix": 599,
+      "iy": 1049,
+      "gx": 16,
+      "gy": 52,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        113
+      ],
+      "neighbours": [
+        111,
+        113
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 113,
+      "x": 600,
+      "y": 1060,
+      "ix": 559,
+      "iy": 1069,
+      "gx": 15,
+      "gy": 53,
+      "type": "walk",
+      "basePrice": 250,
+      "lotId": "55",
+      "next": [
+        114
+      ],
+      "neighbours": [
+        112,
+        114
+      ],
+      "buildingAnchor": {
+        "x": 640,
+        "y": 1080,
+        "ix": 599,
+        "iy": 1089,
+        "gx": 16,
+        "gy": 54,
+        "lotId": "55",
+        "basePrice": 250
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "55",
+          "basePrice": 250,
+          "x": 640,
+          "y": 1080,
+          "ix": 599,
+          "iy": 1089,
+          "gx": 16,
+          "gy": 54
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 114,
+      "x": 560,
+      "y": 1080,
+      "ix": 519,
+      "iy": 1089,
+      "gx": 14,
+      "gy": 54,
+      "type": "walk",
+      "basePrice": 250,
+      "lotId": "54",
+      "next": [
+        115
+      ],
+      "neighbours": [
+        113,
+        115
+      ],
+      "buildingAnchor": {
+        "x": 600,
+        "y": 1100,
+        "ix": 559,
+        "iy": 1109,
+        "gx": 15,
+        "gy": 55,
+        "lotId": "54",
+        "basePrice": 250
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "54",
+          "basePrice": 250,
+          "x": 600,
+          "y": 1100,
+          "ix": 559,
+          "iy": 1109,
+          "gx": 15,
+          "gy": 55
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 115,
+      "x": 520,
+      "y": 1100,
+      "ix": 479,
+      "iy": 1109,
+      "gx": 13,
+      "gy": 55,
+      "type": "walk",
+      "basePrice": 280,
+      "lotId": "53",
+      "next": [],
+      "neighbours": [
+        114,
+        128
+      ],
+      "buildingAnchor": {
+        "x": 560,
+        "y": 1120,
+        "ix": 519,
+        "iy": 1129,
+        "gx": 14,
+        "gy": 56,
+        "lotId": "53",
+        "basePrice": 280
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "53",
+          "basePrice": 280,
+          "x": 560,
+          "y": 1120,
+          "ix": 519,
+          "iy": 1129,
+          "gx": 14,
+          "gy": 56
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 116,
+      "x": 480,
+      "y": 880,
+      "ix": 439,
+      "iy": 889,
+      "gx": 12,
+      "gy": 44,
+      "type": "walk",
+      "basePrice": 380,
+      "lotId": "61",
+      "next": [
+        117
+      ],
+      "neighbours": [
+        96,
+        117
+      ],
+      "buildingAnchor": {
+        "x": 520,
+        "y": 900,
+        "ix": 479,
+        "iy": 909,
+        "gx": 13,
+        "gy": 45,
+        "lotId": "61",
+        "basePrice": 380
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "61",
+          "basePrice": 380,
+          "x": 520,
+          "y": 900,
+          "ix": 479,
+          "iy": 909,
+          "gx": 13,
+          "gy": 45
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 117,
+      "x": 440,
+      "y": 900,
+      "ix": 399,
+      "iy": 909,
+      "gx": 11,
+      "gy": 45,
+      "type": "walk",
+      "basePrice": 360,
+      "lotId": "60",
+      "next": [
+        118
+      ],
+      "neighbours": [
+        116,
+        118
+      ],
+      "buildingAnchor": {
+        "x": 480,
+        "y": 920,
+        "ix": 439,
+        "iy": 929,
+        "gx": 12,
+        "gy": 46,
+        "lotId": "60",
+        "basePrice": 360
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "60",
+          "basePrice": 360,
+          "x": 480,
+          "y": 920,
+          "ix": 439,
+          "iy": 929,
+          "gx": 12,
+          "gy": 46
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 118,
+      "x": 400,
+      "y": 920,
+      "ix": 359,
+      "iy": 929,
+      "gx": 10,
+      "gy": 46,
+      "type": "walk",
+      "basePrice": 360,
+      "lotId": "59",
+      "next": [
+        119
+      ],
+      "neighbours": [
+        117,
+        119
+      ],
+      "buildingAnchor": {
+        "x": 440,
+        "y": 940,
+        "ix": 399,
+        "iy": 949,
+        "gx": 11,
+        "gy": 47,
+        "lotId": "59",
+        "basePrice": 360
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "59",
+          "basePrice": 360,
+          "x": 440,
+          "y": 940,
+          "ix": 399,
+          "iy": 949,
+          "gx": 11,
+          "gy": 47
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 119,
+      "x": 360,
+      "y": 940,
+      "ix": 319,
+      "iy": 949,
+      "gx": 9,
+      "gy": 47,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        120
+      ],
+      "neighbours": [
+        118,
+        120
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 120,
+      "x": 320,
+      "y": 960,
+      "ix": 279,
+      "iy": 969,
+      "gx": 8,
+      "gy": 48,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        121
+      ],
+      "neighbours": [
+        119,
+        121
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 121,
+      "x": 280,
+      "y": 980,
+      "ix": 239,
+      "iy": 989,
+      "gx": 7,
+      "gy": 49,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        122
+      ],
+      "neighbours": [
+        120,
+        122
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 122,
+      "x": 240,
+      "y": 1000,
+      "ix": 199,
+      "iy": 1009,
+      "gx": 6,
+      "gy": 50,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        123
+      ],
+      "neighbours": [
+        121,
+        123
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 123,
+      "x": 280,
+      "y": 1020,
+      "ix": 239,
+      "iy": 1029,
+      "gx": 7,
+      "gy": 51,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        124
+      ],
+      "neighbours": [
+        122,
+        124
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 124,
+      "x": 320,
+      "y": 1040,
+      "ix": 279,
+      "iy": 1049,
+      "gx": 8,
+      "gy": 52,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        125
+      ],
+      "neighbours": [
+        123,
+        125
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 125,
+      "x": 360,
+      "y": 1060,
+      "ix": 319,
+      "iy": 1069,
+      "gx": 9,
+      "gy": 53,
+      "type": "walk",
+      "basePrice": 350,
+      "lotId": "56",
+      "next": [
+        126
+      ],
+      "neighbours": [
+        124,
+        126
+      ],
+      "buildingAnchor": {
+        "x": 320,
+        "y": 1080,
+        "ix": 279,
+        "iy": 1089,
+        "gx": 8,
+        "gy": 54,
+        "lotId": "56",
+        "basePrice": 350
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "56",
+          "basePrice": 350,
+          "x": 320,
+          "y": 1080,
+          "ix": 279,
+          "iy": 1089,
+          "gx": 8,
+          "gy": 54
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 126,
+      "x": 400,
+      "y": 1080,
+      "ix": 359,
+      "iy": 1089,
+      "gx": 10,
+      "gy": 54,
+      "type": "walk",
+      "basePrice": 350,
+      "lotId": "57",
+      "next": [
+        127
+      ],
+      "neighbours": [
+        125,
+        127
+      ],
+      "buildingAnchor": {
+        "x": 360,
+        "y": 1100,
+        "ix": 319,
+        "iy": 1109,
+        "gx": 9,
+        "gy": 55,
+        "lotId": "57",
+        "basePrice": 350
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "57",
+          "basePrice": 350,
+          "x": 360,
+          "y": 1100,
+          "ix": 319,
+          "iy": 1109,
+          "gx": 9,
+          "gy": 55
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 127,
+      "x": 440,
+      "y": 1100,
+      "ix": 399,
+      "iy": 1109,
+      "gx": 11,
+      "gy": 55,
+      "type": "walk",
+      "basePrice": 350,
+      "lotId": "58",
+      "next": [
+        128
+      ],
+      "neighbours": [
+        126,
+        128
+      ],
+      "buildingAnchor": {
+        "x": 400,
+        "y": 1120,
+        "ix": 359,
+        "iy": 1129,
+        "gx": 10,
+        "gy": 56,
+        "lotId": "58",
+        "basePrice": 350
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "58",
+          "basePrice": 350,
+          "x": 400,
+          "y": 1120,
+          "ix": 359,
+          "iy": 1129,
+          "gx": 10,
+          "gy": 56
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 128,
+      "x": 480,
+      "y": 1120,
+      "ix": 439,
+      "iy": 1129,
+      "gx": 12,
+      "gy": 56,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        129
+      ],
+      "neighbours": [
+        115,
+        127,
+        129
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 129,
+      "x": 520,
+      "y": 1140,
+      "ix": 479,
+      "iy": 1149,
+      "gx": 13,
+      "gy": 57,
+      "type": "walk",
+      "basePrice": 280,
+      "lotId": "53",
+      "next": [
+        130
+      ],
+      "neighbours": [
+        128,
+        130
+      ],
+      "buildingAnchor": {
+        "x": 560,
+        "y": 1120,
+        "ix": 519,
+        "iy": 1129,
+        "gx": 14,
+        "gy": 56,
+        "lotId": "53",
+        "basePrice": 280
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "53",
+          "basePrice": 280,
+          "x": 560,
+          "y": 1120,
+          "ix": 519,
+          "iy": 1129,
+          "gx": 14,
+          "gy": 56
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 130,
+      "x": 560,
+      "y": 1160,
+      "ix": 519,
+      "iy": 1169,
+      "gx": 14,
+      "gy": 58,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        131
+      ],
+      "neighbours": [
+        129,
+        131
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 131,
+      "x": 600,
+      "y": 1180,
+      "ix": 559,
+      "iy": 1189,
+      "gx": 15,
+      "gy": 59,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        132
+      ],
+      "neighbours": [
+        130,
+        132
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 132,
+      "x": 640,
+      "y": 1200,
+      "ix": 599,
+      "iy": 1209,
+      "gx": 16,
+      "gy": 60,
+      "type": "tram",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        133
+      ],
+      "neighbours": [
+        131,
+        133
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "horse_cart_transport",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 133,
+      "x": 680,
+      "y": 1220,
+      "ix": 639,
+      "iy": 1229,
+      "gx": 17,
+      "gy": 61,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        134
+      ],
+      "neighbours": [
+        132,
+        134
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 134,
+      "x": 720,
+      "y": 1240,
+      "ix": 679,
+      "iy": 1249,
+      "gx": 18,
+      "gy": 62,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        135
+      ],
+      "neighbours": [
+        133,
+        135,
+        147
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 135,
+      "x": 760,
+      "y": 1220,
+      "ix": 719,
+      "iy": 1229,
+      "gx": 19,
+      "gy": 61,
+      "type": "walk",
+      "basePrice": 470,
+      "lotId": "48",
+      "next": [
+        136
+      ],
+      "neighbours": [
+        134,
+        136
+      ],
+      "buildingAnchor": {
+        "x": 800,
+        "y": 1240,
+        "ix": 759,
+        "iy": 1249,
+        "gx": 20,
+        "gy": 62,
+        "lotId": "48",
+        "basePrice": 470
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "48",
+          "basePrice": 470,
+          "x": 800,
+          "y": 1240,
+          "ix": 759,
+          "iy": 1249,
+          "gx": 20,
+          "gy": 62
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 136,
+      "x": 800,
+      "y": 1200,
+      "ix": 759,
+      "iy": 1209,
+      "gx": 20,
+      "gy": 60,
+      "type": "walk",
+      "basePrice": 450,
+      "lotId": "49",
+      "next": [
+        137
+      ],
+      "neighbours": [
+        135,
+        137
+      ],
+      "buildingAnchor": {
+        "x": 840,
+        "y": 1220,
+        "ix": 799,
+        "iy": 1229,
+        "gx": 21,
+        "gy": 61,
+        "lotId": "49",
+        "basePrice": 450
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "49",
+          "basePrice": 450,
+          "x": 840,
+          "y": 1220,
+          "ix": 799,
+          "iy": 1229,
+          "gx": 21,
+          "gy": 61
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 137,
+      "x": 840,
+      "y": 1180,
+      "ix": 799,
+      "iy": 1189,
+      "gx": 21,
+      "gy": 59,
+      "type": "walk",
+      "basePrice": 450,
+      "lotId": "50",
+      "next": [
+        138
+      ],
+      "neighbours": [
+        136,
+        138
+      ],
+      "buildingAnchor": {
+        "x": 880,
+        "y": 1200,
+        "ix": 839,
+        "iy": 1209,
+        "gx": 22,
+        "gy": 60,
+        "lotId": "50",
+        "basePrice": 450
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "50",
+          "basePrice": 450,
+          "x": 880,
+          "y": 1200,
+          "ix": 839,
+          "iy": 1209,
+          "gx": 22,
+          "gy": 60
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 138,
+      "x": 880,
+      "y": 1160,
+      "ix": 839,
+      "iy": 1169,
+      "gx": 22,
+      "gy": 58,
+      "type": "walk",
+      "basePrice": 450,
+      "lotId": "51",
+      "next": [
+        139
+      ],
+      "neighbours": [
+        137,
+        139
+      ],
+      "buildingAnchor": {
+        "x": 920,
+        "y": 1180,
+        "ix": 879,
+        "iy": 1189,
+        "gx": 23,
+        "gy": 59,
+        "lotId": "51",
+        "basePrice": 450
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "51",
+          "basePrice": 450,
+          "x": 920,
+          "y": 1180,
+          "ix": 879,
+          "iy": 1189,
+          "gx": 23,
+          "gy": 59
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 139,
+      "x": 920,
+      "y": 1140,
+      "ix": 879,
+      "iy": 1149,
+      "gx": 23,
+      "gy": 57,
+      "type": "walk",
+      "basePrice": 470,
+      "lotId": "52",
+      "next": [
+        140
+      ],
+      "neighbours": [
+        138,
+        140
+      ],
+      "buildingAnchor": {
+        "x": 960,
+        "y": 1160,
+        "ix": 919,
+        "iy": 1169,
+        "gx": 24,
+        "gy": 58,
+        "lotId": "52",
+        "basePrice": 470
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "52",
+          "basePrice": 470,
+          "x": 960,
+          "y": 1160,
+          "ix": 919,
+          "iy": 1169,
+          "gx": 24,
+          "gy": 58
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 140,
+      "x": 960,
+      "y": 1120,
+      "ix": 919,
+      "iy": 1129,
+      "gx": 24,
+      "gy": 56,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        141
+      ],
+      "neighbours": [
+        139,
+        141
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 141,
+      "x": 1000,
+      "y": 1140,
+      "ix": 959,
+      "iy": 1149,
+      "gx": 25,
+      "gy": 57,
+      "type": "walk",
+      "basePrice": 470,
+      "lotId": "52",
+      "next": [
+        142
+      ],
+      "neighbours": [
+        140,
+        142
+      ],
+      "buildingAnchor": {
+        "x": 960,
+        "y": 1160,
+        "ix": 919,
+        "iy": 1169,
+        "gx": 24,
+        "gy": 58,
+        "lotId": "52",
+        "basePrice": 470
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "52",
+          "basePrice": 470,
+          "x": 960,
+          "y": 1160,
+          "ix": 919,
+          "iy": 1169,
+          "gx": 24,
+          "gy": 58
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 142,
+      "x": 1040,
+      "y": 1160,
+      "ix": 999,
+      "iy": 1169,
+      "gx": 26,
+      "gy": 58,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "79",
+      "next": [
+        143
+      ],
+      "neighbours": [
+        141,
+        143
+      ],
+      "buildingAnchor": {
+        "x": 1080,
+        "y": 1140,
+        "ix": 1039,
+        "iy": 1149,
+        "gx": 27,
+        "gy": 57,
+        "lotId": "79",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "79",
+          "basePrice": 480,
+          "x": 1080,
+          "y": 1140,
+          "ix": 1039,
+          "iy": 1149,
+          "gx": 27,
+          "gy": 57
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 143,
+      "x": 1080,
+      "y": 1180,
+      "ix": 1039,
+      "iy": 1189,
+      "gx": 27,
+      "gy": 59,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "80",
+      "next": [
+        144
+      ],
+      "neighbours": [
+        142,
+        144
+      ],
+      "buildingAnchor": {
+        "x": 1120,
+        "y": 1160,
+        "ix": 1079,
+        "iy": 1169,
+        "gx": 28,
+        "gy": 58,
+        "lotId": "80",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "80",
+          "basePrice": 480,
+          "x": 1120,
+          "y": 1160,
+          "ix": 1079,
+          "iy": 1169,
+          "gx": 28,
+          "gy": 58
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 144,
+      "x": 1120,
+      "y": 1200,
+      "ix": 1079,
+      "iy": 1209,
+      "gx": 28,
+      "gy": 60,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "81",
+      "next": [
+        145
+      ],
+      "neighbours": [
+        143,
+        145
+      ],
+      "buildingAnchor": {
+        "x": 1160,
+        "y": 1180,
+        "ix": 1119,
+        "iy": 1189,
+        "gx": 29,
+        "gy": 59,
+        "lotId": "81",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "81",
+          "basePrice": 480,
+          "x": 1160,
+          "y": 1180,
+          "ix": 1119,
+          "iy": 1189,
+          "gx": 29,
+          "gy": 59
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 145,
+      "x": 1160,
+      "y": 1220,
+      "ix": 1119,
+      "iy": 1229,
+      "gx": 29,
+      "gy": 61,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "82",
+      "next": [
+        146
+      ],
+      "neighbours": [
+        144,
+        146
+      ],
+      "buildingAnchor": {
+        "x": 1200,
+        "y": 1200,
+        "ix": 1159,
+        "iy": 1209,
+        "gx": 30,
+        "gy": 60,
+        "lotId": "82",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "82",
+          "basePrice": 480,
+          "x": 1200,
+          "y": 1200,
+          "ix": 1159,
+          "iy": 1209,
+          "gx": 30,
+          "gy": 60
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 146,
+      "x": 1200,
+      "y": 1240,
+      "ix": 1159,
+      "iy": 1249,
+      "gx": 30,
+      "gy": 62,
+      "type": "walk",
+      "basePrice": 560,
+      "lotId": "43",
+      "next": [],
+      "neighbours": [
+        145,
+        159
+      ],
+      "buildingAnchor": {
+        "x": 1160,
+        "y": 1260,
+        "ix": 1119,
+        "iy": 1269,
+        "gx": 29,
+        "gy": 63,
+        "lotId": "43",
+        "basePrice": 560
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "43",
+          "basePrice": 560,
+          "x": 1160,
+          "y": 1260,
+          "ix": 1119,
+          "iy": 1269,
+          "gx": 29,
+          "gy": 63
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 147,
+      "x": 760,
+      "y": 1260,
+      "ix": 719,
+      "iy": 1269,
+      "gx": 19,
+      "gy": 63,
+      "type": "walk",
+      "basePrice": 470,
+      "lotId": "48",
+      "next": [
+        148
+      ],
+      "neighbours": [
+        134,
+        148
+      ],
+      "buildingAnchor": {
+        "x": 800,
+        "y": 1240,
+        "ix": 759,
+        "iy": 1249,
+        "gx": 20,
+        "gy": 62,
+        "lotId": "48",
+        "basePrice": 470
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "48",
+          "basePrice": 470,
+          "x": 800,
+          "y": 1240,
+          "ix": 759,
+          "iy": 1249,
+          "gx": 20,
+          "gy": 62
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 148,
+      "x": 800,
+      "y": 1280,
+      "ix": 759,
+      "iy": 1289,
+      "gx": 20,
+      "gy": 64,
+      "type": "walk",
+      "basePrice": 450,
+      "lotId": "44",
+      "next": [
+        149
+      ],
+      "neighbours": [
+        147,
+        149
+      ],
+      "buildingAnchor": {
+        "x": 760,
+        "y": 1300,
+        "ix": 719,
+        "iy": 1309,
+        "gx": 19,
+        "gy": 65,
+        "lotId": "44",
+        "basePrice": 450
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "44",
+          "basePrice": 450,
+          "x": 760,
+          "y": 1300,
+          "ix": 719,
+          "iy": 1309,
+          "gx": 19,
+          "gy": 65
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 149,
+      "x": 840,
+      "y": 1300,
+      "ix": 799,
+      "iy": 1309,
+      "gx": 21,
+      "gy": 65,
+      "type": "walk",
+      "basePrice": 450,
+      "lotId": "45",
+      "next": [
+        150
+      ],
+      "neighbours": [
+        148,
+        150
+      ],
+      "buildingAnchor": {
+        "x": 800,
+        "y": 1320,
+        "ix": 759,
+        "iy": 1329,
+        "gx": 20,
+        "gy": 66,
+        "lotId": "45",
+        "basePrice": 450
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "45",
+          "basePrice": 450,
+          "x": 800,
+          "y": 1320,
+          "ix": 759,
+          "iy": 1329,
+          "gx": 20,
+          "gy": 66
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 150,
+      "x": 880,
+      "y": 1320,
+      "ix": 839,
+      "iy": 1329,
+      "gx": 22,
+      "gy": 66,
+      "type": "walk",
+      "basePrice": 460,
+      "lotId": "46",
+      "next": [
+        151
+      ],
+      "neighbours": [
+        149,
+        151
+      ],
+      "buildingAnchor": {
+        "x": 840,
+        "y": 1340,
+        "ix": 799,
+        "iy": 1349,
+        "gx": 21,
+        "gy": 67,
+        "lotId": "46",
+        "basePrice": 460
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "46",
+          "basePrice": 460,
+          "x": 840,
+          "y": 1340,
+          "ix": 799,
+          "iy": 1349,
+          "gx": 21,
+          "gy": 67
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 151,
+      "x": 920,
+      "y": 1340,
+      "ix": 879,
+      "iy": 1349,
+      "gx": 23,
+      "gy": 67,
+      "type": "walk",
+      "basePrice": 460,
+      "lotId": "47",
+      "next": [
+        152
+      ],
+      "neighbours": [
+        150,
+        152
+      ],
+      "buildingAnchor": {
+        "x": 880,
+        "y": 1360,
+        "ix": 839,
+        "iy": 1369,
+        "gx": 22,
+        "gy": 68,
+        "lotId": "47",
+        "basePrice": 460
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "47",
+          "basePrice": 460,
+          "x": 880,
+          "y": 1360,
+          "ix": 839,
+          "iy": 1369,
+          "gx": 22,
+          "gy": 68
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 152,
+      "x": 960,
+      "y": 1360,
+      "ix": 919,
+      "iy": 1369,
+      "gx": 24,
+      "gy": 68,
+      "type": "walk",
+      "basePrice": 580,
+      "lotId": "39",
+      "next": [
+        153
+      ],
+      "neighbours": [
+        151,
+        153
+      ],
+      "buildingAnchor": {
+        "x": 1000,
+        "y": 1340,
+        "ix": 959,
+        "iy": 1349,
+        "gx": 25,
+        "gy": 67,
+        "lotId": "39",
+        "basePrice": 580
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "39",
+          "basePrice": 580,
+          "x": 1000,
+          "y": 1340,
+          "ix": 959,
+          "iy": 1349,
+          "gx": 25,
+          "gy": 67
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 153,
+      "x": 1000,
+      "y": 1380,
+      "ix": 959,
+      "iy": 1389,
+      "gx": 25,
+      "gy": 69,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        154
+      ],
+      "neighbours": [
+        152,
+        154
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 154,
+      "x": 1040,
+      "y": 1360,
+      "ix": 999,
+      "iy": 1369,
+      "gx": 26,
+      "gy": 68,
+      "type": "walk",
+      "basePrice": 580,
+      "lotId": "39",
+      "next": [
+        155
+      ],
+      "neighbours": [
+        153,
+        155
+      ],
+      "buildingAnchor": {
+        "x": 1000,
+        "y": 1340,
+        "ix": 959,
+        "iy": 1349,
+        "gx": 25,
+        "gy": 67,
+        "lotId": "39",
+        "basePrice": 580
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "39",
+          "basePrice": 580,
+          "x": 1000,
+          "y": 1340,
+          "ix": 959,
+          "iy": 1349,
+          "gx": 25,
+          "gy": 67
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 155,
+      "x": 1080,
+      "y": 1340,
+      "ix": 1039,
+      "iy": 1349,
+      "gx": 27,
+      "gy": 67,
+      "type": "walk",
+      "basePrice": 550,
+      "lotId": "40",
+      "next": [
+        156
+      ],
+      "neighbours": [
+        154,
+        156
+      ],
+      "buildingAnchor": {
+        "x": 1040,
+        "y": 1320,
+        "ix": 999,
+        "iy": 1329,
+        "gx": 26,
+        "gy": 66,
+        "lotId": "40",
+        "basePrice": 550
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "40",
+          "basePrice": 550,
+          "x": 1040,
+          "y": 1320,
+          "ix": 999,
+          "iy": 1329,
+          "gx": 26,
+          "gy": 66
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 156,
+      "x": 1120,
+      "y": 1320,
+      "ix": 1079,
+      "iy": 1329,
+      "gx": 28,
+      "gy": 66,
+      "type": "walk",
+      "basePrice": 550,
+      "lotId": "41",
+      "next": [
+        157
+      ],
+      "neighbours": [
+        155,
+        157
+      ],
+      "buildingAnchor": {
+        "x": 1080,
+        "y": 1300,
+        "ix": 1039,
+        "iy": 1309,
+        "gx": 27,
+        "gy": 65,
+        "lotId": "41",
+        "basePrice": 550
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "41",
+          "basePrice": 550,
+          "x": 1080,
+          "y": 1300,
+          "ix": 1039,
+          "iy": 1309,
+          "gx": 27,
+          "gy": 65
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 157,
+      "x": 1160,
+      "y": 1300,
+      "ix": 1119,
+      "iy": 1309,
+      "gx": 29,
+      "gy": 65,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "42",
+      "next": [
+        158
+      ],
+      "neighbours": [
+        156,
+        158
+      ],
+      "buildingAnchor": {
+        "x": 1120,
+        "y": 1280,
+        "ix": 1079,
+        "iy": 1289,
+        "gx": 28,
+        "gy": 64,
+        "lotId": "42",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "42",
+          "basePrice": 540,
+          "x": 1120,
+          "y": 1280,
+          "ix": 1079,
+          "iy": 1289,
+          "gx": 28,
+          "gy": 64
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 158,
+      "x": 1200,
+      "y": 1280,
+      "ix": 1159,
+      "iy": 1289,
+      "gx": 30,
+      "gy": 64,
+      "type": "walk",
+      "basePrice": 560,
+      "lotId": "43",
+      "next": [
+        159
+      ],
+      "neighbours": [
+        157,
+        159
+      ],
+      "buildingAnchor": {
+        "x": 1160,
+        "y": 1260,
+        "ix": 1119,
+        "iy": 1269,
+        "gx": 29,
+        "gy": 63,
+        "lotId": "43",
+        "basePrice": 560
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "43",
+          "basePrice": 560,
+          "x": 1160,
+          "y": 1260,
+          "ix": 1119,
+          "iy": 1269,
+          "gx": 29,
+          "gy": 63
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 159,
+      "x": 1240,
+      "y": 1260,
+      "ix": 1199,
+      "iy": 1269,
+      "gx": 31,
+      "gy": 63,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        160
+      ],
+      "neighbours": [
+        146,
+        158,
+        160,
+        173
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 160,
+      "x": 1280,
+      "y": 1280,
+      "ix": 1239,
+      "iy": 1289,
+      "gx": 32,
+      "gy": 64,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        161
+      ],
+      "neighbours": [
+        159,
+        161
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 161,
+      "x": 1320,
+      "y": 1300,
+      "ix": 1279,
+      "iy": 1309,
+      "gx": 33,
+      "gy": 65,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        162
+      ],
+      "neighbours": [
+        160,
+        162
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 162,
+      "x": 1360,
+      "y": 1320,
+      "ix": 1319,
+      "iy": 1329,
+      "gx": 34,
+      "gy": 66,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        163
+      ],
+      "neighbours": [
+        161,
+        163
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 163,
+      "x": 1400,
+      "y": 1340,
+      "ix": 1359,
+      "iy": 1349,
+      "gx": 35,
+      "gy": 67,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        164
+      ],
+      "neighbours": [
+        162,
+        164
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 164,
+      "x": 1440,
+      "y": 1360,
+      "ix": 1399,
+      "iy": 1369,
+      "gx": 36,
+      "gy": 68,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        165
+      ],
+      "neighbours": [
+        163,
+        165
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 165,
+      "x": 1480,
+      "y": 1340,
+      "ix": 1439,
+      "iy": 1349,
+      "gx": 37,
+      "gy": 67,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        166
+      ],
+      "neighbours": [
+        164,
+        166
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 166,
+      "x": 1520,
+      "y": 1320,
+      "ix": 1479,
+      "iy": 1329,
+      "gx": 38,
+      "gy": 66,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        167
+      ],
+      "neighbours": [
+        165,
+        167
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 167,
+      "x": 1560,
+      "y": 1300,
+      "ix": 1519,
+      "iy": 1309,
+      "gx": 39,
+      "gy": 65,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        168
+      ],
+      "neighbours": [
+        166,
+        168
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 168,
+      "x": 1600,
+      "y": 1280,
+      "ix": 1559,
+      "iy": 1289,
+      "gx": 40,
+      "gy": 64,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        169
+      ],
+      "neighbours": [
+        167,
+        169
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 169,
+      "x": 1560,
+      "y": 1260,
+      "ix": 1519,
+      "iy": 1269,
+      "gx": 39,
+      "gy": 63,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        170
+      ],
+      "neighbours": [
+        168,
+        170
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 170,
+      "x": 1520,
+      "y": 1240,
+      "ix": 1479,
+      "iy": 1249,
+      "gx": 38,
+      "gy": 62,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        171
+      ],
+      "neighbours": [
+        169,
+        171
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 171,
+      "x": 1480,
+      "y": 1220,
+      "ix": 1439,
+      "iy": 1229,
+      "gx": 37,
+      "gy": 61,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        172
+      ],
+      "neighbours": [
+        170,
+        172
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 172,
+      "x": 1440,
+      "y": 1200,
+      "ix": 1399,
+      "iy": 1209,
+      "gx": 36,
+      "gy": 60,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [],
+      "neighbours": [
+        171,
+        176
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 173,
+      "x": 1280,
+      "y": 1240,
+      "ix": 1239,
+      "iy": 1249,
+      "gx": 32,
+      "gy": 62,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        174
+      ],
+      "neighbours": [
+        159,
+        174
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 174,
+      "x": 1320,
+      "y": 1220,
+      "ix": 1279,
+      "iy": 1229,
+      "gx": 33,
+      "gy": 61,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        175
+      ],
+      "neighbours": [
+        173,
+        175
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 175,
+      "x": 1360,
+      "y": 1200,
+      "ix": 1319,
+      "iy": 1209,
+      "gx": 34,
+      "gy": 60,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        176
+      ],
+      "neighbours": [
+        174,
+        176
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 176,
+      "x": 1400,
+      "y": 1180,
+      "ix": 1359,
+      "iy": 1189,
+      "gx": 35,
+      "gy": 59,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        177
+      ],
+      "neighbours": [
+        172,
+        175,
+        177,
+        187
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 177,
+      "x": 1360,
+      "y": 1160,
+      "ix": 1319,
+      "iy": 1169,
+      "gx": 34,
+      "gy": 58,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "31",
+      "next": [
+        178
+      ],
+      "neighbours": [
+        176,
+        178
+      ],
+      "buildingAnchor": {
+        "x": 1400,
+        "y": 1140,
+        "ix": 1359,
+        "iy": 1149,
+        "gx": 35,
+        "gy": 57,
+        "lotId": "31",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "31",
+          "basePrice": 150,
+          "x": 1400,
+          "y": 1140,
+          "ix": 1359,
+          "iy": 1149,
+          "gx": 35,
+          "gy": 57
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 178,
+      "x": 1320,
+      "y": 1140,
+      "ix": 1279,
+      "iy": 1149,
+      "gx": 33,
+      "gy": 57,
+      "type": "minigame",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        179
+      ],
+      "neighbours": [
+        177,
+        179
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "minigame",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 179,
+      "x": 1280,
+      "y": 1120,
+      "ix": 1239,
+      "iy": 1129,
+      "gx": 32,
+      "gy": 56,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        180
+      ],
+      "neighbours": [
+        178,
+        180
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 180,
+      "x": 1240,
+      "y": 1100,
+      "ix": 1199,
+      "iy": 1109,
+      "gx": 31,
+      "gy": 55,
+      "type": "walk",
+      "basePrice": 90,
+      "lotId": "35",
+      "next": [
+        181
+      ],
+      "neighbours": [
+        179,
+        181
+      ],
+      "buildingAnchor": {
+        "x": 1200,
+        "y": 1080,
+        "ix": 1159,
+        "iy": 1089,
+        "gx": 30,
+        "gy": 54,
+        "lotId": "35",
+        "basePrice": 90
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "35",
+          "basePrice": 90,
+          "x": 1200,
+          "y": 1080,
+          "ix": 1159,
+          "iy": 1089,
+          "gx": 30,
+          "gy": 54
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 181,
+      "x": 1280,
+      "y": 1080,
+      "ix": 1239,
+      "iy": 1089,
+      "gx": 32,
+      "gy": 54,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "36",
+      "next": [
+        182
+      ],
+      "neighbours": [
+        180,
+        182
+      ],
+      "buildingAnchor": {
+        "x": 1240,
+        "y": 1060,
+        "ix": 1199,
+        "iy": 1069,
+        "gx": 31,
+        "gy": 53,
+        "lotId": "36",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "36",
+          "basePrice": 100,
+          "x": 1240,
+          "y": 1060,
+          "ix": 1199,
+          "iy": 1069,
+          "gx": 31,
+          "gy": 53
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 182,
+      "x": 1320,
+      "y": 1060,
+      "ix": 1279,
+      "iy": 1069,
+      "gx": 33,
+      "gy": 53,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "37",
+      "next": [
+        183
+      ],
+      "neighbours": [
+        181,
+        183
+      ],
+      "buildingAnchor": {
+        "x": 1280,
+        "y": 1040,
+        "ix": 1239,
+        "iy": 1049,
+        "gx": 32,
+        "gy": 52,
+        "lotId": "37",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "37",
+          "basePrice": 100,
+          "x": 1280,
+          "y": 1040,
+          "ix": 1239,
+          "iy": 1049,
+          "gx": 32,
+          "gy": 52
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 183,
+      "x": 1360,
+      "y": 1040,
+      "ix": 1319,
+      "iy": 1049,
+      "gx": 34,
+      "gy": 52,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "38",
+      "next": [
+        184
+      ],
+      "neighbours": [
+        182,
+        184
+      ],
+      "buildingAnchor": {
+        "x": 1320,
+        "y": 1020,
+        "ix": 1279,
+        "iy": 1029,
+        "gx": 33,
+        "gy": 51,
+        "lotId": "38",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "38",
+          "basePrice": 150,
+          "x": 1320,
+          "y": 1020,
+          "ix": 1279,
+          "iy": 1029,
+          "gx": 33,
+          "gy": 51
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 184,
+      "x": 1400,
+      "y": 1020,
+      "ix": 1359,
+      "iy": 1029,
+      "gx": 35,
+      "gy": 51,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        185
+      ],
+      "neighbours": [
+        75,
+        183,
+        185
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 185,
+      "x": 1440,
+      "y": 1000,
+      "ix": 1399,
+      "iy": 1009,
+      "gx": 36,
+      "gy": 50,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        186
+      ],
+      "neighbours": [
+        184,
+        186
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 186,
+      "x": 1480,
+      "y": 980,
+      "ix": 1439,
+      "iy": 989,
+      "gx": 37,
+      "gy": 49,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [],
+      "neighbours": [
+        185,
+        197
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 187,
+      "x": 1440,
+      "y": 1160,
+      "ix": 1399,
+      "iy": 1169,
+      "gx": 36,
+      "gy": 58,
+      "type": "walk",
+      "basePrice": 150,
+      "lotId": "31",
+      "next": [
+        188
+      ],
+      "neighbours": [
+        176,
+        188
+      ],
+      "buildingAnchor": {
+        "x": 1400,
+        "y": 1140,
+        "ix": 1359,
+        "iy": 1149,
+        "gx": 35,
+        "gy": 57,
+        "lotId": "31",
+        "basePrice": 150
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "31",
+          "basePrice": 150,
+          "x": 1400,
+          "y": 1140,
+          "ix": 1359,
+          "iy": 1149,
+          "gx": 35,
+          "gy": 57
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 188,
+      "x": 1480,
+      "y": 1140,
+      "ix": 1439,
+      "iy": 1149,
+      "gx": 37,
+      "gy": 57,
+      "type": "walk",
+      "basePrice": 110,
+      "lotId": "32",
+      "next": [
+        189
+      ],
+      "neighbours": [
+        187,
+        189
+      ],
+      "buildingAnchor": {
+        "x": 1440,
+        "y": 1120,
+        "ix": 1399,
+        "iy": 1129,
+        "gx": 36,
+        "gy": 56,
+        "lotId": "32",
+        "basePrice": 110
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "32",
+          "basePrice": 110,
+          "x": 1440,
+          "y": 1120,
+          "ix": 1399,
+          "iy": 1129,
+          "gx": 36,
+          "gy": 56
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 189,
+      "x": 1520,
+      "y": 1120,
+      "ix": 1479,
+      "iy": 1129,
+      "gx": 38,
+      "gy": 56,
+      "type": "walk",
+      "basePrice": 100,
+      "lotId": "33",
+      "next": [
+        190
+      ],
+      "neighbours": [
+        188,
+        190
+      ],
+      "buildingAnchor": {
+        "x": 1480,
+        "y": 1100,
+        "ix": 1439,
+        "iy": 1109,
+        "gx": 37,
+        "gy": 55,
+        "lotId": "33",
+        "basePrice": 100
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "33",
+          "basePrice": 100,
+          "x": 1480,
+          "y": 1100,
+          "ix": 1439,
+          "iy": 1109,
+          "gx": 37,
+          "gy": 55
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 190,
+      "x": 1560,
+      "y": 1100,
+      "ix": 1519,
+      "iy": 1109,
+      "gx": 39,
+      "gy": 55,
+      "type": "walk",
+      "basePrice": 90,
+      "lotId": "34",
+      "next": [
+        191
+      ],
+      "neighbours": [
+        189,
+        191
+      ],
+      "buildingAnchor": {
+        "x": 1520,
+        "y": 1080,
+        "ix": 1479,
+        "iy": 1089,
+        "gx": 38,
+        "gy": 54,
+        "lotId": "34",
+        "basePrice": 90
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "34",
+          "basePrice": 90,
+          "x": 1520,
+          "y": 1080,
+          "ix": 1479,
+          "iy": 1089,
+          "gx": 38,
+          "gy": 54
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 191,
+      "x": 1600,
+      "y": 1080,
+      "ix": 1559,
+      "iy": 1089,
+      "gx": 40,
+      "gy": 54,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        192
+      ],
+      "neighbours": [
+        190,
+        192
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 192,
+      "x": 1640,
+      "y": 1060,
+      "ix": 1599,
+      "iy": 1069,
+      "gx": 41,
+      "gy": 53,
+      "type": "smallman",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        193
+      ],
+      "neighbours": [
+        191,
+        193
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "villain_hitting(打小人)",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 193,
+      "x": 1680,
+      "y": 1040,
+      "ix": 1639,
+      "iy": 1049,
+      "gx": 42,
+      "gy": 52,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        194
+      ],
+      "neighbours": [
+        192,
+        194
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 194,
+      "x": 1640,
+      "y": 1020,
+      "ix": 1599,
+      "iy": 1029,
+      "gx": 41,
+      "gy": 51,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        195
+      ],
+      "neighbours": [
+        193,
+        195
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 195,
+      "x": 1600,
+      "y": 1000,
+      "ix": 1559,
+      "iy": 1009,
+      "gx": 40,
+      "gy": 50,
+      "type": "bank",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        196
+      ],
+      "neighbours": [
+        194,
+        196
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "welcome/start?",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 196,
+      "x": 1560,
+      "y": 980,
+      "ix": 1519,
+      "iy": 989,
+      "gx": 39,
+      "gy": 49,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        197
+      ],
+      "neighbours": [
+        195,
+        197
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 197,
+      "x": 1520,
+      "y": 960,
+      "ix": 1479,
+      "iy": 969,
+      "gx": 38,
+      "gy": 48,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        198
+      ],
+      "neighbours": [
+        186,
+        196,
+        198
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 198,
+      "x": 1560,
+      "y": 940,
+      "ix": 1519,
+      "iy": 949,
+      "gx": 39,
+      "gy": 47,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        199
+      ],
+      "neighbours": [
+        197,
+        199
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 199,
+      "x": 1600,
+      "y": 920,
+      "ix": 1559,
+      "iy": 929,
+      "gx": 40,
+      "gy": 46,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        200
+      ],
+      "neighbours": [
+        198,
+        200
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 200,
+      "x": 1640,
+      "y": 900,
+      "ix": 1599,
+      "iy": 909,
+      "gx": 41,
+      "gy": 45,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        201
+      ],
+      "neighbours": [
+        199,
+        201
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 201,
+      "x": 1680,
+      "y": 880,
+      "ix": 1639,
+      "iy": 889,
+      "gx": 42,
+      "gy": 44,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        202
+      ],
+      "neighbours": [
+        200,
+        202
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 202,
+      "x": 1720,
+      "y": 860,
+      "ix": 1679,
+      "iy": 869,
+      "gx": 43,
+      "gy": 43,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        203
+      ],
+      "neighbours": [
+        201,
+        203
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 203,
+      "x": 1760,
+      "y": 840,
+      "ix": 1719,
+      "iy": 849,
+      "gx": 44,
+      "gy": 42,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        204
+      ],
+      "neighbours": [
+        202,
+        204
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 204,
+      "x": 1800,
+      "y": 820,
+      "ix": 1759,
+      "iy": 829,
+      "gx": 45,
+      "gy": 41,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        205
+      ],
+      "neighbours": [
+        203,
+        205
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 205,
+      "x": 1840,
+      "y": 800,
+      "ix": 1799,
+      "iy": 809,
+      "gx": 46,
+      "gy": 40,
+      "type": "walk",
+      "basePrice": 380,
+      "lotId": "30",
+      "next": [
+        206
+      ],
+      "neighbours": [
+        204,
+        206
+      ],
+      "buildingAnchor": {
+        "x": 1800,
+        "y": 780,
+        "ix": 1759,
+        "iy": 789,
+        "gx": 45,
+        "gy": 39,
+        "lotId": "30",
+        "basePrice": 380
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "30",
+          "basePrice": 380,
+          "x": 1800,
+          "y": 780,
+          "ix": 1759,
+          "iy": 789,
+          "gx": 45,
+          "gy": 39
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 206,
+      "x": 1880,
+      "y": 780,
+      "ix": 1839,
+      "iy": 789,
+      "gx": 47,
+      "gy": 39,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        207
+      ],
+      "neighbours": [
+        205,
+        207
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 207,
+      "x": 1840,
+      "y": 760,
+      "ix": 1799,
+      "iy": 769,
+      "gx": 46,
+      "gy": 38,
+      "type": "walk",
+      "basePrice": 380,
+      "lotId": "30",
+      "next": [
+        208
+      ],
+      "neighbours": [
+        206,
+        208
+      ],
+      "buildingAnchor": {
+        "x": 1800,
+        "y": 780,
+        "ix": 1759,
+        "iy": 789,
+        "gx": 45,
+        "gy": 39,
+        "lotId": "30",
+        "basePrice": 380
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "30",
+          "basePrice": 380,
+          "x": 1800,
+          "y": 780,
+          "ix": 1759,
+          "iy": 789,
+          "gx": 45,
+          "gy": 39
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 208,
+      "x": 1800,
+      "y": 740,
+      "ix": 1759,
+      "iy": 749,
+      "gx": 45,
+      "gy": 37,
+      "type": "walk",
+      "basePrice": 350,
+      "lotId": "29",
+      "next": [
+        209
+      ],
+      "neighbours": [
+        207,
+        209
+      ],
+      "buildingAnchor": {
+        "x": 1760,
+        "y": 760,
+        "ix": 1719,
+        "iy": 769,
+        "gx": 44,
+        "gy": 38,
+        "lotId": "29",
+        "basePrice": 350
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "29",
+          "basePrice": 350,
+          "x": 1760,
+          "y": 760,
+          "ix": 1719,
+          "iy": 769,
+          "gx": 44,
+          "gy": 38
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 209,
+      "x": 1760,
+      "y": 720,
+      "ix": 1719,
+      "iy": 729,
+      "gx": 44,
+      "gy": 36,
+      "type": "walk",
+      "basePrice": 350,
+      "lotId": "28",
+      "next": [
+        210
+      ],
+      "neighbours": [
+        208,
+        210
+      ],
+      "buildingAnchor": {
+        "x": 1720,
+        "y": 740,
+        "ix": 1679,
+        "iy": 749,
+        "gx": 43,
+        "gy": 37,
+        "lotId": "28",
+        "basePrice": 350
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "28",
+          "basePrice": 350,
+          "x": 1720,
+          "y": 740,
+          "ix": 1679,
+          "iy": 749,
+          "gx": 43,
+          "gy": 37
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 210,
+      "x": 1720,
+      "y": 700,
+      "ix": 1679,
+      "iy": 709,
+      "gx": 43,
+      "gy": 35,
+      "type": "walk",
+      "basePrice": 350,
+      "lotId": "27",
+      "next": [
+        211
+      ],
+      "neighbours": [
+        209,
+        211
+      ],
+      "buildingAnchor": {
+        "x": 1680,
+        "y": 720,
+        "ix": 1639,
+        "iy": 729,
+        "gx": 42,
+        "gy": 36,
+        "lotId": "27",
+        "basePrice": 350
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "27",
+          "basePrice": 350,
+          "x": 1680,
+          "y": 720,
+          "ix": 1639,
+          "iy": 729,
+          "gx": 42,
+          "gy": 36
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 211,
+      "x": 1680,
+      "y": 680,
+      "ix": 1639,
+      "iy": 689,
+      "gx": 42,
+      "gy": 34,
+      "type": "minigame",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        212
+      ],
+      "neighbours": [
+        210,
+        212
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "minigame",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 212,
+      "x": 1640,
+      "y": 660,
+      "ix": 1599,
+      "iy": 669,
+      "gx": 41,
+      "gy": 33,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        213
+      ],
+      "neighbours": [
+        211,
+        213
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 213,
+      "x": 1600,
+      "y": 640,
+      "ix": 1559,
+      "iy": 649,
+      "gx": 40,
+      "gy": 32,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        214
+      ],
+      "neighbours": [
+        212,
+        214
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 214,
+      "x": 1640,
+      "y": 620,
+      "ix": 1599,
+      "iy": 629,
+      "gx": 41,
+      "gy": 31,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        215
+      ],
+      "neighbours": [
+        213,
+        215
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 215,
+      "x": 1680,
+      "y": 600,
+      "ix": 1639,
+      "iy": 609,
+      "gx": 42,
+      "gy": 30,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        216
+      ],
+      "neighbours": [
+        214,
+        216
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 216,
+      "x": 1720,
+      "y": 580,
+      "ix": 1679,
+      "iy": 589,
+      "gx": 43,
+      "gy": 29,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        217
+      ],
+      "neighbours": [
+        215,
+        217
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 217,
+      "x": 1680,
+      "y": 560,
+      "ix": 1639,
+      "iy": 569,
+      "gx": 42,
+      "gy": 28,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        218
+      ],
+      "neighbours": [
+        216,
+        218
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 218,
+      "x": 1640,
+      "y": 540,
+      "ix": 1599,
+      "iy": 549,
+      "gx": 41,
+      "gy": 27,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        219
+      ],
+      "neighbours": [
+        217,
+        219
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 219,
+      "x": 1600,
+      "y": 520,
+      "ix": 1559,
+      "iy": 529,
+      "gx": 40,
+      "gy": 26,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "24",
+      "next": [
+        220
+      ],
+      "neighbours": [
+        218,
+        220
+      ],
+      "buildingAnchor": {
+        "x": 1640,
+        "y": 500,
+        "ix": 1599,
+        "iy": 509,
+        "gx": 41,
+        "gy": 25,
+        "lotId": "24",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "24",
+          "basePrice": 540,
+          "x": 1640,
+          "y": 500,
+          "ix": 1599,
+          "iy": 509,
+          "gx": 41,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 220,
+      "x": 1560,
+      "y": 500,
+      "ix": 1519,
+      "iy": 509,
+      "gx": 39,
+      "gy": 25,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        221
+      ],
+      "neighbours": [
+        63,
+        219,
+        221,
+        250
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 221,
+      "x": 1520,
+      "y": 480,
+      "ix": 1479,
+      "iy": 489,
+      "gx": 38,
+      "gy": 24,
+      "type": "walk",
+      "basePrice": 380,
+      "lotId": "78",
+      "next": [
+        222
+      ],
+      "neighbours": [
+        220,
+        222
+      ],
+      "buildingAnchor": {
+        "x": 1480,
+        "y": 500,
+        "ix": 1439,
+        "iy": 509,
+        "gx": 37,
+        "gy": 25,
+        "lotId": "78",
+        "basePrice": 380
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "78",
+          "basePrice": 380,
+          "x": 1480,
+          "y": 500,
+          "ix": 1439,
+          "iy": 509,
+          "gx": 37,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 222,
+      "x": 1480,
+      "y": 460,
+      "ix": 1439,
+      "iy": 469,
+      "gx": 37,
+      "gy": 23,
+      "type": "money_des",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        223
+      ],
+      "neighbours": [
+        221,
+        223
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "lose_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 223,
+      "x": 1440,
+      "y": 440,
+      "ix": 1399,
+      "iy": 449,
+      "gx": 36,
+      "gy": 22,
+      "type": "jockey",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        224
+      ],
+      "neighbours": [
+        222,
+        224
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "jockey_club_lottery",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 224,
+      "x": 1400,
+      "y": 420,
+      "ix": 1359,
+      "iy": 429,
+      "gx": 35,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        225
+      ],
+      "neighbours": [
+        223,
+        225
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 225,
+      "x": 1360,
+      "y": 400,
+      "ix": 1319,
+      "iy": 409,
+      "gx": 34,
+      "gy": 20,
+      "type": "walk",
+      "basePrice": 500,
+      "lotId": "16",
+      "next": [
+        226
+      ],
+      "neighbours": [
+        224,
+        226,
+        231
+      ],
+      "buildingAnchor": {
+        "x": 1320,
+        "y": 380,
+        "ix": 1279,
+        "iy": 389,
+        "gx": 33,
+        "gy": 19,
+        "lotId": "16",
+        "basePrice": 500
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "16",
+          "basePrice": 500,
+          "x": 1320,
+          "y": 380,
+          "ix": 1279,
+          "iy": 389,
+          "gx": 33,
+          "gy": 19
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 226,
+      "x": 1320,
+      "y": 420,
+      "ix": 1279,
+      "iy": 429,
+      "gx": 33,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": 500,
+      "lotId": "15",
+      "next": [
+        227
+      ],
+      "neighbours": [
+        225,
+        227
+      ],
+      "buildingAnchor": {
+        "x": 1280,
+        "y": 400,
+        "ix": 1239,
+        "iy": 409,
+        "gx": 32,
+        "gy": 20,
+        "lotId": "15",
+        "basePrice": 500
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "15",
+          "basePrice": 500,
+          "x": 1280,
+          "y": 400,
+          "ix": 1239,
+          "iy": 409,
+          "gx": 32,
+          "gy": 20
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 227,
+      "x": 1280,
+      "y": 440,
+      "ix": 1239,
+      "iy": 449,
+      "gx": 32,
+      "gy": 22,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "14",
+      "next": [
+        228
+      ],
+      "neighbours": [
+        226,
+        228
+      ],
+      "buildingAnchor": {
+        "x": 1240,
+        "y": 420,
+        "ix": 1199,
+        "iy": 429,
+        "gx": 31,
+        "gy": 21,
+        "lotId": "14",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "14",
+          "basePrice": 540,
+          "x": 1240,
+          "y": 420,
+          "ix": 1199,
+          "iy": 429,
+          "gx": 31,
+          "gy": 21
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 228,
+      "x": 1240,
+      "y": 460,
+      "ix": 1199,
+      "iy": 469,
+      "gx": 31,
+      "gy": 23,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        229
+      ],
+      "neighbours": [
+        227,
+        229
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 229,
+      "x": 1200,
+      "y": 440,
+      "ix": 1159,
+      "iy": 449,
+      "gx": 30,
+      "gy": 22,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "14",
+      "next": [
+        230
+      ],
+      "neighbours": [
+        228,
+        230
+      ],
+      "buildingAnchor": {
+        "x": 1240,
+        "y": 420,
+        "ix": 1199,
+        "iy": 429,
+        "gx": 31,
+        "gy": 21,
+        "lotId": "14",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "14",
+          "basePrice": 540,
+          "x": 1240,
+          "y": 420,
+          "ix": 1199,
+          "iy": 429,
+          "gx": 31,
+          "gy": 21
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 230,
+      "x": 1160,
+      "y": 420,
+      "ix": 1119,
+      "iy": 429,
+      "gx": 29,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [],
+      "neighbours": [
+        15,
+        229
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 231,
+      "x": 1400,
+      "y": 380,
+      "ix": 1359,
+      "iy": 389,
+      "gx": 35,
+      "gy": 19,
+      "type": "walk",
+      "basePrice": 530,
+      "lotId": "17",
+      "next": [
+        232
+      ],
+      "neighbours": [
+        225,
+        232
+      ],
+      "buildingAnchor": {
+        "x": 1360,
+        "y": 360,
+        "ix": 1319,
+        "iy": 369,
+        "gx": 34,
+        "gy": 18,
+        "lotId": "17",
+        "basePrice": 530
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "17",
+          "basePrice": 530,
+          "x": 1360,
+          "y": 360,
+          "ix": 1319,
+          "iy": 369,
+          "gx": 34,
+          "gy": 18
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 232,
+      "x": 1440,
+      "y": 360,
+      "ix": 1399,
+      "iy": 369,
+      "gx": 36,
+      "gy": 18,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        233
+      ],
+      "neighbours": [
+        0,
+        231,
+        233
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 233,
+      "x": 1480,
+      "y": 340,
+      "ix": 1439,
+      "iy": 349,
+      "gx": 37,
+      "gy": 17,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        234
+      ],
+      "neighbours": [
+        232,
+        234
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 234,
+      "x": 1520,
+      "y": 320,
+      "ix": 1479,
+      "iy": 329,
+      "gx": 38,
+      "gy": 16,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        235
+      ],
+      "neighbours": [
+        233,
+        235
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 235,
+      "x": 1560,
+      "y": 300,
+      "ix": 1519,
+      "iy": 309,
+      "gx": 39,
+      "gy": 15,
+      "type": "walk",
+      "basePrice": 580,
+      "lotId": "18",
+      "next": [
+        236
+      ],
+      "neighbours": [
+        234,
+        236
+      ],
+      "buildingAnchor": {
+        "x": 1600,
+        "y": 320,
+        "ix": 1559,
+        "iy": 329,
+        "gx": 40,
+        "gy": 16,
+        "lotId": "18",
+        "basePrice": 580
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "18",
+          "basePrice": 580,
+          "x": 1600,
+          "y": 320,
+          "ix": 1559,
+          "iy": 329,
+          "gx": 40,
+          "gy": 16
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 236,
+      "x": 1600,
+      "y": 280,
+      "ix": 1559,
+      "iy": 289,
+      "gx": 40,
+      "gy": 14,
+      "type": "walk",
+      "basePrice": 580,
+      "lotId": "19",
+      "next": [
+        237
+      ],
+      "neighbours": [
+        235,
+        237
+      ],
+      "buildingAnchor": {
+        "x": 1640,
+        "y": 300,
+        "ix": 1599,
+        "iy": 309,
+        "gx": 41,
+        "gy": 15,
+        "lotId": "19",
+        "basePrice": 580
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "19",
+          "basePrice": 580,
+          "x": 1640,
+          "y": 300,
+          "ix": 1599,
+          "iy": 309,
+          "gx": 41,
+          "gy": 15
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 237,
+      "x": 1640,
+      "y": 260,
+      "ix": 1599,
+      "iy": 269,
+      "gx": 41,
+      "gy": 13,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "20",
+      "next": [
+        238
+      ],
+      "neighbours": [
+        236,
+        238
+      ],
+      "buildingAnchor": {
+        "x": 1680,
+        "y": 280,
+        "ix": 1639,
+        "iy": 289,
+        "gx": 42,
+        "gy": 14,
+        "lotId": "20",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "20",
+          "basePrice": 540,
+          "x": 1680,
+          "y": 280,
+          "ix": 1639,
+          "iy": 289,
+          "gx": 42,
+          "gy": 14
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 238,
+      "x": 1680,
+      "y": 240,
+      "ix": 1639,
+      "iy": 249,
+      "gx": 42,
+      "gy": 12,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        239
+      ],
+      "neighbours": [
+        237,
+        239
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 239,
+      "x": 1720,
+      "y": 260,
+      "ix": 1679,
+      "iy": 269,
+      "gx": 43,
+      "gy": 13,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "20",
+      "next": [
+        240
+      ],
+      "neighbours": [
+        238,
+        240
+      ],
+      "buildingAnchor": {
+        "x": 1680,
+        "y": 280,
+        "ix": 1639,
+        "iy": 289,
+        "gx": 42,
+        "gy": 14,
+        "lotId": "20",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "20",
+          "basePrice": 540,
+          "x": 1680,
+          "y": 280,
+          "ix": 1639,
+          "iy": 289,
+          "gx": 42,
+          "gy": 14
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 240,
+      "x": 1760,
+      "y": 280,
+      "ix": 1719,
+      "iy": 289,
+      "gx": 44,
+      "gy": 14,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "21",
+      "next": [
+        241
+      ],
+      "neighbours": [
+        239,
+        241
+      ],
+      "buildingAnchor": {
+        "x": 1720,
+        "y": 300,
+        "ix": 1679,
+        "iy": 309,
+        "gx": 43,
+        "gy": 15,
+        "lotId": "21",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "21",
+          "basePrice": 540,
+          "x": 1720,
+          "y": 300,
+          "ix": 1679,
+          "iy": 309,
+          "gx": 43,
+          "gy": 15
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 241,
+      "x": 1800,
+      "y": 300,
+      "ix": 1759,
+      "iy": 309,
+      "gx": 45,
+      "gy": 15,
+      "type": "walk",
+      "basePrice": 560,
+      "lotId": "23",
+      "next": [
+        242
+      ],
+      "neighbours": [
+        240,
+        242
+      ],
+      "buildingAnchor": {
+        "x": 1760,
+        "y": 320,
+        "ix": 1719,
+        "iy": 329,
+        "gx": 44,
+        "gy": 16,
+        "lotId": "23",
+        "basePrice": 560
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "23",
+          "basePrice": 560,
+          "x": 1760,
+          "y": 320,
+          "ix": 1719,
+          "iy": 329,
+          "gx": 44,
+          "gy": 16
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 242,
+      "x": 1840,
+      "y": 320,
+      "ix": 1799,
+      "iy": 329,
+      "gx": 46,
+      "gy": 16,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        243
+      ],
+      "neighbours": [
+        241,
+        243
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 243,
+      "x": 1880,
+      "y": 340,
+      "ix": 1839,
+      "iy": 349,
+      "gx": 47,
+      "gy": 17,
+      "type": "chance",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        244
+      ],
+      "neighbours": [
+        242,
+        244
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "chance",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 244,
+      "x": 1840,
+      "y": 360,
+      "ix": 1799,
+      "iy": 369,
+      "gx": 46,
+      "gy": 18,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        245
+      ],
+      "neighbours": [
+        243,
+        245
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 245,
+      "x": 1800,
+      "y": 380,
+      "ix": 1759,
+      "iy": 389,
+      "gx": 45,
+      "gy": 19,
+      "type": "money_add",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        246
+      ],
+      "neighbours": [
+        244,
+        246
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": "gain_money",
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 246,
+      "x": 1760,
+      "y": 400,
+      "ix": 1719,
+      "iy": 409,
+      "gx": 44,
+      "gy": 20,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        247
+      ],
+      "neighbours": [
+        245,
+        247
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 247,
+      "x": 1720,
+      "y": 420,
+      "ix": 1679,
+      "iy": 429,
+      "gx": 43,
+      "gy": 21,
+      "type": "walk",
+      "basePrice": null,
+      "lotId": null,
+      "next": [
+        248
+      ],
+      "neighbours": [
+        246,
+        248
+      ],
+      "buildingAnchor": null,
+      "buildingAnchors": [],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 248,
+      "x": 1680,
+      "y": 440,
+      "ix": 1639,
+      "iy": 449,
+      "gx": 42,
+      "gy": 22,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "26",
+      "next": [
+        249
+      ],
+      "neighbours": [
+        247,
+        249
+      ],
+      "buildingAnchor": {
+        "x": 1720,
+        "y": 460,
+        "ix": 1679,
+        "iy": 469,
+        "gx": 43,
+        "gy": 23,
+        "lotId": "26",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "26",
+          "basePrice": 480,
+          "x": 1720,
+          "y": 460,
+          "ix": 1679,
+          "iy": 469,
+          "gx": 43,
+          "gy": 23
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 249,
+      "x": 1640,
+      "y": 460,
+      "ix": 1599,
+      "iy": 469,
+      "gx": 41,
+      "gy": 23,
+      "type": "walk",
+      "basePrice": 480,
+      "lotId": "25",
+      "next": [
+        250
+      ],
+      "neighbours": [
+        248,
+        250
+      ],
+      "buildingAnchor": {
+        "x": 1680,
+        "y": 480,
+        "ix": 1639,
+        "iy": 489,
+        "gx": 42,
+        "gy": 24,
+        "lotId": "25",
+        "basePrice": 480
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "25",
+          "basePrice": 480,
+          "x": 1680,
+          "y": 480,
+          "ix": 1639,
+          "iy": 489,
+          "gx": 42,
+          "gy": 24
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    },
+    {
+      "id": 250,
+      "x": 1600,
+      "y": 480,
+      "ix": 1559,
+      "iy": 489,
+      "gx": 40,
+      "gy": 24,
+      "type": "walk",
+      "basePrice": 540,
+      "lotId": "24",
+      "next": [],
+      "neighbours": [
+        220,
+        249
+      ],
+      "buildingAnchor": {
+        "x": 1640,
+        "y": 500,
+        "ix": 1599,
+        "iy": 509,
+        "gx": 41,
+        "gy": 25,
+        "lotId": "24",
+        "basePrice": 540
+      },
+      "buildingAnchors": [
+        {
+          "lotId": "24",
+          "basePrice": 540,
+          "x": 1640,
+          "y": 500,
+          "ix": 1599,
+          "iy": 509,
+          "gx": 41,
+          "gy": 25
+        }
+      ],
+      "name": "古代行人路",
+      "event": null,
+      "confidence": "VERIFIED"
+    }
+  ],
+  "plots": [
+    {
+      "lotId": "12",
+      "basePrice": 180,
+      "gx": 27,
+      "gy": 11,
+      "x": 1080,
+      "y": 220,
+      "ix": 1039,
+      "iy": 229,
+      "adjacentWalk": [
+        {
+          "gx": 28,
+          "gy": 12
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "11",
+      "basePrice": 470,
+      "gx": 26,
+      "gy": 12,
+      "x": 1040,
+      "y": 240,
+      "ix": 999,
+      "iy": 249,
+      "adjacentWalk": [
+        {
+          "gx": 27,
+          "gy": 13
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "10",
+      "basePrice": 470,
+      "gx": 25,
+      "gy": 13,
+      "x": 1000,
+      "y": 260,
+      "ix": 959,
+      "iy": 269,
+      "adjacentWalk": [
+        {
+          "gx": 26,
+          "gy": 14
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "9",
+      "basePrice": 480,
+      "gx": 24,
+      "gy": 14,
+      "x": 960,
+      "y": 280,
+      "ix": 919,
+      "iy": 289,
+      "adjacentWalk": [
+        {
+          "gx": 25,
+          "gy": 15
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "20",
+      "basePrice": 540,
+      "gx": 42,
+      "gy": 14,
+      "x": 1680,
+      "y": 280,
+      "ix": 1639,
+      "iy": 289,
+      "adjacentWalk": [
+        {
+          "gx": 41,
+          "gy": 13
+        },
+        {
+          "gx": 43,
+          "gy": 13
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "19",
+      "basePrice": 580,
+      "gx": 41,
+      "gy": 15,
+      "x": 1640,
+      "y": 300,
+      "ix": 1599,
+      "iy": 309,
+      "adjacentWalk": [
+        {
+          "gx": 40,
+          "gy": 14
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "21",
+      "basePrice": 540,
+      "gx": 43,
+      "gy": 15,
+      "x": 1720,
+      "y": 300,
+      "ix": 1679,
+      "iy": 309,
+      "adjacentWalk": [
+        {
+          "gx": 44,
+          "gy": 14
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "18",
+      "basePrice": 580,
+      "gx": 40,
+      "gy": 16,
+      "x": 1600,
+      "y": 320,
+      "ix": 1559,
+      "iy": 329,
+      "adjacentWalk": [
+        {
+          "gx": 39,
+          "gy": 15
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "23",
+      "basePrice": 560,
+      "gx": 44,
+      "gy": 16,
+      "x": 1760,
+      "y": 320,
+      "ix": 1719,
+      "iy": 329,
+      "adjacentWalk": [
+        {
+          "gx": 45,
+          "gy": 15
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "5",
+      "basePrice": 500,
+      "gx": 24,
+      "gy": 18,
+      "x": 960,
+      "y": 360,
+      "ix": 919,
+      "iy": 369,
+      "adjacentWalk": [
+        {
+          "gx": 25,
+          "gy": 17
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "17",
+      "basePrice": 530,
+      "gx": 34,
+      "gy": 18,
+      "x": 1360,
+      "y": 360,
+      "ix": 1319,
+      "iy": 369,
+      "adjacentWalk": [
+        {
+          "gx": 35,
+          "gy": 17
+        },
+        {
+          "gx": 35,
+          "gy": 19
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "74",
+      "basePrice": 250,
+      "gx": 13,
+      "gy": 19,
+      "x": 520,
+      "y": 380,
+      "ix": 479,
+      "iy": 389,
+      "adjacentWalk": [
+        {
+          "gx": 14,
+          "gy": 20
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "6",
+      "basePrice": 500,
+      "gx": 25,
+      "gy": 19,
+      "x": 1000,
+      "y": 380,
+      "ix": 959,
+      "iy": 389,
+      "adjacentWalk": [
+        {
+          "gx": 26,
+          "gy": 18
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "16",
+      "basePrice": 500,
+      "gx": 33,
+      "gy": 19,
+      "x": 1320,
+      "y": 380,
+      "ix": 1279,
+      "iy": 389,
+      "adjacentWalk": [
+        {
+          "gx": 34,
+          "gy": 20
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "73",
+      "basePrice": 250,
+      "gx": 12,
+      "gy": 20,
+      "x": 480,
+      "y": 400,
+      "ix": 439,
+      "iy": 409,
+      "adjacentWalk": [
+        {
+          "gx": 13,
+          "gy": 21
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "7",
+      "basePrice": 520,
+      "gx": 26,
+      "gy": 20,
+      "x": 1040,
+      "y": 400,
+      "ix": 999,
+      "iy": 409,
+      "adjacentWalk": [
+        {
+          "gx": 27,
+          "gy": 19
+        },
+        {
+          "gx": 27,
+          "gy": 21
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "15",
+      "basePrice": 500,
+      "gx": 32,
+      "gy": 20,
+      "x": 1280,
+      "y": 400,
+      "ix": 1239,
+      "iy": 409,
+      "adjacentWalk": [
+        {
+          "gx": 33,
+          "gy": 21
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "71",
+      "basePrice": 250,
+      "gx": 11,
+      "gy": 21,
+      "x": 440,
+      "y": 420,
+      "ix": 399,
+      "iy": 429,
+      "adjacentWalk": [
+        {
+          "gx": 12,
+          "gy": 22
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "14",
+      "basePrice": 540,
+      "gx": 31,
+      "gy": 21,
+      "x": 1240,
+      "y": 420,
+      "ix": 1199,
+      "iy": 429,
+      "adjacentWalk": [
+        {
+          "gx": 30,
+          "gy": 22
+        },
+        {
+          "gx": 32,
+          "gy": 22
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "70",
+      "basePrice": 250,
+      "gx": 10,
+      "gy": 22,
+      "x": 400,
+      "y": 440,
+      "ix": 359,
+      "iy": 449,
+      "adjacentWalk": [
+        {
+          "gx": 11,
+          "gy": 23
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "1",
+      "basePrice": 100,
+      "gx": 18,
+      "gy": 22,
+      "x": 720,
+      "y": 440,
+      "ix": 679,
+      "iy": 449,
+      "adjacentWalk": [
+        {
+          "gx": 17,
+          "gy": 23
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "2",
+      "basePrice": 100,
+      "gx": 19,
+      "gy": 23,
+      "x": 760,
+      "y": 460,
+      "ix": 719,
+      "iy": 469,
+      "adjacentWalk": [
+        {
+          "gx": 18,
+          "gy": 24
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "26",
+      "basePrice": 480,
+      "gx": 43,
+      "gy": 23,
+      "x": 1720,
+      "y": 460,
+      "ix": 1679,
+      "iy": 469,
+      "adjacentWalk": [
+        {
+          "gx": 42,
+          "gy": 22
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "3",
+      "basePrice": 100,
+      "gx": 20,
+      "gy": 24,
+      "x": 800,
+      "y": 480,
+      "ix": 759,
+      "iy": 489,
+      "adjacentWalk": [
+        {
+          "gx": 19,
+          "gy": 25
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "25",
+      "basePrice": 480,
+      "gx": 42,
+      "gy": 24,
+      "x": 1680,
+      "y": 480,
+      "ix": 1639,
+      "iy": 489,
+      "adjacentWalk": [
+        {
+          "gx": 41,
+          "gy": 23
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "69",
+      "basePrice": 150,
+      "gx": 11,
+      "gy": 25,
+      "x": 440,
+      "y": 500,
+      "ix": 399,
+      "iy": 509,
+      "adjacentWalk": [
+        {
+          "gx": 10,
+          "gy": 24
+        },
+        {
+          "gx": 10,
+          "gy": 26
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "4",
+      "basePrice": 120,
+      "gx": 21,
+      "gy": 25,
+      "x": 840,
+      "y": 500,
+      "ix": 799,
+      "iy": 509,
+      "adjacentWalk": [
+        {
+          "gx": 20,
+          "gy": 26
+        },
+        {
+          "gx": 22,
+          "gy": 26
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "78",
+      "basePrice": 380,
+      "gx": 37,
+      "gy": 25,
+      "x": 1480,
+      "y": 500,
+      "ix": 1439,
+      "iy": 509,
+      "adjacentWalk": [
+        {
+          "gx": 38,
+          "gy": 24
+        },
+        {
+          "gx": 38,
+          "gy": 26
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "24",
+      "basePrice": 540,
+      "gx": 41,
+      "gy": 25,
+      "x": 1640,
+      "y": 500,
+      "ix": 1599,
+      "iy": 509,
+      "adjacentWalk": [
+        {
+          "gx": 40,
+          "gy": 24
+        },
+        {
+          "gx": 40,
+          "gy": 26
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "68",
+      "basePrice": 90,
+      "gx": 12,
+      "gy": 26,
+      "x": 480,
+      "y": 520,
+      "ix": 439,
+      "iy": 529,
+      "adjacentWalk": [
+        {
+          "gx": 11,
+          "gy": 27
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "77",
+      "basePrice": 340,
+      "gx": 36,
+      "gy": 26,
+      "x": 1440,
+      "y": 520,
+      "ix": 1399,
+      "iy": 529,
+      "adjacentWalk": [
+        {
+          "gx": 37,
+          "gy": 27
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "67",
+      "basePrice": 90,
+      "gx": 13,
+      "gy": 27,
+      "x": 520,
+      "y": 540,
+      "ix": 479,
+      "iy": 549,
+      "adjacentWalk": [
+        {
+          "gx": 12,
+          "gy": 28
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "76",
+      "basePrice": 340,
+      "gx": 35,
+      "gy": 27,
+      "x": 1400,
+      "y": 540,
+      "ix": 1359,
+      "iy": 549,
+      "adjacentWalk": [
+        {
+          "gx": 36,
+          "gy": 28
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "66",
+      "basePrice": 100,
+      "gx": 14,
+      "gy": 28,
+      "x": 560,
+      "y": 560,
+      "ix": 519,
+      "iy": 569,
+      "adjacentWalk": [
+        {
+          "gx": 13,
+          "gy": 29
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "75",
+      "basePrice": 340,
+      "gx": 34,
+      "gy": 28,
+      "x": 1360,
+      "y": 560,
+      "ix": 1319,
+      "iy": 569,
+      "adjacentWalk": [
+        {
+          "gx": 35,
+          "gy": 29
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "65",
+      "basePrice": 100,
+      "gx": 15,
+      "gy": 29,
+      "x": 600,
+      "y": 580,
+      "ix": 559,
+      "iy": 589,
+      "adjacentWalk": [
+        {
+          "gx": 14,
+          "gy": 30
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "64",
+      "basePrice": 150,
+      "gx": 16,
+      "gy": 30,
+      "x": 640,
+      "y": 600,
+      "ix": 599,
+      "iy": 609,
+      "adjacentWalk": [
+        {
+          "gx": 15,
+          "gy": 31
+        },
+        {
+          "gx": 17,
+          "gy": 31
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "27",
+      "basePrice": 350,
+      "gx": 42,
+      "gy": 36,
+      "x": 1680,
+      "y": 720,
+      "ix": 1639,
+      "iy": 729,
+      "adjacentWalk": [
+        {
+          "gx": 43,
+          "gy": 35
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "28",
+      "basePrice": 350,
+      "gx": 43,
+      "gy": 37,
+      "x": 1720,
+      "y": 740,
+      "ix": 1679,
+      "iy": 749,
+      "adjacentWalk": [
+        {
+          "gx": 44,
+          "gy": 36
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "29",
+      "basePrice": 350,
+      "gx": 44,
+      "gy": 38,
+      "x": 1760,
+      "y": 760,
+      "ix": 1719,
+      "iy": 769,
+      "adjacentWalk": [
+        {
+          "gx": 45,
+          "gy": 37
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "30",
+      "basePrice": 380,
+      "gx": 45,
+      "gy": 39,
+      "x": 1800,
+      "y": 780,
+      "ix": 1759,
+      "iy": 789,
+      "adjacentWalk": [
+        {
+          "gx": 46,
+          "gy": 38
+        },
+        {
+          "gx": 46,
+          "gy": 40
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "63",
+      "basePrice": 320,
+      "gx": 16,
+      "gy": 44,
+      "x": 640,
+      "y": 880,
+      "ix": 599,
+      "iy": 889,
+      "adjacentWalk": [
+        {
+          "gx": 15,
+          "gy": 45
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "61",
+      "basePrice": 380,
+      "gx": 13,
+      "gy": 45,
+      "x": 520,
+      "y": 900,
+      "ix": 479,
+      "iy": 909,
+      "adjacentWalk": [
+        {
+          "gx": 12,
+          "gy": 44
+        },
+        {
+          "gx": 14,
+          "gy": 44
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "62",
+      "basePrice": 300,
+      "gx": 17,
+      "gy": 45,
+      "x": 680,
+      "y": 900,
+      "ix": 639,
+      "iy": 909,
+      "adjacentWalk": [
+        {
+          "gx": 16,
+          "gy": 46
+        },
+        {
+          "gx": 18,
+          "gy": 46
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "60",
+      "basePrice": 360,
+      "gx": 12,
+      "gy": 46,
+      "x": 480,
+      "y": 920,
+      "ix": 439,
+      "iy": 929,
+      "adjacentWalk": [
+        {
+          "gx": 11,
+          "gy": 45
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "59",
+      "basePrice": 360,
+      "gx": 11,
+      "gy": 47,
+      "x": 440,
+      "y": 940,
+      "ix": 399,
+      "iy": 949,
+      "adjacentWalk": [
+        {
+          "gx": 10,
+          "gy": 46
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "38",
+      "basePrice": 150,
+      "gx": 33,
+      "gy": 51,
+      "x": 1320,
+      "y": 1020,
+      "ix": 1279,
+      "iy": 1029,
+      "adjacentWalk": [
+        {
+          "gx": 34,
+          "gy": 50
+        },
+        {
+          "gx": 34,
+          "gy": 52
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "37",
+      "basePrice": 100,
+      "gx": 32,
+      "gy": 52,
+      "x": 1280,
+      "y": 1040,
+      "ix": 1239,
+      "iy": 1049,
+      "adjacentWalk": [
+        {
+          "gx": 33,
+          "gy": 53
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "36",
+      "basePrice": 100,
+      "gx": 31,
+      "gy": 53,
+      "x": 1240,
+      "y": 1060,
+      "ix": 1199,
+      "iy": 1069,
+      "adjacentWalk": [
+        {
+          "gx": 32,
+          "gy": 54
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "56",
+      "basePrice": 350,
+      "gx": 8,
+      "gy": 54,
+      "x": 320,
+      "y": 1080,
+      "ix": 279,
+      "iy": 1089,
+      "adjacentWalk": [
+        {
+          "gx": 9,
+          "gy": 53
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "55",
+      "basePrice": 250,
+      "gx": 16,
+      "gy": 54,
+      "x": 640,
+      "y": 1080,
+      "ix": 599,
+      "iy": 1089,
+      "adjacentWalk": [
+        {
+          "gx": 15,
+          "gy": 53
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "35",
+      "basePrice": 90,
+      "gx": 30,
+      "gy": 54,
+      "x": 1200,
+      "y": 1080,
+      "ix": 1159,
+      "iy": 1089,
+      "adjacentWalk": [
+        {
+          "gx": 31,
+          "gy": 55
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "34",
+      "basePrice": 90,
+      "gx": 38,
+      "gy": 54,
+      "x": 1520,
+      "y": 1080,
+      "ix": 1479,
+      "iy": 1089,
+      "adjacentWalk": [
+        {
+          "gx": 39,
+          "gy": 55
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "57",
+      "basePrice": 350,
+      "gx": 9,
+      "gy": 55,
+      "x": 360,
+      "y": 1100,
+      "ix": 319,
+      "iy": 1109,
+      "adjacentWalk": [
+        {
+          "gx": 10,
+          "gy": 54
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "54",
+      "basePrice": 250,
+      "gx": 15,
+      "gy": 55,
+      "x": 600,
+      "y": 1100,
+      "ix": 559,
+      "iy": 1109,
+      "adjacentWalk": [
+        {
+          "gx": 14,
+          "gy": 54
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "33",
+      "basePrice": 100,
+      "gx": 37,
+      "gy": 55,
+      "x": 1480,
+      "y": 1100,
+      "ix": 1439,
+      "iy": 1109,
+      "adjacentWalk": [
+        {
+          "gx": 38,
+          "gy": 56
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "58",
+      "basePrice": 350,
+      "gx": 10,
+      "gy": 56,
+      "x": 400,
+      "y": 1120,
+      "ix": 359,
+      "iy": 1129,
+      "adjacentWalk": [
+        {
+          "gx": 11,
+          "gy": 55
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "53",
+      "basePrice": 280,
+      "gx": 14,
+      "gy": 56,
+      "x": 560,
+      "y": 1120,
+      "ix": 519,
+      "iy": 1129,
+      "adjacentWalk": [
+        {
+          "gx": 13,
+          "gy": 55
+        },
+        {
+          "gx": 13,
+          "gy": 57
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "32",
+      "basePrice": 110,
+      "gx": 36,
+      "gy": 56,
+      "x": 1440,
+      "y": 1120,
+      "ix": 1399,
+      "iy": 1129,
+      "adjacentWalk": [
+        {
+          "gx": 37,
+          "gy": 57
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "79",
+      "basePrice": 480,
+      "gx": 27,
+      "gy": 57,
+      "x": 1080,
+      "y": 1140,
+      "ix": 1039,
+      "iy": 1149,
+      "adjacentWalk": [
+        {
+          "gx": 26,
+          "gy": 58
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "31",
+      "basePrice": 150,
+      "gx": 35,
+      "gy": 57,
+      "x": 1400,
+      "y": 1140,
+      "ix": 1359,
+      "iy": 1149,
+      "adjacentWalk": [
+        {
+          "gx": 34,
+          "gy": 58
+        },
+        {
+          "gx": 36,
+          "gy": 58
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "52",
+      "basePrice": 470,
+      "gx": 24,
+      "gy": 58,
+      "x": 960,
+      "y": 1160,
+      "ix": 919,
+      "iy": 1169,
+      "adjacentWalk": [
+        {
+          "gx": 23,
+          "gy": 57
+        },
+        {
+          "gx": 25,
+          "gy": 57
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "80",
+      "basePrice": 480,
+      "gx": 28,
+      "gy": 58,
+      "x": 1120,
+      "y": 1160,
+      "ix": 1079,
+      "iy": 1169,
+      "adjacentWalk": [
+        {
+          "gx": 27,
+          "gy": 59
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "51",
+      "basePrice": 450,
+      "gx": 23,
+      "gy": 59,
+      "x": 920,
+      "y": 1180,
+      "ix": 879,
+      "iy": 1189,
+      "adjacentWalk": [
+        {
+          "gx": 22,
+          "gy": 58
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "81",
+      "basePrice": 480,
+      "gx": 29,
+      "gy": 59,
+      "x": 1160,
+      "y": 1180,
+      "ix": 1119,
+      "iy": 1189,
+      "adjacentWalk": [
+        {
+          "gx": 28,
+          "gy": 60
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "50",
+      "basePrice": 450,
+      "gx": 22,
+      "gy": 60,
+      "x": 880,
+      "y": 1200,
+      "ix": 839,
+      "iy": 1209,
+      "adjacentWalk": [
+        {
+          "gx": 21,
+          "gy": 59
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "82",
+      "basePrice": 480,
+      "gx": 30,
+      "gy": 60,
+      "x": 1200,
+      "y": 1200,
+      "ix": 1159,
+      "iy": 1209,
+      "adjacentWalk": [
+        {
+          "gx": 29,
+          "gy": 61
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "49",
+      "basePrice": 450,
+      "gx": 21,
+      "gy": 61,
+      "x": 840,
+      "y": 1220,
+      "ix": 799,
+      "iy": 1229,
+      "adjacentWalk": [
+        {
+          "gx": 20,
+          "gy": 60
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "48",
+      "basePrice": 470,
+      "gx": 20,
+      "gy": 62,
+      "x": 800,
+      "y": 1240,
+      "ix": 759,
+      "iy": 1249,
+      "adjacentWalk": [
+        {
+          "gx": 19,
+          "gy": 61
+        },
+        {
+          "gx": 19,
+          "gy": 63
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "43",
+      "basePrice": 560,
+      "gx": 29,
+      "gy": 63,
+      "x": 1160,
+      "y": 1260,
+      "ix": 1119,
+      "iy": 1269,
+      "adjacentWalk": [
+        {
+          "gx": 30,
+          "gy": 62
+        },
+        {
+          "gx": 30,
+          "gy": 64
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "42",
+      "basePrice": 540,
+      "gx": 28,
+      "gy": 64,
+      "x": 1120,
+      "y": 1280,
+      "ix": 1079,
+      "iy": 1289,
+      "adjacentWalk": [
+        {
+          "gx": 29,
+          "gy": 65
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "44",
+      "basePrice": 450,
+      "gx": 19,
+      "gy": 65,
+      "x": 760,
+      "y": 1300,
+      "ix": 719,
+      "iy": 1309,
+      "adjacentWalk": [
+        {
+          "gx": 20,
+          "gy": 64
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "41",
+      "basePrice": 550,
+      "gx": 27,
+      "gy": 65,
+      "x": 1080,
+      "y": 1300,
+      "ix": 1039,
+      "iy": 1309,
+      "adjacentWalk": [
+        {
+          "gx": 28,
+          "gy": 66
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "45",
+      "basePrice": 450,
+      "gx": 20,
+      "gy": 66,
+      "x": 800,
+      "y": 1320,
+      "ix": 759,
+      "iy": 1329,
+      "adjacentWalk": [
+        {
+          "gx": 21,
+          "gy": 65
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "40",
+      "basePrice": 550,
+      "gx": 26,
+      "gy": 66,
+      "x": 1040,
+      "y": 1320,
+      "ix": 999,
+      "iy": 1329,
+      "adjacentWalk": [
+        {
+          "gx": 27,
+          "gy": 67
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "46",
+      "basePrice": 460,
+      "gx": 21,
+      "gy": 67,
+      "x": 840,
+      "y": 1340,
+      "ix": 799,
+      "iy": 1349,
+      "adjacentWalk": [
+        {
+          "gx": 22,
+          "gy": 66
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "39",
+      "basePrice": 580,
+      "gx": 25,
+      "gy": 67,
+      "x": 1000,
+      "y": 1340,
+      "ix": 959,
+      "iy": 1349,
+      "adjacentWalk": [
+        {
+          "gx": 24,
+          "gy": 68
+        },
+        {
+          "gx": 26,
+          "gy": 68
+        }
+      ],
+      "labelDist": 0.0
+    },
+    {
+      "lotId": "47",
+      "basePrice": 460,
+      "gx": 22,
+      "gy": 68,
+      "x": 880,
+      "y": 1360,
+      "ix": 839,
+      "iy": 1369,
+      "adjacentWalk": [
+        {
+          "gx": 23,
+          "gy": 67
+        }
+      ],
+      "labelDist": 0.0
+    }
+  ],
+  "landmarks": [
+    {
+      "code": "of",
+      "kind": "marker",
+      "value": null,
+      "x": 1720,
+      "y": 580,
+      "ix": 1679,
+      "iy": 589,
+      "gx": 43,
+      "gy": 29
+    },
+    {
+      "code": "of",
+      "kind": "marker",
+      "value": null,
+      "x": 320,
+      "y": 960,
+      "ix": 279,
+      "iy": 969,
+      "gx": 8,
+      "gy": 48
+    },
+    {
+      "code": "ho",
+      "kind": "marker",
+      "value": null,
+      "x": 640,
+      "y": 440,
+      "ix": 599,
+      "iy": 449,
+      "gx": 16,
+      "gy": 22
+    },
+    {
+      "code": "lo",
+      "kind": "marker",
+      "value": null,
+      "x": 600,
+      "y": 660,
+      "ix": 559,
+      "iy": 669,
+      "gx": 15,
+      "gy": 33
+    },
+    {
+      "code": "po",
+      "kind": "marker",
+      "value": null,
+      "x": 1720,
+      "y": 860,
+      "ix": 1679,
+      "iy": 869,
+      "gx": 43,
+      "gy": 43
+    },
+    {
+      "code": "te",
+      "kind": "marker",
+      "value": null,
+      "x": 1840,
+      "y": 320,
+      "ix": 1799,
+      "iy": 329,
+      "gx": 46,
+      "gy": 16
+    },
+    {
+      "code": "te",
+      "kind": "marker",
+      "value": null,
+      "x": 600,
+      "y": 1180,
+      "ix": 559,
+      "iy": 1189,
+      "gx": 15,
+      "gy": 59
+    },
+    {
+      "code": "c9(20)",
+      "kind": "special",
+      "value": 20,
+      "x": 1080,
+      "y": 820,
+      "ix": 1039,
+      "iy": 829,
+      "gx": 27,
+      "gy": 41
+    },
+    {
+      "code": "c9(20)",
+      "kind": "special",
+      "value": 20,
+      "x": 1160,
+      "y": 820,
+      "ix": 1119,
+      "iy": 829,
+      "gx": 29,
+      "gy": 41
+    },
+    {
+      "code": "c9(20)",
+      "kind": "special",
+      "value": 20,
+      "x": 1200,
+      "y": 760,
+      "ix": 1159,
+      "iy": 769,
+      "gx": 30,
+      "gy": 38
+    },
+    {
+      "code": "c9(20)",
+      "kind": "special",
+      "value": 20,
+      "x": 1080,
+      "y": 740,
+      "ix": 1039,
+      "iy": 749,
+      "gx": 27,
+      "gy": 37
+    },
+    {
+      "code": "c8(300)",
+      "kind": "special",
+      "value": 300,
+      "x": 1600,
+      "y": 1000,
+      "ix": 1559,
+      "iy": 1009,
+      "gx": 40,
+      "gy": 50
+    }
+  ],
+  "counts": {
+    "tiles": 251,
+    "plots": 78,
+    "plotsPriced": 78,
+    "landmarks": 12,
+    "byType": {
+      "bank": 5,
+      "chance": 24,
+      "jockey": 2,
+      "minigame": 3,
+      "money_add": 11,
+      "money_des": 20,
+      "smallman": 2,
+      "tram": 2,
+      "walk": 182
+    }
+  },
+  "schema": {
+    "tile": "id; x,y world MAB hotspot; ix,iy pixels on images/maps/<key>_full.png; gx,gy lattice; type; basePrice/lotId if adjacent plot; next[] primary; neighbours[] forks; buildingAnchor",
+    "transform": "ix = x - renderOrigin.x; iy = y - renderOrigin.y (origin from assets/_parts/maps.json)",
+    "types": [
+      "bank",
+      "chance",
+      "jockey",
+      "lot",
+      "minigame",
+      "money_add",
+      "money_des",
+      "smallman",
+      "tram",
+      "walk"
+    ],
+    "pathNote": "IDs ordered by longest greedy walk from bank (40, 50); segments=[134, 10, 20, 8, 12, 12, 18, 13, 12, 7, 5] (Hamiltonian may not exist — breaks where graph branches). neighbours[] is the authoritative movement graph; next[] follows the cover when edge exists.",
+    "source": "assets/data/boards + maps; tools/convert.py build_board / render origin",
+    "confidence": "coords ix/iy VERIFIED (world - renderOrigin); types/prices/edges VERIFIED from boards; next[] cover order INFERRED"
+  },
+  "pathNote": "IDs ordered by longest greedy walk from bank (40, 50); segments=[134, 10, 20, 8, 12, 12, 18, 13, 12, 7, 5] (Hamiltonian may not exist — breaks where graph branches). neighbours[] is the authoritative movement graph; next[] follows the cover when edge exists."
+}

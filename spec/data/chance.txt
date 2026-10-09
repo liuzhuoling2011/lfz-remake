@@ -1,0 +1,181 @@
+[01]
+title = 大獲全勝
+jpg = lucky_chance_01.jpg
+text = 鬥棋時大獲全勝，獲得現金%d元！
+result = 100
+voice = tool_01.mp3
+
+[02]
+title = 步步高昇
+jpg = lucky_chance_02.jpg
+text =意外地找到金礦，手上一間物業等級提升一級！
+result = Default
+voice = tool_02.mp3
+
+[03]
+title = 誠心求拜
+jpg = lucky_chance_03.jpg
+text = 神明顯靈，得到一張「%s」四字真言！
+result = CardRandom
+voice = tool_03.mp3
+
+[04]
+title = 鋤強扶弱
+jpg = lucky_chance_04.jpg
+text = 資產最多的對手需要給你現金10％！
+result = 10
+voice = tool_04.mp3
+
+[05]
+title = 經營副業
+jpg = lucky_chance_05.jpg
+text = 夜間進行兼職，獲得薪金%d元！
+result = 500
+voice = tool_05.mp3
+
+[06]
+title = 耐人尋味
+jpg = lucky_chance_06.jpg
+text = 前進一步！
+result = Default
+voice = tool_06.mp3
+
+[07]
+title = 仁心仁術
+jpg = lucky_chance_07.jpg
+text = 醫者父母心，得到一張「%s」四字真言！
+result = CardRandom
+voice = tool_07.mp3
+
+[08]
+title = 生意興隆
+jpg = lucky_chance_08.jpg
+text = 公司生意順景，獲利%d元！
+result = 1000
+voice = tool_08.mp3
+
+[09]
+title = 梅開二度
+jpg = lucky_chance_09.jpg
+text = 一不離二，再擲骰子一次！
+result = Default
+voice = tool_09.mp3
+
+[10]
+title = 一帆風順
+jpg = lucky_chance_10.jpg
+text = 乘坐順風車，直接返回「屋企」！
+result = Default
+voice = tool_10.mp3
+
+[11]
+title = 捷足先登
+jpg = lucky_chance_11.jpg
+text = 獲地產商贈送物業一間！
+result = Default
+voice = tool_11.mp3
+
+[12]
+title = 奉公守法
+jpg = lucky_chance_12.jpg
+text = 幫忙捉拿小偷，得好市民獎，獲得獎金%d元！
+result = 1000
+voice = tool_12.mp3
+
+[13]
+title = 意料之外
+jpg = bad_chance_01.jpg
+text = 不小心從屋頂跌下，往院三個星期及繳付醫藥費%d元！
+result = 500
+voice = tool_13.mp3
+
+[14]
+title = 雨意雲情
+jpg = bad_chance_02.jpg
+text = 下雨天著涼，往院一個星期及繳付醫藥費%d元！
+result = 500
+voice = tool_14.mp3
+
+[15]
+title = 尋幽探勝
+jpg = bad_chance_03.jpg
+text = 因行為不檢而被警方拘捕，入獄一個星期及罰款%d元！
+result = 500
+voice = tool_15.mp3
+
+[16]
+title = 敢作敢為
+jpg = bad_chance_04.jpg
+text = 因偷窺而被警方拘捕，入獄兩個星期及罰款%d元！
+result = 500
+voice = tool_16.mp3
+
+[17]
+title = 愛莫能助
+jpg = bad_chance_05.jpg
+text = 郊遊時被蛇咬傷，往院兩個星期及繳付醫藥費%d元！
+result = 500
+voice = tool_17.mp3
+
+[18]
+title = 鼠輩橫行
+jpg = bad_chance_06.jpg
+text = 小偷光顧，「屋企」損失現金10％！
+result = 10
+voice = tool_18.mp3
+
+[19]
+title = 劫富濟貧
+jpg = bad_chance_07.jpg
+text = 捐贈現金10％給資產最小的對手！
+result = 10
+voice = tool_19.mp3
+
+[20]
+title = 山泥傾瀉
+jpg = bad_chance_08.jpg
+text = 因山泥傾瀉，手上一間物業下降一級！
+result = Default
+voice = tool_20.mp3
+
+[21]
+title = 無心之失
+jpg = bad_chance_09.jpg
+text = 不小心遺失一張四字真言！
+result = CardRandom
+voice = tool_21.mp3
+
+[22]
+title = 前無去路
+jpg = bad_chance_10.jpg
+text = 因封路不能前進，判罰走回頭路！
+result = Deafult
+voice = tool_22.mp3
+
+[23]
+title = 裹足不前
+jpg = bad_chance_11.jpg
+text = 罰原地停留一次！
+result = Default
+voice = tool_23.mp3
+
+[24]
+title = 因小失大
+jpg = bad_chance_12.jpg
+text = 輸掉飛刀比賽，損失現金%d元！
+result =  500
+voice = tool_24.mp3
+
+[25]
+title = 饑不擇食
+jpg = bad_chance_13.jpg
+text = 因進食過量而身體不適，往院一星期及繳付醫藥費%d元！
+result = 500
+voice = tool_25.mp3
+
+[26]
+title = 阿公收地
+jpg = bad_chance_14.jpg
+text = 政府強迫收地，失去物業一間！
+result = Deafult
+voice = tool_26.mp3

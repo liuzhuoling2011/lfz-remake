@@ -1,0 +1,28 @@
+{
+  "version": "Ver 1.05H",
+  "title": "Old Master Q / 老夫子大富翁",
+  "maps": [
+    "香港島",
+    "九龍區",
+    "古代"
+  ],
+  "speeds": [
+    "慢速",
+    "正常速度",
+    "快速"
+  ],
+  "resolutions": [
+    "640x480",
+    "800x600",
+    "1024x768"
+  ],
+  "inputs": [
+    "KEYBOARD01",
+    "KEYBOARD02",
+    "KEYBOARD03",
+    "MOUSE",
+    "JOYSTICK01-04"
+  ],
+  "max_players": 4,
+  "playable_characters": 6
+}

@@ -1,0 +1,12 @@
+# Extracted original game data (regenerate with tools/run_all.sh and web/scripts/prepare_assets.py)
+raw/
+assets/
+web/public/assets/
+# Build / deps
+web/node_modules/
+web/dist/
+# Generated images
+screenshots/
+spec/overlay_*
+*.log
+.DS_Store

@@ -1,0 +1,111 @@
+[01]
+title = 人棄我取
+jpg = a_003.jpg
+text = 會使一位對手為自己「屋企」進行大掃除，然後把「屋企」中一半金錢棄置在門外。
+selectPlayer = 1
+result = Default
+
+[02]
+title = 一視同仁
+jpg = a_005.jpg
+text = 使用在自己身上便可與其他對手平分手上的現金。
+selectPlayer = 0
+result = Default
+
+[03]
+title = 回頭是岸
+jpg = a_006.jpg
+text = 使用在自己或對手身上便可使自己或對手走回頭路。
+selectPlayer = 2
+result = Default
+
+[04]
+title = 步步為營
+jpg = a_008.jpg
+text = 使用在自己身上便可以選擇自己的行走步數。
+selectPlayer = 0
+result = Default
+
+[05]
+title = 隻手遮天
+jpg = a_009.jpg
+text = 可偷取對手「屋企」中的金錢。
+selectPlayer = 1
+result = 20
+
+[06]
+title = 神智不清
+jpg = a_011.jpg
+text = 對手因神智不清，所以不能購買及增建物業，有效期為三個星期。
+selectPlayer = 1
+result = Default
+
+[07]
+title = 一曝十寒
+jpg = a_014.jpg
+text = 會使一位對手冰封並停留原地三個星期。
+selectPlayer = 1
+result = Default
+
+[08]
+title = 得而復失
+jpg = a_015.jpg
+text = 會使一位對手在三星期內每次行走也會掉下金錢。
+selectPlayer = 1
+result = Default
+
+[09]
+title = 移形換影
+jpg = b_003.jpg
+text = 使用在自己身上便可以馬上返回自己「屋企」。
+selectPlayer = 0
+result = Default
+
+[10]
+title = 多勞多得
+jpg = b_004_rev03.jpg
+text = 使用在自己身上便可以馬上到「洋行」提錢。
+selectPlayer = 0
+result = Default
+
+[11]
+title = 驅鬼捉邪
+jpg = b_005.jpg
+text = 當自己被衰神附身時，使用驅鬼捉邪可以把衰神驅除。
+selectPlayer = 0
+result = Default
+
+[12]
+title = 金鋼護體
+jpg = b_007.jpg
+text = 使用金鋼護體後，便會受到保護，使自己免受任何「四字真言」侵襲三個星期。
+selectPlayer = 0
+result = Default
+
+[13]
+title = 催吉避凶
+jpg = b_008.jpg
+text = 使用催吉避凶可以化解惡運，三個星期內可防止衰神附身。
+selectPlayer = 0
+result = Default
+
+[14]
+title = 魔高一丈
+jpg = b_009.jpg
+text = 使用魔高一丈可以防止被對手「打小人」。
+selectPlayer = 0
+result = Default
+
+[15]
+title = 和氣生財
+jpg = b_011.jpg
+text = 使用和氣生財可以化解所有恩怨，解除已經生效於自己身上的「四字真言」。
+selectPlayer = 0
+result = Default
+
+[16]
+title = 化險為夷
+jpg = b_012.jpg
+text = 當被對手施用「四字真言」時，如果擁有此四字真言便會自動產生防護作用。
+selectPlayer = -1
+result = Default
