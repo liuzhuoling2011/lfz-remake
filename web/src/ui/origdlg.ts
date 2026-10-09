@@ -6,10 +6,10 @@
 // automatically by drawFrame.
 import { app } from '../core/app';
 import { drawFrame, sheet, hdActive, hdAvailable, setQuality } from '../core/assets';
-import { sfx, settings, saveSettings, applyVolumes } from '../core/audio';
+import { sfx, settings, saveSettings, applyVolumes, toggleFullscreen } from '../core/audio';
 import { setSpeedIndex } from '../core/app';
 import { text, wrap } from '../core/text';
-import { winBegin, winEnd, wbtn, sysScale, type Win } from './origwin';
+import { winBegin, winEnd, wbtn, wr, sysScale, type Win } from './origwin';
 import { listSlots, type GameState } from '../game/state';
 import { D, msg } from '../game/data';
 
@@ -110,13 +110,13 @@ export class LoadSaveWin {
 }
 
 // ------------------------------------------------------------------ option values (shared by both 設定 windows)
-export interface OptVals { q: number; spd: number; sfx: number; mus: number; voice: number }
+export interface OptVals { q: number; spd: number; sfx: number; mus: number; voice: number; fs: boolean }
 export class OptEdit {
   v: OptVals; orig: OptVals;
   /** exact settings at open (levels are quantised to 0-3 in the window; cancel must not round the user's values) */
-  raw = { quality: settings.quality, speed: settings.speed, sfx: settings.sfx, music: settings.music, voice: settings.voice };
+  raw = { quality: settings.quality, speed: settings.speed, sfx: settings.sfx, music: settings.music, voice: settings.voice, fullscreen: settings.fullscreen };
   constructor() {
-    const cur = { q: settings.quality, spd: settings.speed, sfx: Math.round(settings.sfx * 3), mus: Math.round(settings.music * 3), voice: settings.voice };
+    const cur = { q: settings.quality, spd: settings.speed, sfx: Math.round(settings.sfx * 3), mus: Math.round(settings.music * 3), voice: settings.voice, fs: settings.fullscreen };
     this.v = { ...cur }; this.orig = { ...cur };
   }
   /** apply live (volume / speed / 畫質 are heard and seen at once); cancel() restores the snapshot */
@@ -124,23 +124,26 @@ export class OptEdit {
     const o = this.v;
     settings.speed = o.spd as 0 | 1 | 2; setSpeedIndex(o.spd);
     settings.sfx = o.sfx / 3; settings.music = o.mus / 3;
-    // the original has one 音效 level for effects + voices; keep the separate voice volume in step with it
     settings.voice = o.sfx === this.orig.sfx ? this.orig.voice : o.sfx / 3;
     applyVolumes();
     if (settings.quality !== o.q) { settings.quality = o.q as 0 | 1 | 2; void setQuality(o.q); }
+    if (settings.fullscreen !== o.fs) { settings.fullscreen = o.fs; void toggleFullscreen(o.fs); }
   }
-  cycle(k: 'q' | 'spd' | 'sfx' | 'mus') {
+  cycle(k: 'q' | 'spd' | 'sfx' | 'mus' | 'fs') {
     const o = this.v;
     if (k === 'q') { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; }
     else if (k === 'spd') o.spd = (o.spd + 1) % 3;
+    else if (k === 'fs') o.fs = !o.fs;
     else o[k] = (o[k] + 1) % 4;
     this.apply();
   }
   finish(ok: boolean) {
     if (!ok) {
       const r = this.raw; const qChanged = settings.quality !== r.quality;
+      const fsChanged = settings.fullscreen !== r.fullscreen;
       Object.assign(settings, r); setSpeedIndex(r.speed); applyVolumes();
       if (qChanged) void setQuality(r.quality);
+      if (fsChanged) void toggleFullscreen(r.fullscreen);
       this.v = { ...this.orig };
     }
     saveSettings();
@@ -209,6 +212,12 @@ export function drawMenuOptions(ctx: CanvasRenderingContext2D, w: number, h: num
     } else if (k === 'spd') text(ctx, sp[ed.v.spd], 210 - 320, 150 - 240, val);
     else if (k === 'sfx') { if (ed.v.sfx > 0) drawFrame(ctx, 'option/setting', 5 + ed.v.sfx, 0, 0); }
     else if (ed.v.mus > 0) drawFrame(ctx, 'option/setting', 10 + ed.v.mus, 0, 0);
+  }
+  // 全螢幕 (remake): clickable label under the TV-room rows
+  {
+    const on = ed.v.fs;
+    text(ctx, '全螢幕　' + (on ? '開' : '關'), 0, 210, { size: 18, ...WHITE, align: 'center', color: on ? '#9fe8ff' : '#fff' });
+    app.hit('mo-fs', wr(W, { x: -120, y: 190, w: 240, h: 36 }), () => ed.cycle('fs'));
   }
   wbtn(ctx, W, 'mo-o', 'option/button', [0, 1, 2], () => close(true));
   wbtn(ctx, W, 'mo-x', 'option/button', [3, 4, 5], () => close(false));

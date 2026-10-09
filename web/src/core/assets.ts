@@ -51,15 +51,47 @@ export async function setQuality(mode: number) {
   assetEpoch++;
 }
 function sheetURL(name: string) { return hdAllowed(name) && hdIndex?.sheets[name] ? { url: BASE + 'hd/sprites/' + name + '.webp', s: hdIndex.sheets[name] } : { url: BASE + 'sprites/' + name + '.webp', s: 1 }; }
+let epochTimer = 0;
+function scheduleEpoch() {
+  if (epochTimer) return;
+  epochTimer = window.setTimeout(() => { epochTimer = 0; assetEpoch++; }, 400);
+}
+/** Background HD upgrades in flight (name → promise) so play isn't blocked on slow links. */
+const hdUpgrade = new Map<string, Promise<void>>();
 async function fetchSheetImage(sh: Sheet) {
-  const { url, s } = sheetURL(sh.name);
-  let img: CanvasImageSource, hs = s;
-  try { img = await toBitmap(await loadImage(url)); }
-  catch (e) { if (s === 1) throw e; img = await toBitmap(await loadImage(BASE + 'sprites/' + sh.name + '.webp')); hs = 1; } // HD missing → SD fallback
-  const old = sh.img;
+  const want = sheetURL(sh.name);
+  // Prefer SD first when the target is HD: unblocks the main menu / first frame on slow networks, then swap.
+  if (want.s > 1) {
+    try {
+      const sd = await toBitmap(await loadImage(BASE + 'sprites/' + sh.name + '.webp'));
+      const prev = sh.img;
+      sh.sf = sh.f; sh.hs = 1; sh.img = sd;
+      if (prev && prev !== sd) (prev as ImageBitmap).close?.();
+    } catch { /* fall through to HD-only attempt below */ }
+    if (!hdUpgrade.has(sh.name)) {
+      const p = (async () => {
+        try {
+          const img = await toBitmap(await loadImage(want.url));
+          if (!hdAllowed(sh.name)) { (img as ImageBitmap).close?.(); return; }
+          const prev = sh.img;
+          sh.sf = sh.f.map(f => [f[0] * want.s, f[1] * want.s, f[2] * want.s, f[3] * want.s, f[4], f[5]] as Frame);
+          sh.hs = want.s; sh.img = img;
+          if (prev && prev !== img) (prev as ImageBitmap).close?.();
+          scheduleEpoch();
+        } catch { /* keep SD */ }
+        finally { hdUpgrade.delete(sh.name); }
+      })();
+      hdUpgrade.set(sh.name, p);
+    }
+    if (sh.img) return sh;
+  }
+  let img: CanvasImageSource, hs = want.s;
+  try { img = await toBitmap(await loadImage(want.url)); }
+  catch (e) { if (want.s === 1) throw e; img = await toBitmap(await loadImage(BASE + 'sprites/' + sh.name + '.webp')); hs = 1; }
+  const prev = sh.img;
   sh.sf = hs === 1 ? sh.f : sh.f.map(f => [f[0] * hs, f[1] * hs, f[2] * hs, f[3] * hs, f[4], f[5]] as Frame);
   sh.hs = hs; sh.img = img;
-  if (old && old !== img) (old as ImageBitmap).close?.();
+  if (prev && prev !== img) (prev as ImageBitmap).close?.();
   return sh;
 }
 function mapImagePath(path: string) { return hdOn && hdIndex?.images[path] ? hdIndex.images[path] : path; }

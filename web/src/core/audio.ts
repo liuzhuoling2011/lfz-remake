@@ -4,6 +4,7 @@ import { BASE } from './assets';
 export const settings = {
   music: 0.6, sfx: 0.8, voice: 0.9, speed: 1 as 0 | 1 | 2,
   /** 畫質: 0 自動, 1 標準 (SD), 2 高清 (HD) */ quality: 0 as 0 | 1 | 2,
+  /** 全螢幕 (browser fullscreen API) */ fullscreen: false,
 };
 const SETTINGS_KEY = 'lfz.settings';
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* ignore */ }
@@ -157,3 +158,29 @@ export function sfxLoop(name: string, vol = 1): LoopHandle {
   return h;
 }
 export function currentMusic() { return musicName; }
+
+/** Browser fullscreen helpers (settings.fullscreen). Safe no-ops when the API is missing / blocked. */
+export function isFullscreen() {
+  return !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+}
+export async function toggleFullscreen(force?: boolean) {
+  const want = force ?? !isFullscreen();
+  try {
+    if (want) {
+      const el = document.documentElement as any;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) await req.call(el);
+    } else {
+      const exit = document.exitFullscreen || (document as any).webkitExitFullscreen;
+      if (exit) await exit.call(document);
+    }
+  } catch { /* user gesture / policy */ }
+  settings.fullscreen = isFullscreen();
+  saveSettings();
+  return settings.fullscreen;
+}
+if (typeof document !== 'undefined') {
+  for (const ev of ['fullscreenchange', 'webkitfullscreenchange']) document.addEventListener(ev, () => {
+    settings.fullscreen = isFullscreen(); saveSettings();
+  });
+}

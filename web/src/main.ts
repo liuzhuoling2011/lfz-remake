@@ -1,6 +1,6 @@
 import { app, setSpeedIndex, AUTO, type Scene } from './core/app';
 import { initSprites, loadSheets } from './core/assets';
-import { settings, unlockAudio } from './core/audio';
+import { settings, unlockAudio, toggleFullscreen } from './core/audio';
 import { loadData } from './game/data';
 import { text } from './core/text';
 import { TitleScene, MainMenuScene, SelectYearScene, SelectMapScene, SelectActorScene, OptionsScene, LoadScene, bindNav } from './scenes/menus';
@@ -37,6 +37,24 @@ class BootScene implements Scene {
   }
 }
 
+/** Sheets needed to paint the main menu (everything else loads on demand / during idle). */
+const MENU_SHEETS = ['mainmenu/bg', 'mainmenu/menu', 'mainmenu/money01', 'mainmenu/money02', 'misc/pattern', 'misc/loading',
+  'interface/smessagebox', 'option/bg', 'option/setting', 'option/button'];
+/** Next screens the player is likely to open from the main menu — warm during idle. */
+const IDLE_SHEETS = ['logo/bg', 'logo/button',
+  'selectyear/bg', 'selectyear/buttons', 'selectyear/fg', 'selectmap/bg', 'selectmap/buttons', 'selectmap/fg', 'selectmap/map',
+  'selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04', 'selectactor/actor',
+  'selectactor/button', 'selectactor/device', 'selectactor/frame',
+  'selectminigame/bg', 'selectminigame/fg',
+  'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06',
+  'interface/loadsave', 'interface/round'];
+
+function idlePrefetch() {
+  const run = () => { void loadSheets(IDLE_SHEETS); };
+  const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, o?: { timeout: number }) => void);
+  if (ric) ric(run, { timeout: 2500 }); else setTimeout(run, 400);
+}
+
 async function boot() {
   app.init(document.getElementById('game') as HTMLCanvasElement);
   document.getElementById('boot')?.remove();
@@ -46,16 +64,23 @@ async function boot() {
   unlockAudio(); // succeeds immediately where autoplay is permitted
   setSpeedIndex(settings.speed);
   try {
+    // Apply saved fullscreen preference (must be in a gesture on most browsers — retry on first pointer)
+    if (settings.fullscreen) {
+      const once = () => { void toggleFullscreen(true); window.removeEventListener('pointerdown', once); };
+      window.addEventListener('pointerdown', once, { passive: true });
+    }
     await Promise.all([initSprites(settings.quality), loadData()]);
-    const ui = ['logo/bg', 'logo/button', 'mainmenu/bg', 'mainmenu/menu', 'mainmenu/money01', 'mainmenu/money02', 'misc/pattern', 'misc/loading',
-      'selectyear/bg', 'selectyear/buttons', 'selectyear/fg', 'selectmap/bg', 'selectmap/buttons', 'selectmap/fg', 'selectmap/map',
-      'selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04', 'selectactor/actor', 'selectactor/button', 'selectactor/device', 'selectactor/frame',
-      'option/bg', 'selectminigame/bg', 'selectminigame/fg', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06'];
-    await loadSheets(ui, (d, t) => { bs.p = d / t; });
+    await loadSheets(MENU_SHEETS, (d, t) => { bs.p = d / t; });
     const qp = new URLSearchParams(location.search), start = qp.get('scene');
     if (qp.has('mini')) setup.mode = 'mini'; // ?scene=selectactor&mini (tests)
     const mq = Number(qp.get('map')); if (qp.has('map') && mq >= 0 && mq < 3) setup.map = mq; // ?scene=game&map=N (tests)
-    nav(AUTO ? 'mainmenu' : start ?? 'title');
+    // Skip the remake's title/"開始遊戲" press page — go straight to the original 6-button main menu.
+    // Attract mode (30 s idle on the main menu) still returns to TitleScene for the logo video.
+    nav(start ?? 'mainmenu');
+    idlePrefetch();
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+      void navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    }
   } catch (e) { bs.msg = '載入失敗 ' + e; console.error(e); }
 }
 void boot();

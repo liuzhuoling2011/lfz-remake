@@ -1,10 +1,10 @@
 import { app, type Scene, wait, AUTO } from '../core/app';
-import { drawFrame, sheet, frameRect, BASE, setQuality, hdActive, hdAvailable } from '../core/assets';
+import { drawFrame, frameRect, BASE, loadSheets } from '../core/assets';
 import { music, sfx, unlockAudio, settings, saveSettings, applyVolumes, voice } from '../core/audio';
 import { text, FONT } from '../core/text';
-import { stage, applyStage, resetT, patternBg, sbtn, button, panel, sr, dim, slider, type Stage } from '../ui/widgets';
+import { stage, applyStage, resetT, patternBg, sbtn, sr, type Stage } from '../ui/widgets';
 import { RULES, MAPS, CHAR_VOICE_PREFIX } from '../game/config';
-import { charName, D } from '../game/data';
+import { D } from '../game/data';
 import { listSlots, loadSlot } from '../game/state';
 import { setup } from './setup';
 import { setSpeedIndex } from '../core/app';
@@ -185,8 +185,16 @@ export class SelectMapScene implements Scene {
 }
 
 // ---------------------------------------------------------------- Select actor
+// Original layout (exe @0x405760 / paint @0x4062e0, 640 coords + (W-640)/2):
+// every playerNN.spr is drawn at (W/2,H/2) — hotspots place the four banknotes; device icon at
+// table 0x441820, face at 0x441840; frame 1 = left oval (device), frame 2 = right oval (face);
+// banknote (frame 0) is drawn last. OK/X + title banner = button.spr at the same centre.
+const SA_DEV: [number, number][] = [[71, 97], [391, 97], [71, 296], [391, 296]];
+const SA_FACE: [number, number][] = [[252, 97], [570, 97], [252, 296], [570, 296]];
 export class SelectActorScene implements Scene {
   enter() {
+    void loadSheets(['selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04',
+      'selectactor/actor', 'selectactor/button', 'selectactor/device']);
     if (setup.mode === 'game') prewarmGame(setup.map, setup.seats.filter(s => s.on).map(s => s.char));
     if (AUTO) { setup.seats.forEach(s => (s.ai = true)); setTimeout(() => this.start(), 50); }
   }
@@ -197,8 +205,8 @@ export class SelectActorScene implements Scene {
     for (let k = 0; k < 6; k++) { c = ((c - 1 + d + 6) % 6) + 1; if (!used.has(c)) break; }
     setup.seats[i].char = c;
     if (setup.mode === 'game') prewarmGame(setup.map, [c]);
-    const pre = CHAR_VOICE_PREFIX[c];
-    void voice(pre + '28.mp3');
+    void voice(CHAR_VOICE_PREFIX[c] + '28.mp3');
+    void sfx('selectactor/button2');
   }
   cycleDev(i: number) {
     const s = setup.seats[i];
@@ -214,45 +222,43 @@ export class SelectActorScene implements Scene {
     if (setup.mode === 'mini') { if (n >= 1) go('selectmini'); return; }
     if (n >= 2) go('game', { new: true });
   }
+  /** 640-coord table → stage (800×600) coords used by applyStage */
+  private ox(w640: number) { return w640 + (800 - 640) / 2; }
+  private oy(h480: number) { return h480 + (600 - 480) / 2; }
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     patternBg(ctx, w, h);
     const st = stage(w, h); applyStage(ctx, st);
-    text(ctx, setup.mode === 'mini' ? '小遊戲 · 選擇角色' : '選擇角色', 400, 46, { size: 30, align: 'center', color: '#ffe36a', stroke: '#4a0a00', strokeWidth: 6 });
-    const pos = [[205, 175], [595, 175], [205, 395], [595, 395]];
+    const CX = 400, CY = 300;
     setup.seats.forEach((s, i) => {
-      const [cx, cy] = pos[i];
       const sh = `selectactor/player0${i + 1}`;
-      ctx.save(); if (!s.on) ctx.globalAlpha = 0.4;
-      drawFrame(ctx, sh, 0, cx, cy, 1.15);
+      const dx = this.ox(SA_DEV[i][0]), dy = this.oy(SA_DEV[i][1]);
+      const fx = this.ox(SA_FACE[i][0]), fy = this.oy(SA_FACE[i][1]);
+      // paint order matches the exe: left oval → device → right oval → face → banknote on top
+      drawFrame(ctx, sh, 1, CX, CY);
+      const devFi = !s.on || s.ai ? 8 : 0;
+      ctx.save(); if (!s.on) ctx.globalAlpha = 0.55;
+      drawFrame(ctx, 'selectactor/device', devFi, dx, dy);
       ctx.restore();
-      const f0 = frameRect(sh, 0, cx, cy, 1.15);
-      // portrait in the center circle of the banknote
+      drawFrame(ctx, sh, 2, CX, CY);
       if (s.on) {
-        const fr = sheet('map/character/character0' + s.char + '_01');
-        drawFrame(ctx, 'interface/face0' + s.char, 0, cx - 38, cy + 18, 1.5);
-        text(ctx, charName(s.char), cx - 38, cy + 72, { size: 18, align: 'center', color: '#fff', stroke: '#000', strokeWidth: 4 });
-        void fr;
-      } else text(ctx, '（空位）', cx - 38, cy + 30, { size: 18, align: 'center', color: '#fff', stroke: '#000', strokeWidth: 4 });
-      // device toggle
-      const devFrame = !s.on ? -1 : s.ai ? 8 : 0;
-      const dx = cx + 75, dy = cy + 20;
-      ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.arc(dx, dy, 34, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
-      if (devFrame >= 0) drawFrame(ctx, 'selectactor/device', devFrame, dx, dy - 4, devFrame === 8 ? 0.8 : 0.9);
-      text(ctx, !s.on ? '關閉' : s.ai ? '電腦' : '玩家', dx, dy + 50, { size: 15, align: 'center', color: '#fff', stroke: '#000', strokeWidth: 4 });
-      app.hit('dev' + i, sr(st, { x: dx - 36, y: dy - 36, w: 72, h: 100 }), () => this.cycleDev(i));
-      if (s.on) {
-        app.hit('chr' + i, sr(st, { x: cx - 110, y: cy - 50, w: 140, h: 140 }), () => this.cycleChar(i));
-        button(ctx, 'cl' + i, { x: cx - 130, y: cy + 82, w: 40, h: 34 }, '◀', () => this.cycleChar(i, -1), { size: 16 }, sr(st, { x: cx - 130, y: cy + 82, w: 40, h: 34 }));
-        button(ctx, 'cr' + i, { x: cx + 14, y: cy + 82, w: 40, h: 34 }, '▶', () => this.cycleChar(i, 1), { size: 16 }, sr(st, { x: cx + 14, y: cy + 82, w: 40, h: 34 }));
+        // actor.spr: 2 frames per character (normal / alt); faceNN also works — same art
+        drawFrame(ctx, 'selectactor/actor', (s.char - 1) * 2, fx, fy);
       }
-      void f0;
+      ctx.save(); if (!s.on) ctx.globalAlpha = 0.55;
+      drawFrame(ctx, sh, 0, CX, CY);
+      ctx.restore();
+      // hits: left oval = cycle device (玩家/電腦/關閉), right oval = cycle character
+      app.hit('dev' + i, sr(st, frameRect(sh, 1, CX, CY)), () => this.cycleDev(i));
+      if (s.on) app.hit('chr' + i, sr(st, frameRect(sh, 2, CX, CY)), () => this.cycleChar(i));
+      else app.hit('chr' + i, sr(st, frameRect(sh, 2, CX, CY)), () => this.cycleDev(i));
     });
+    // title banner + X / O (hotspots relative to centre, exe @0x406480 / paint @0x404a70)
+    drawFrame(ctx, 'selectactor/button', 6, CX, CY);
     const n = setup.seats.filter(s => s.on).length;
     const minN = setup.mode === 'mini' ? 1 : 2;
-    text(ctx, n < minN ? '最少需要兩位玩家' : '點擊頭像換角色 · 點擊右方圖示切換 玩家 / 電腦 / 關閉', 400, 520, { size: 14, align: 'center', color: '#fff7c2', stroke: '#1b2b5a', strokeWidth: 3 });
-    sbtn(ctx, st, 'aok', 'selectactor/button', [3, 4, 5], 440, 340, () => this.start(), { disabled: n < minN });
-    sbtn(ctx, st, 'aback', 'selectactor/button', [0, 1, 2], 380, 340, () => this.back());
+    sbtn(ctx, st, 'aback', 'selectactor/button', [0, 1, 2], CX, CY, () => this.back());
+    sbtn(ctx, st, 'aok', 'selectactor/button', [3, 4, 5], CX, CY, () => this.start(), { disabled: n < minN });
+    if (n < minN) text(ctx, setup.mode === 'mini' ? '請選擇至少一位角色' : '最少需要兩位玩家', CX, 560, { size: 14, align: 'center', color: '#fff7c2', stroke: '#1b2b5a', strokeWidth: 3 });
     resetT(ctx);
   }
   onKey(k: string) { if (k === 'Enter') this.start(); if (k === 'Escape') this.back(); }

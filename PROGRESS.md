@@ -46,3 +46,12 @@
 - 11:00 Board tile: random game with all eligible players (not bankrupt / hospital / jail / 一曝十寒), AI plays itself, rewards as above, map music resumes. Main menu = the original single row of 6 buttons (系統設定 · 相簿 · 小遊戲 · 新遊戲 · 載入進度 · 離開遊戲); 相簿 shows a message (album art is on Disc 2, not available). 小遊戲 → SelectActor → SelectMiniGame picker → standalone play.
 - 11:05 HD sheets for minigame/ + selectminigame/ (anime_6B 2x, 326 s).
 - 11:18 Tests: tests/minigames.mjs (each game standalone + board to its result, rewards, eligibility) HD / SD / mobile 390x844@3x and on dist: ALL OK, 0 errors. Autoplay maps 0/1/2 (26 + 104 weeks, SD/HD, dev + dist): winners, 0 errors, 2–8 board mini-games per game. ui4 (HD+SD) and uiwins: 0 failures. Screenshots: screenshots/mini_*.
+
+## Round 6 — skip title, selectactor/card/detail alignment, ring bottom-left, fullscreen, slow-net load (2026-10-09, Asia/Shanghai)
+- 12:00 Boot goes straight to the original 6-button main menu (title/"開始遊戲" press page skipped; attract mode still returns to TitleScene after 30 s idle). Boot only loads MENU_SHEETS; IDLE_SHEETS warm via requestIdleCallback. Original LOADING overlay kept for GameScene when map assets aren't ready yet.
+- 12:05 SelectActor rebuilt from exe @0x4062e0: playerNN.spr at (W/2,H/2) via hotspots, device table 0x441820 (left oval), face table 0x441840 (right oval / actor.spr), banknote on top, button.spr title+X/O at centre. Click left oval = 玩家/電腦/關閉, right = cycle character.
+- 12:10 四字真言 list text baseline-middle on the ruled lines (y=30+20i bands); cast popup title on first rule, body in the description panel below the knot. 角色資產 colour pips left of faces, height-matched to the 49px face.
+- 12:12 Ring menu (game_menu.spr) moved to bottom-left (exe @0x408cb0: x=0, y=H-0x96); walk panel to its right. Bottom-left map-help legend removed; week/jackpot info box moved to bottom-right.
+- 12:15 全螢幕 option in main-menu 設定 and in-game 設定 (settings.fullscreen + Fullscreen API).
+- 12:18 Slow-net: SD-first sheet load with background HD upgrade (debounced assetEpoch); service worker `public/sw.js` cache-first for hashed JS/CSS + sprites/images/audio.
+- 12:25 tests/ui6.mjs (HD, 1920x1080 + 390x844@3x): ALL OK, 0 errors. Autoplay (dev + dist): winners, 0 errors. TTFM @50KB/s 200ms RTT q=sd ≈ 40 s; unthrottled dist noted in commit.

@@ -13,7 +13,7 @@ import { netWorth, ownedPlots, season, yearOf, plotValue } from '../game/rules';
 import { setup } from './setup';
 import { LoadSaveWin, drawMsgBox } from '../ui/origdlg';
 import { winBegin, winEnd, wbtn, wr, centredWin, sysScale, type Win } from '../ui/origwin';
-import { settings, saveSettings, applyVolumes } from '../core/audio';
+import { settings, saveSettings, applyVolumes, toggleFullscreen } from '../core/audio';
 import { setQuality, hdActive, hdAvailable } from '../core/assets';
 import { setSpeedIndex } from '../core/app';
 import { startMiniGame } from '../mini/host';
@@ -69,13 +69,13 @@ export class GameScene implements Scene {
   hideHud = false;
   /** original console command ShowDetailInfo: extra lines under each HUD panel (key I) */
   showDetail = false;
-  private optRaw: { quality: 0 | 1 | 2; speed: 0 | 1 | 2; sfx: number; music: number; voice: number } | null = null;
+  private optRaw: { quality: 0 | 1 | 2; speed: 0 | 1 | 2; sfx: number; music: number; voice: number; fullscreen: boolean } | null = null;
   /** original save/load carousel while overlay is 'save' / 'load' */
   lsWin: LoadSaveWin | null = null;
   /** time since the overlay last changed (window fade / slide-in like the original's alpha += 0x20 per tick) */
   ovT = 0; private ovPrev = 'none';
   /** original option window: values being edited + snapshot for X (cancel) */
-  opt: { q: number; spd: number; sfx: number; mus: number; voice: number; orig: { q: number; spd: number; sfx: number; mus: number; voice: number } } | null = null;
+  opt: { q: number; spd: number; sfx: number; mus: number; voice: number; fs: boolean; orig: { q: number; spd: number; sfx: number; mus: number; voice: number; fs: boolean } } | null = null;
 
   /** last frame of the previous screen (the original loading dialog @0x401d10 darkens what was on screen) */
   private snap: HTMLCanvasElement | null = null;
@@ -359,16 +359,15 @@ export class GameScene implements Scene {
       ctx.restore();
     }
     winEnd(ctx);
-    // info box (bottom-left)
-    const iw = 190 * u, ih = 64 * u, ix = 8, iy = h - ih - 8;
+    // info box (bottom-right — round 6: ring menu owns the bottom-left corner like the original)
+    const iw = 190 * u, ih = 52 * u, ix = w - iw - 8, iy = h - ih - 8;
     ctx.fillStyle = 'rgba(10,20,45,0.72)'; roundRect(ctx, ix, iy, iw, ih, 10 * u); ctx.fill();
     ctx.strokeStyle = '#ffb347'; ctx.lineWidth = 2; ctx.stroke();
     const wk = g.week % 52 + 1;
     text(ctx, `${MAPS[g.map].name}  第${yearOf(g)}年 第${wk}週 ${SEASONS[season(g)]}`, ix + 10 * u, iy + 22 * u, { size: 13 * u, color: '#fff', maxWidth: iw - 20 * u });
     const left = g.weeksLimit > 0 ? `剩餘 ${Math.max(0, g.weeksLimit - g.week)} 週` : '年期 ∞';
     text(ctx, `${left} · 馬會獎金 ${fmtMoney(g.jackpot)}`, ix + 10 * u, iy + 44 * u, { size: 12 * u, color: '#ffe36a', maxWidth: iw - 20 * u });
-    text(ctx, '拖曳移動地圖 · 滾輪/雙指縮放', ix + 10 * u, iy + 58 * u, { size: 9.5 * u, color: 'rgba(255,255,255,0.6)', weight: 'normal', maxWidth: iw - 20 * u });
-    // (round 3) no extra corner buttons: system / centre-camera live in the original ring menu (game_menu.spr)
+    // (round 6) bottom-left help legend removed; the original ring menu sits here instead
     // banner
     if (this.bannerT < 1600 && this.bannerText) {
       const k = this.bannerT < 250 ? this.bannerT / 250 : this.bannerT > 1300 ? (1600 - this.bannerT) / 300 : 1;
@@ -432,16 +431,16 @@ export class GameScene implements Scene {
     } else text(ctx, '空地 — 停在旁邊即可購買興建', x + 10 * u, y + 50 * u, { size: 13 * u, color: '#333' });
   }
 
-  /** Human turn: original ring menu (game_menu.spr: dice / 四字真言 / info / system) + walk.spr one-or-two dice panel. */
+  /**
+   * Human turn: original ring menu (game_menu.spr) + walk.spr one/two-dice panel.
+   * Exe @0x408cb0 anchors the ring at (0, H-0x96); walk @0x4085b0 at (0x1e, H-200). Bottom-left like the original
+   * (round 6: was centred; the remake's bottom-left help legend is gone so the menu owns that corner).
+   */
   renderTurnMenu(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const u = this.uis; const p = this.g.players[this.g.current];
     const s = Math.max(0.85, Math.min(1.7, u * 1.25));
-    const narrow = w < 700;
-    const bottom = narrow ? h - 80 * u - 14 : h - 12;
-    const totalW = (150 + (this.walkOpen ? 14 + 99 + 40 : 0)) * s;
-    const x0 = w / 2 - totalW / 2, top = bottom - 150 * s;
-    const R = { x: x0 - 16 * s, y: top - 8 * s }; // ring anchor (sprite offsets are relative to it)
-    // ring + buttons
+    // exe @0x408cb0: ring at (0, H-0x96); keep a small margin so it clears the screen edge
+    const R = { x: 4 * s, y: Math.max(4, h - 150 * s - 8) };
     drawFrame(ctx, 'interface/game_menu', 12, R.x, R.y, s);
     const ringBtn = (id: string, base: number, cb: () => void, disabled = false) => {
       const st = disabled ? 0 : app.state(id);
@@ -455,14 +454,15 @@ export class GameScene implements Scene {
     ringBtn('gm-info', 6, () => { this.detailSeat = p.seat; this.overlay = 'detail'; });
     ringBtn('gm-sys', 9, () => { this.overlay = 'system'; });
     ringBtn('gm-rot', 13, () => { const a = this.view.actor(p.seat); this.view.lastManualPan = -1e9; this.view.focusOn(a.x, a.y); });
-    // card count badge on the 四字真言 button
     const cr = frameRect('interface/game_menu', 3, R.x, R.y, s);
     ctx.fillStyle = '#c3121b'; ctx.beginPath(); ctx.arc(cr.x + cr.w - 4 * s, cr.y + 6 * s, 9 * s, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
     text(ctx, String(p.cards.length), cr.x + cr.w - 4 * s, cr.y + 10 * s, { size: 11 * s, align: 'center', color: '#fff', weight: 'bold' });
-    // one / two dice panel (walk.spr — VERIFIED layout @0x4085b0: one die at (35,18), two dice at (21,70), X at (34,109))
+    // walk panel to the right of the ring (exe x=30 ≈ ring width)
     if (this.walkOpen) {
-      const W = { x: x0 + 164 * s, y: top };
+      const W = { x: R.x + 160 * s, y: R.y - 10 * s };
+      // keep on-screen on narrow phones: if it would clip, drop it above the ring
+      if (W.x + 120 * s > w - 4) { W.x = R.x; W.y = R.y - 160 * s; }
       drawFrame(ctx, 'interface/walk', 0, W.x, W.y, s);
       const wbtn = (id: string, base: number, cb: () => void) => {
         const st = app.state(id);
@@ -477,7 +477,7 @@ export class GameScene implements Scene {
       text(ctx, '兩粒骰', lx, W.y + 82 * s, o); text(ctx, '2–12步 [2]', lx, W.y + 97 * s, { ...o, size: 10 * s, color: '#ffe9a8' });
       if (p.chooseSteps) text(ctx, '步步為營：自選步數', W.x + 50 * s, W.y - 6 * s, { size: 12 * s, align: 'center', color: '#9fe8ff', stroke: '#000', strokeWidth: 3 });
     }
-    text(ctx, `輪到 ${charName(p.char)}`, w / 2, top - 14 * s, { size: 16 * u, align: 'center', color: '#fff', stroke: '#000', strokeWidth: 4 });
+    text(ctx, `輪到 ${charName(p.char)}`, R.x + 75 * s, R.y - 8 * s, { size: 14 * u, align: 'center', color: '#fff', stroke: '#000', strokeWidth: 4 });
   }
 
   /**
@@ -655,12 +655,13 @@ export class GameScene implements Scene {
     drawFrame(ctx, 'interface/card', 0, ax, ay, sc);
     const im = image('images/cards/' + card.jpg);
     if (im) ctx.drawImage(im, fx + 17 * sc, fy + 9 * sc, 248 * sc, 248 * sc);
+    // Title sits on the first ruled line (y=35); body uses the description panel below the ornamental knot (y≥155),
+    // matching the select-card window's "list / description" split so text lines up with the red rules.
     const midX = fx + 377.5 * sc, colW = 145 * sc;
-    text(ctx, card.title, midX, fy + 31 * sc, { size: 17 * sc, align: 'center', color: '#8a1a00', maxWidth: colW });
-    const rows = [55, 75, 95, 115];
+    text(ctx, card.title, midX, fy + 35 * sc, { size: 16 * sc, align: 'center', baseline: 'middle', color: '#8a1a00', maxWidth: colW });
     let size = 13.5, lines: string[] = [];
-    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, d.text ?? card.text, colW, size * sc); if (lines.length <= rows.length) break; }
-    lines.slice(0, rows.length).forEach((l, i) => text(ctx, l, fx + 305 * sc, fy + (rows[i] - 4) * sc, { size: size * sc, color: '#3a1a00' }));
+    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, d.text ?? card.text, colW, size * sc); if (lines.length * size * 1.3 <= 100) break; }
+    lines.slice(0, 6).forEach((l, i) => text(ctx, l, fx + 305 * sc, fy + (155 + i * size * 1.3) * sc, { size: size * sc, color: '#3a1a00', baseline: 'top' }));
     // O (confirm) button in the bottom ornament gap
     const st = app.state('cardok');
     drawFrame(ctx, 'interface/card', 4 + st, ax, ay, sc);
@@ -734,9 +735,9 @@ export class GameScene implements Scene {
   }
 
   openOptions() {
-    const cur = { q: settings.quality, spd: settings.speed, sfx: Math.round(settings.sfx * 3), mus: Math.round(settings.music * 3), voice: settings.voice };
+    const cur = { q: settings.quality, spd: settings.speed, sfx: Math.round(settings.sfx * 3), mus: Math.round(settings.music * 3), voice: settings.voice, fs: settings.fullscreen };
     this.opt = { ...cur, orig: { ...cur } };
-    this.optRaw = { quality: settings.quality, speed: settings.speed, sfx: settings.sfx, music: settings.music, voice: settings.voice };
+    this.optRaw = { quality: settings.quality, speed: settings.speed, sfx: settings.sfx, music: settings.music, voice: settings.voice, fullscreen: settings.fullscreen };
     this.overlay = 'options';
   }
   /** apply the edited values live (so volume / speed / 畫質 can be heard and seen); X restores the snapshot */
@@ -748,12 +749,15 @@ export class GameScene implements Scene {
     settings.voice = o.sfx === o.orig.sfx ? o.orig.voice : o.sfx / 3;
     applyVolumes();
     if (settings.quality !== o.q) { settings.quality = o.q as 0 | 1 | 2; void setQuality(o.q); }
+    if (settings.fullscreen !== o.fs) { settings.fullscreen = o.fs; void toggleFullscreen(o.fs); }
   }
   closeOptions(ok: boolean) {
     if (this.opt && !ok) {
       const r = this.optRaw!; const qChanged = settings.quality !== r.quality;
+      const fsChanged = settings.fullscreen !== r.fullscreen;
       Object.assign(settings, r); setSpeedIndex(r.speed); applyVolumes();
       if (qChanged) void setQuality(r.quality);
+      if (fsChanged) void toggleFullscreen(r.fullscreen);
     }
     saveSettings();
     this.opt = null; this.overlay = 'system';
@@ -798,6 +802,13 @@ export class GameScene implements Scene {
         if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, 0);
       }
     });
+    // 全螢幕 toggle (remake addition — no spare option.spr row; drawn under the four original rows)
+    {
+      const lab = { size: 13, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
+      text(ctx, '全螢幕', 30, 195, lab);
+      text(ctx, o.fs ? '開' : '關', 176, 195, { ...lab, align: 'center', color: o.fs ? '#9fe8ff' : '#fff' });
+      app.hit('op-fs', wr(W, { x: 20, y: 188, w: 210, h: 28 }), () => { o.fs = !o.fs; this.applyOpt(); void sfx('option/button'); });
+    }
     wbtn(ctx, W, 'op-x', 'interface/option', [1, 2, 3], () => this.closeOptions(false));
     wbtn(ctx, W, 'op-o', 'interface/option', [4, 5, 6], () => this.closeOptions(true));
     winEnd(ctx);
@@ -822,8 +833,9 @@ export class GameScene implements Scene {
     alive.slice(0, 4).forEach((p, k) => {
       const nm = 'interface/face0' + p.char;
       drawFrame(ctx, nm, p.seat === this.detailSeat ? 0 : 1, 53, TABY[k]);
-      // player colour pip (the original identified players by face only; colours are this remake's markers)
-      ctx.fillStyle = PLAYER_COLORS[p.seat]; ctx.fillRect(22, TABY[k] - 8 + 14, 4, 26);
+      // player colour pip: left of the face sprite (face left edge ≈ 53-17=36), height matches the 49px face
+      ctx.fillStyle = PLAYER_COLORS[p.seat];
+      ctx.fillRect(30, TABY[k] - 24, 4, 48);
       app.hit('di-tab' + k, wr(W, frameRect(nm, 0, 53, TABY[k])), () => { this.detailSeat = p.seat; void sfx('interface/click'); });
     });
     wbtn(ctx, W, 'di-x', 'interface/detailinfo', [1, 2, 3], () => { this.overlay = 'none'; });
@@ -880,15 +892,17 @@ export class GameScene implements Scene {
     let size = 14, lines: string[] = [];
     for (; size >= 10; size -= 0.5) { lines = wrap(ctx, card.text, 181, size, 'normal'); if (lines.length * size * 1.3 <= 118) break; }
     lines.forEach((l, i) => text(ctx, l, 293, 155 + i * size * 1.3, { size, color: '#000', baseline: 'top', weight: 'normal' }));
+    // Exe band at y=30+20i h=20; ruled lines at 35+20i. Bitmap font sat with top≈30 so glyphs rest on the rule —
+    // vector font needs a 1–2 px nudge (baseline middle on the rule) to look the same.
     const sc = d.scroll ?? 0;
     for (let i = 0; i < 5; i++) {
       const idx = sc + i; const e = list[idx]; if (!e) break;
-      const y = 30 + 20 * i; const sel = idx === d.sel;
-      if (sel) { ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(309, y, 150, 20); }
+      const y0 = 30 + 20 * i; const sel = idx === d.sel;
+      if (sel) { ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(309, y0, 150, 20); }
       const label = D.words[e.id - 1].title + (e.n > 1 ? ` ×${e.n}` : '');
-      text(ctx, label, 383, y + 2, { size: 15, align: 'center', baseline: 'top', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
-      app.hit('cs-row' + i, wr(W, { x: 309, y, w: 150, h: 20 }), () => {
-        if (d.sel === idx && !e.disabled) { d.resolve(e.id); return; } // second tap on the highlighted card = use
+      text(ctx, label, 383, y0 + 11, { size: 14, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
+      app.hit('cs-row' + i, wr(W, { x: 309, y: y0, w: 150, h: 20 }), () => {
+        if (d.sel === idx && !e.disabled) { d.resolve(e.id); return; }
         d.sel = idx; void sfx('interface/sfx042');
       });
     }
