@@ -13,7 +13,7 @@ import { netWorth, ownedPlots, season, yearOf, plotValue } from '../game/rules';
 import { setup } from './setup';
 import { LoadSaveWin, drawMsgBox } from '../ui/origdlg';
 import { winBegin, winEnd, wbtn, wr, centredWin, sysScale, type Win } from '../ui/origwin';
-import { settings, saveSettings, applyVolumes, toggleFullscreen } from '../core/audio';
+import { settings, saveSettings, applyVolumes, toggleFullscreen, isFullscreen } from '../core/audio';
 import { setQuality, hdActive, hdAvailable } from '../core/assets';
 import { setSpeedIndex } from '../core/app';
 import { startMiniGame } from '../mini/host';
@@ -50,27 +50,6 @@ interface Bubble { seat: number; text: string; t: number }
 
 const DICE_LAND = 900, DICE_HOLD = 1500, DICE_END = 1850;
 
-
-/** 9-slice grow of interface/option frame 0 so a fifth settings row + X/O fit inside the blue panel. */
-function drawOptionPanelGrown(ctx: CanvasRenderingContext2D, extra: number) {
-  const sh = sheet('interface/option');
-  if (!sh?.img) return;
-  const f = sh.f[0], src = sh.sf[0];
-  if (!f) return;
-  const dx = -f[4], dy = -f[5]; // hotspot → top-left (11,11)
-  const W = f[2], H = f[3];
-  // Keep top content + bottom chrome; stretch a mid band of the blue fill
-  const top = 160, bot = 40, mid = H - top - bot;
-  const midD = mid + extra;
-  const k = sh.hs || (src[2] / f[2]);
-  const sx = src[0], sy = src[1], sw = src[2];
-  // underlay so any seam still reads as panel (matches the blue fill)
-  ctx.fillStyle = '#3a5a8c';
-  ctx.fillRect(dx + 6, dy + 6, W - 12, H + extra - 12);
-  ctx.drawImage(sh.img, sx, sy, sw, top * k, dx, dy, W, top);
-  ctx.drawImage(sh.img, sx, sy + top * k, sw, Math.max(1, mid * k), dx, dy + top, W, midD);
-  ctx.drawImage(sh.img, sx, sy + (top + mid) * k, sw, bot * k, dx, dy + top + midD, W, bot);
-}
 
 export class GameScene implements Scene {
   board!: Board; view = new MapView(); engine!: Engine; g!: GameState;
@@ -280,6 +259,8 @@ export class GameScene implements Scene {
     const top = this.dlgs[this.dlgs.length - 1];
     if (top) this.renderDialog(ctx, w, h, top);
     this.renderOverlay(ctx, w, h);
+    // 全螢幕 floating control — drawn last so it sits above the 設定 modal block
+    if (!this.winnerInfo) this.drawFullscreenToggle(ctx, w, h, this.uis);
     if (this.winnerInfo) this.renderWinner(ctx, w, h);
   }
 
@@ -678,13 +659,12 @@ export class GameScene implements Scene {
     drawFrame(ctx, 'interface/card', 0, ax, ay, sc);
     const im = image('images/cards/' + card.jpg);
     if (im) ctx.drawImage(im, fx + 17 * sc, fy + 9 * sc, 248 * sc, 248 * sc);
-    // Title in the gap between rules y=35 and y=55 (centre 45); body inset inside the description panel
-    // (red margins 302..453, top ≥155) so nothing stacks on the white/cream frame lines.
-    const midX = fx + 377.5 * sc, colW = 140 * sc;
-    text(ctx, card.title, midX, fy + 45 * sc, { size: 15 * sc, align: 'center', baseline: 'middle', color: '#8a1a00', maxWidth: colW });
-    let size = 13, lines: string[] = [];
-    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, d.text ?? card.text, colW, size * sc); if (lines.length * size * 1.3 <= 95) break; }
-    lines.slice(0, 6).forEach((l, i) => text(ctx, l, fx + 308 * sc, fy + (158 + i * size * 1.3) * sc, { size: size * sc, color: '#3a1a00', baseline: 'top' }));
+    // Title in the gap above the first rule (sprite y=35 → centre ≈25); body inset in the desc panel.
+    const midX = fx + 377.5 * sc, colW = 138 * sc;
+    text(ctx, card.title, midX, fy + 25 * sc, { size: 14 * sc, align: 'center', baseline: 'middle', color: '#8a1a00', maxWidth: colW });
+    let size = 12.5, lines: string[] = [];
+    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, d.text ?? card.text, colW, size * sc); if (lines.length * size * 1.3 <= 90) break; }
+    lines.slice(0, 6).forEach((l, i) => text(ctx, l, fx + 310 * sc, fy + (160 + i * size * 1.3) * sc, { size: size * sc, color: '#3a1a00', baseline: 'top' }));
     // O (confirm) button in the bottom ornament gap
     const st = app.state('cardok');
     drawFrame(ctx, 'interface/card', 4 + st, ax, ay, sc);
@@ -792,36 +772,55 @@ export class GameScene implements Scene {
    * 10-12; X = frames 1-3, O = frames 4-6. Row 0 was 螢幕區域 (edge-scroll area, meaningless in a browser) and now
    * holds 畫質 (自動/標準/高清) with the same three-value box.
    */
+
+  /** Small translucent 全螢幕 control at bottom-right (above the week/jackpot info box). */
+  drawFullscreenToggle(ctx: CanvasRenderingContext2D, w: number, h: number, u = 1) {
+    const bw = Math.round(92 * u), bh = Math.round(28 * u);
+    const ix = w - bw - 10, iy = h - Math.round(52 * u) - 8 - bh - 8;
+    const on = settings.fullscreen || isFullscreen();
+    const st = app.state('fs-toggle');
+    ctx.save();
+    ctx.globalAlpha = st ? 0.95 : 0.72;
+    ctx.fillStyle = on ? 'rgba(20,80,140,0.75)' : 'rgba(10,20,40,0.55)';
+    roundRect(ctx, ix, iy, bw, bh, 8); ctx.fill();
+    ctx.strokeStyle = 'rgba(200,230,255,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+    text(ctx, '⛶ 全螢幕', ix + bw / 2 - 6 * u, iy + bh / 2, {
+      size: Math.round(13 * u), align: 'center', baseline: 'middle', color: on ? '#9fe8ff' : '#e8f0ff',
+      stroke: 'rgba(0,20,50,0.7)', strokeWidth: 3,
+    });
+    text(ctx, on ? '開' : '關', ix + bw - 14 * u, iy + bh / 2, {
+      size: Math.round(10 * u), align: 'center', baseline: 'middle', color: on ? '#9fe8ff' : 'rgba(255,255,255,0.55)',
+    });
+    app.hit('fs-toggle', { x: ix, y: iy, w: bw, h: bh }, () => {
+      const next = !isFullscreen();
+      settings.fullscreen = next; saveSettings();
+      void toggleFullscreen(next);
+      void sfx('option/button');
+    });
+  }
+
   renderOptionWin(ctx: CanvasRenderingContext2D, w: number, h: number, S: number, ay: number) {
     if (!this.opt) this.openOptions();
     const o = this.opt!;
     const k = ease.outCubic(Math.min(1, this.ovT / 320));
     const W: Win = { sc: S, ax: (-251 + (140 + 251) * k) * S, ay };
     winBegin(ctx, W);
-    // Grow the blue panel by one row (40px) so 畫質…全螢幕 + X/O all sit inside it.
-    const EXTRA = 48;
-    drawOptionPanelGrown(ctx, EXTRA);
+    drawFrame(ctx, 'interface/option', 0, 0, 0);
     const T = D.main['Option-Title'] ?? {};
     const sp = D.main['Option-Speed'] ?? { 0: '慢速', 1: '正常速度', 2: '快速' };
     const ql = ['自動', '標準', '高清'];
     const lab = { size: 14, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
-    // Original 40px pitch for the four exe rows; 全螢幕 takes the new fifth slot; X/O shift down by EXTRA.
-    const Y = [30, 70, 110, 150, 190];
-    const rowFr: [number, number, number][] = [[14, 13, 13], [16, 15, 15], [18, 17, 17], [20, 19, 19]];
-    const cycle = [
-      () => { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; this.applyOpt(); },
-      () => { o.spd = (o.spd + 1) % 3; this.applyOpt(); },
-      () => { o.sfx = (o.sfx + 1) % 4; this.applyOpt(); },
-      () => { o.mus = (o.mus + 1) % 4; this.applyOpt(); },
+    // Original four rows only — 全螢幕 lives on the floating BR toggle outside this panel.
+    const rows: [string, [number, number, number], () => void][] = [
+      ['op-q', [14, 13, 13], () => { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; this.applyOpt(); }],
+      ['op-spd', [16, 15, 15], () => { o.spd = (o.spd + 1) % 3; this.applyOpt(); }],
+      ['op-sfx', [18, 17, 17], () => { o.sfx = (o.sfx + 1) % 4; this.applyOpt(); }],
+      ['op-mus', [20, 19, 19], () => { o.mus = (o.mus + 1) % 4; this.applyOpt(); }],
     ];
-    for (let i = 0; i < 4; i++) {
-      const id = ['op-q', 'op-spd', 'op-sfx', 'op-mus'][i];
-      const fr = rowFr[i];
-      const a = ctx.globalAlpha;
-      if (app.state(id)) ctx.globalAlpha = a * 0.9;
-      drawFrame(ctx, 'interface/option', fr[0], 0, 0);
-      ctx.globalAlpha = a;
-      app.hit(id, wr(W, frameRect('interface/option', fr[0], 0, 0)), () => { void sfx('option/button'); cycle[i](); });
+    const Y = [30, 70, 110, 150];
+    rows.forEach(([id, fr, cb], i) => {
+      wbtn(ctx, W, id, 'interface/option', fr, cb, { sound: 'option/button' });
       if (i === 0) {
         text(ctx, '畫質', 30, Y[i] + 3, lab);
         text(ctx, ql[o.q] + (o.q === 0 ? (hdActive() ? '·高清' : '·標準') : ''), 176, Y[i] + 3, { ...lab, align: 'center' });
@@ -835,26 +834,9 @@ export class GameScene implements Scene {
         text(ctx, T['3'] ?? '音樂', 70, Y[i] + 3, lab);
         if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, 0);
       }
-    }
-    // 全螢幕 — fifth row at original pitch, value box = frame 14 shifted down
-    {
-      const dy = Y[4] - 30; // frame 14's native top is y=30
-      const a = ctx.globalAlpha;
-      if (app.state('op-fs')) ctx.globalAlpha = a * 0.92;
-      drawFrame(ctx, 'interface/option', 14, 0, dy);
-      ctx.globalAlpha = a;
-      text(ctx, '全螢幕', 30, Y[4] + 3, lab);
-      text(ctx, o.fs ? '開' : '關', 176, Y[4] + 3, { ...lab, align: 'center', color: o.fs ? '#9fe8ff' : '#fff' });
-      app.hit('op-fs', wr(W, frameRect('interface/option', 14, 0, dy)), () => { o.fs = !o.fs; this.applyOpt(); void sfx('option/button'); });
-    }
-    // X/O sit on the grown panel's bottom chrome (native hotspots + EXTRA)
-    {
-      const stX = app.state('op-x'), stO = app.state('op-o');
-      drawFrame(ctx, 'interface/option', 1 + stX, 0, EXTRA);
-      drawFrame(ctx, 'interface/option', 4 + stO, 0, EXTRA);
-      app.hit('op-x', wr(W, frameRect('interface/option', 1, 0, EXTRA)), () => { void sfx('interface/click'); this.closeOptions(false); });
-      app.hit('op-o', wr(W, frameRect('interface/option', 4, 0, EXTRA)), () => { void sfx('interface/click'); this.closeOptions(true); });
-    }
+    });
+    wbtn(ctx, W, 'op-x', 'interface/option', [1, 2, 3], () => this.closeOptions(false));
+    wbtn(ctx, W, 'op-o', 'interface/option', [4, 5, 6], () => this.closeOptions(true));
     winEnd(ctx);
   }
 
@@ -931,26 +913,28 @@ export class GameScene implements Scene {
     if (im) ctx.drawImage(im, 24, 18, 248, 248);
     // Description panel (sprite y≥155 → window y = 8+155 = 163; red margins sprite 302..453 → window 309..460).
     // Keep text inset so it never paints over the white/cream frame line art.
-    const descX = 312, descW = 145, descY = 165;
+    const descX = 314, descW = 140, descY = 168;
     let size = 13, lines: string[] = [];
     for (; size >= 9; size -= 0.5) { lines = wrap(ctx, card.text, descW, size, 'normal'); if (lines.length * size * 1.3 <= 100) break; }
     lines.forEach((l, i) => text(ctx, l, descX, descY + i * size * 1.3, { size, color: '#000', baseline: 'top', weight: 'normal' }));
-    // List: exe rows at y = 30+20i (centred x=383). Sprite rules land at window y=43+20i, so each
-    // name sits in the upper half of its row (mid = 40+20i), just above the rule — first card on the
-    // first row (no blank gap). Mask inset inside red margins 309..460 and clear of the rule line.
+    // List: sprite rules at y=35+20i → window y=43+20i (frame at +7,+8). Five gaps:
+    // above 1st rule (mid 33) then between consecutive rules (53,73,93,113). Size-13 glyphs stay
+    // clear of the line art; selection mask fills only the gap interior inside red margins 309..460.
     const sc = d.scroll ?? 0;
     for (let i = 0; i < 5; i++) {
       const idx = sc + i; const e = list[idx]; if (!e) break;
-      const y0 = 30 + 20 * i;             // exe row top
-      const mid = y0 + 10;                // 40+20i — between row top and rule at 43+20i
+      const ruleBot = 43 + 20 * i;         // rule below this row
+      const mid = ruleBot - 12;            // 31+20i — slightly above gap centre so glyphs clear the lower rule
+      const gapTop = ruleBot - 19;         // 24+20i
       const sel = idx === d.sel;
       if (sel) {
         ctx.fillStyle = 'rgba(80,10,0,0.45)';
-        ctx.fillRect(311, y0 + 1, 147, 11); // y0+1 .. y0+12, clear of rule at y0+13 (=43+20i)
+        // inset 2px from rules and 3px from red verticals (309 / 460)
+        ctx.fillRect(313, gapTop + 2, 143, 14);
       }
       const label = D.words[e.id - 1].title + (e.n > 1 ? ` ×${e.n}` : '');
-      text(ctx, label, 383, mid, { size: 13, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
-      app.hit('cs-row' + i, wr(W, { x: 311, y: y0 + 1, w: 147, h: 12 }), () => {
+      text(ctx, label, 384, mid, { size: 11, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
+      app.hit('cs-row' + i, wr(W, { x: 313, y: gapTop + 2, w: 143, h: 14 }), () => {
         if (d.sel === idx && !e.disabled) { d.resolve(e.id); return; }
         d.sel = idx; void sfx('interface/sfx042');
       });

@@ -6,7 +6,7 @@
 // automatically by drawFrame.
 import { app } from '../core/app';
 import { drawFrame, sheet, hdActive, hdAvailable, setQuality } from '../core/assets';
-import { sfx, settings, saveSettings, applyVolumes, toggleFullscreen } from '../core/audio';
+import { sfx, settings, saveSettings, applyVolumes, toggleFullscreen, isFullscreen } from '../core/audio';
 import { setSpeedIndex } from '../core/app';
 import { text, wrap } from '../core/text';
 import { winBegin, winEnd, wbtn, wr, sysScale, type Win } from './origwin';
@@ -190,6 +190,33 @@ function framePart(ctx: CanvasRenderingContext2D, name: string, fi: number, sx: 
  * (cancel). Row 0 (screen resolution 640x480/800x600/1024x768 — meaningless on the web) now selects 畫質; its baked-in
  * label is covered with the row's own background (a clean column of the same frame, stretched) and relabelled.
  */
+
+/** Main-menu / options-screen floating 全螢幕 toggle (screen bottom-right). */
+export function drawMenuFullscreenToggle(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const bw = Math.min(100, w * 0.22), bh = 30;
+  const ix = w - bw - 12, iy = h - bh - 14;
+  const on = settings.fullscreen || isFullscreen();
+  const st = app.state('fs-toggle');
+  ctx.save();
+  ctx.globalAlpha = st ? 0.95 : 0.75;
+  ctx.fillStyle = on ? 'rgba(20,80,140,0.8)' : 'rgba(10,20,40,0.6)';
+  ctx.beginPath();
+  const r = 8;
+  ctx.moveTo(ix + r, iy); ctx.arcTo(ix + bw, iy, ix + bw, iy + bh, r); ctx.arcTo(ix + bw, iy + bh, ix, iy + bh, r);
+  ctx.arcTo(ix, iy + bh, ix, iy, r); ctx.arcTo(ix, iy, ix + bw, iy, r); ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(200,230,255,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.restore();
+  text(ctx, '⛶ 全螢幕', ix + bw / 2 - 8, iy + bh / 2, { size: 14, align: 'center', baseline: 'middle', color: on ? '#9fe8ff' : '#e8f0ff', stroke: 'rgba(0,20,50,0.7)', strokeWidth: 3 });
+  text(ctx, on ? '開' : '關', ix + bw - 16, iy + bh / 2, { size: 11, align: 'center', baseline: 'middle', color: on ? '#9fe8ff' : 'rgba(255,255,255,0.55)' });
+  app.hit('fs-toggle', { x: ix, y: iy, w: bw, h: bh }, () => {
+    const next = !isFullscreen();
+    settings.fullscreen = next; saveSettings();
+    void toggleFullscreen(next);
+    void sfx('option/button');
+  });
+}
+
 export function drawMenuOptions(ctx: CanvasRenderingContext2D, w: number, h: number, ed: OptEdit, close: (ok: boolean) => void) {
   const S = Math.max(0.5, Math.min(2.2, Math.min(w / 640, h / 480), (w - 8) / 610));
   const W: Win = { sc: S, ax: w / 2, ay: h / 2 };
@@ -213,19 +240,9 @@ export function drawMenuOptions(ctx: CanvasRenderingContext2D, w: number, h: num
     else if (k === 'sfx') { if (ed.v.sfx > 0) drawFrame(ctx, 'option/setting', 5 + ed.v.sfx, 0, 0); }
     else if (ed.v.mus > 0) drawFrame(ctx, 'option/setting', 10 + ed.v.mus, 0, 0);
   }
-  // 全螢幕 — proper row above O/X (buttons sit at y≈185). Label left, 開/關 value right, inside the panel.
-  {
-    const on = ed.v.fs;
-    const y = 168;
-    ctx.fillStyle = 'rgba(10,30,70,0.72)';
-    ctx.fillRect(-10, y - 14, 120, 28);
-    ctx.strokeStyle = 'rgba(180,220,255,0.45)'; ctx.lineWidth = 1.5;
-    ctx.strokeRect(-10, y - 14, 120, 28);
-    text(ctx, '全螢幕', -100, y, { size: 18, ...WHITE, align: 'left', baseline: 'middle' });
-    text(ctx, on ? '開' : '關', 50, y, { size: 18, ...WHITE, align: 'center', baseline: 'middle', color: on ? '#9fe8ff' : '#fff' });
-    app.hit('mo-fs', wr(W, { x: -110, y: y - 16, w: 230, h: 32 }), () => ed.cycle('fs'));
-  }
   wbtn(ctx, W, 'mo-o', 'option/button', [0, 1, 2], () => close(true));
   wbtn(ctx, W, 'mo-x', 'option/button', [3, 4, 5], () => close(false));
   winEnd(ctx);
+  // 全螢幕 — floating translucent control at screen bottom-right (outside the TV-room panel)
+  drawMenuFullscreenToggle(ctx, w, h);
 }

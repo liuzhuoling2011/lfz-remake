@@ -66,3 +66,9 @@
 ## Round 8 — card list first row + grown 設定 panel (2026-10-09, Asia/Shanghai)
 - 四字真言 list restored to exe rows y=30+20i (mid 40+20i) so the first card sits on the first row; selection band inset above the rule.
 - 設定: 9-slice grow of option.spr frame 0 by +48px; five rows at 30/70/110/150/190; X/O shifted down onto the grown chrome. tests/ui8.mjs.
+
+## Round 9 — floating 全螢幕 + card names between rules (2026-10-09, Asia/Shanghai)
+- Reverted option.spr panel growth; removed 全螢幕 from in-game and main-menu 設定 panels.
+- Added translucent ⛶ 全螢幕 toggle at screen bottom-right (above info box / over options modal).
+- 四字真言 list: names at gap centres mid=ruleBot-12 (31+20i), selection mask inset inside rules & red margins; desc further inset. Before/after: screenshots/ui9_*_before/after_*.
+- tests/ui9.mjs.
