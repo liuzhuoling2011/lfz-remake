@@ -1,3 +1,16 @@
+
+## Round 10 — property rules + ferry loop (2026-10-10 Asia/Shanghai)
+
+- Owner markers: seat-coloured `playermark0N_2` bob above every owned building (not only 家).
+- Four types by **id** (`PLOT.SHOP/RESTAURANT/RESIDENCE/HOME`); display names via `plotTypeName(ancient)` (士多/食肆/住宅/屋企 vs 商舖/酒樓/民宅/府邸). Buy cost lines still ExtText.
+- Rent: VERIFIED FUN_00417b90 — 住宅(type3) charges **0**; 士多/食肆 value/2; 家 visit 5–10% cash. Fixed remake bug that billed 住宅 as visit gift.
+- 家 landing: 存錢/取錢 dialog (half/all); AI parks surplus / withdraws when low. Pass-by auto-deposit removed.
+- 住宅: weekly `residenceIncomePct` of plot value → `homeMoney` (float toast).
+- 士多/食肆: owner landing → random `investDelta` + ExtText type1_1/type1_2 (seasonal shop sweep removed).
+- Upgrade still max level 3 when owner lands.
+- Ferry/tram/cart: `land(p, { skipTransport: true })` after teleport so 九龍渡海 / 古代馬車 pairs cannot A↔B loop. HK single tram unchanged.
+- Tests: `tests/property_rules.mjs`, `tests/ferry_loop.mjs`, `tests/property_shot.mjs`; autoplay 26w map0 winner, 0 errors. Shots: `screenshots/property_markers_*.png`.
+
 # 老夫子大富翁 Web Remake — Progress
 
 - 2026-10-09 01:13 (Asia/Shanghai) — Web worker started: read SPEC/MANIFEST, inspected boards/maps/sprites; scaffolding Vite+TS project in web/.

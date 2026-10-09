@@ -19,7 +19,12 @@ export const RULES = {
   lockFee: 100,               // VERIFIED case 9 scale(100)
   jockeyTicket: 200,          // INFERRED
   jockeyWinChance: 0.12,      // INFERRED
-  homeDepositPct: 50,         // INFERRED: passing own 屋企 deposits 50% of hand cash
+  homeDepositPct: 50,         // INFERRED: default fraction when depositing at 家
+  /** Weekly passive income from each 住宅 → homeMoney, as % of that plot's current value. INFERRED. */
+  residenceIncomePct: 4,
+  /** Owner landing on 士多/食肆: random investment swing as % of plot value. INFERRED range. */
+  investPctMin: -8,
+  investPctMax: 14,
   cardMax: 32,                 // INFERRED
   statusWeeks: 3,             // VERIFIED (card texts: 三個星期)
   npcEventChance: 0.05,       // INFERRED per-turn chance of random NPC event (thief/thug/tiger/財神/卡神)
@@ -53,3 +58,30 @@ export const SFX = ['sfx/sfx004', 'sfx/sfx010', 'sfx/sfx080', 'sfx/sfx030', 'sfx
 export const SFXI = { gain: 19, lose: 2, build: 3, useCard: 12, cardHit: 17, godIn: 17, godOut: 21, balloon: 22, lucky: 16, bad: 17, minigame: 21, demolish: 0, home: 15 } as const;
 
 export const CHAR_VOICE_PREFIX = ['', 'mq', 'bp', 'mc', 'mh', 'pg', 'sm'];
+
+
+/** Building type ids — VERIFIED FUN_00417b90 / economy.type_mult (logic by id, not by display name). */
+export const PLOT = {
+  SHOP: 1,        // 士多 / 商業中心 / 商店 / 商舖 …
+  RESTAURANT: 2,  // 食肆 / 酒樓 …
+  RESIDENCE: 3,   // 住宅 / 民宅 … (no rent)
+  HOME: 4,        // 家 / 屋企 / 府邸 …
+} as const;
+
+/**
+ * Short display name for a building type on a given map family.
+ * HK/Kowloon use modern Cantonese labels; ancient uses period-flavoured aliases.
+ * Buy-dialog cost lines still come from ExtText SelectBuilding (商業中心 etc.).
+ */
+export function plotTypeName(type: number, ancient = false): string {
+  if (ancient) return (['', '商舖', '酒樓', '民宅', '府邸'] as const)[type] ?? '?';
+  return (['', '士多', '食肆', '住宅', '屋企'] as const)[type] ?? '?';
+}
+
+/** Sprite stem under map/ (or map/a_) for a built plot type. */
+export function plotSpriteKind(type: number): 'commcal' | 'eating' | 'house' | 'home' {
+  if (type === PLOT.SHOP) return 'commcal';
+  if (type === PLOT.RESTAURANT) return 'eating';
+  if (type === PLOT.HOME) return 'home';
+  return 'house';
+}

@@ -10,7 +10,7 @@ export interface Player {
   cash: number; home: number; tile: number; prev: number;
   status: Status; cards: number[]; homePlot: number | null; locks: number; chooseSteps: boolean;
 }
-export interface PlotState { owner: number; type: number; level: number } // type 1 shop,2 restaurant,3 house,4 home
+export interface PlotState { owner: number; type: number; level: number } // type: PLOT.SHOP=1 士多, RESTAURANT=2 食肆, RESIDENCE=3 住宅, HOME=4 家
 export interface RoadMoney { tile: number; amount: number }
 export interface GameState {
   v: 1; map: number; weeksLimit: number; week: number; current: number;

@@ -7,7 +7,7 @@ import { text, fmtMoney } from '../core/text';
 import type { Board } from './board';
 import { dirGroup } from './board';
 import type { GameState } from './state';
-import { PLAYER_COLORS } from './config';
+import { PLAYER_COLORS, plotSpriteKind } from './config';
 
 interface MapObj {
   s: number; f: number; x: number; y: number; a: number; anim: boolean; seasonal: boolean; icon: boolean;
@@ -82,7 +82,7 @@ export class MapView {
     // lazy per map: only this map's building style and the characters actually in the game are fetched
     const P = 'map/' + pre;
     const extra = ['map/shadow', 'map/getmoney', 'map/lostmoney', 'map/cardhit', 'map/usecard', 'map/havemoney', 'map/nomoney', 'map/godin', 'map/godout', 'map/money',
-      'map/playermark01', 'map/playermark02', 'map/playermark03', 'map/playermark04', P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3', P + 'money', P + 'getmoney'];
+      'map/playermark01', 'map/playermark02', 'map/playermark03', 'map/playermark04', 'map/playermark01_2', 'map/playermark02_2', 'map/playermark03_2', 'map/playermark04_2', P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3', P + 'money', P + 'getmoney'];
     for (const k of ['house', 'commcal', 'eating', 'home']) for (const l of [1, 2, 3]) extra.push(`map/${pre}${k}${l}`);
     // stand/walk sheets block the start; use/hit poses, the NPC walkers and the construction fx stream in afterwards
     const later: string[] = [P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3',
@@ -434,10 +434,10 @@ export class MapView {
       if (c.x > vx1 || c.x + CHUNK < vx0 || c.y > vy1 || c.y + CHUNK < vy0) continue;
       ctx.drawImage(c.c, c.x, c.y, CHUNK, CHUNK);
     }
-    // plot ownership overlays
+    // plot ownership: light tile tint (face markers are drawn on the building itself)
     const g = this.game;
     if (g) {
-      for (let i = 0; i < g.plots.length; i++) { const ps = g.plots[i]; if (!ps) continue; const p = this.board.plots[i]; this.diamond(ctx, p.x, p.y, PLAYER_COLORS[ps.owner], 0.45); }
+      for (let i = 0; i < g.plots.length; i++) { const ps = g.plots[i]; if (!ps) continue; const p = this.board.plots[i]; this.diamond(ctx, p.x, p.y, PLAYER_COLORS[ps.owner], 0.18); }
       for (const rm of g.roadMoney) { const t = this.board.tiles[rm.tile]; drawFrame(ctx, this.ancient ? 'map/a_money' : 'map/money', tick % 8, t.x, t.y); }
     }
     // occluder marking: static objects in front of something drawn live this frame get redrawn in y-order
@@ -498,7 +498,7 @@ export class MapView {
     for (const cc of this.constructs) if (cc.plot === i) { c = cc; break; }
     const pre = this.ancient ? 'map/a_' : 'map/';
     if (ps) {
-      const kind = ps.type === 1 ? 'commcal' : ps.type === 2 ? 'eating' : ps.type === 4 ? 'home' : 'house';
+      const kind = plotSpriteKind(ps.type);
       const name = `${pre}${kind}${[1, 2, 3, 3][ps.level]}`;
       if (c && !c.down && c.swapped) {
         // rise: grows up from the ground with an overshoot, fading in through the scaffold glow
@@ -516,7 +516,8 @@ export class MapView {
       } else {
         drawFrame(ctx, name, p.dir, p.x, p.y);
         if (ps.level >= 3) drawFrame(ctx, 'map/havemoney', Math.floor(app.time / 60) % 32, p.x, p.y - 40, 0.6, 0.8);
-        if (ps.type === 4) this.flag(ctx, p.x, p.y - 70, PLAYER_COLORS[ps.owner]);
+        // Owner marker above building (same playermark gem that floats over the token)
+        this.ownerMark(ctx, name, p.dir, p.x, p.y, ps.owner);
       }
     }
     if (c) {
@@ -540,6 +541,17 @@ export class MapView {
     const wv = Math.sin(app.time / 200) * 2;
     ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 20, y); ctx.lineTo(x + 20, y - 34); ctx.stroke();
     ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x + 21, y - 34); ctx.lineTo(x + 40, y - 28 + wv); ctx.lineTo(x + 21, y - 21); ctx.closePath(); ctx.fill();
+  }
+  /** Seat-coloured playermark bobbing above an owned building (same asset as the token head marker). */
+  private ownerMark(ctx: CanvasRenderingContext2D, building: string, dir: number, x: number, y: number, seat: number) {
+    // Prefer the larger *_2 playermark sheet over buildings (same seat colours as the token head gem).
+    const mk2 = `map/playermark0${seat + 1}_2`;
+    const mk = sheet(mk2) ? mk2 : `map/playermark0${seat + 1}`;
+    const sh = sheet(mk); if (!sh) return;
+    const b = sheet(building);
+    const hy = b?.f[Math.min(dir, (b?.f.length ?? 1) - 1)]?.[5] ?? 70;
+    const bob = Math.sin(app.time / 220 + seat) * 2.5;
+    drawFrame(ctx, mk, Math.floor(app.time / 90) % sh.f.length, x, y - hy - 4 + bob, sheet(mk2) ? 0.85 : 1.15);
   }
 
   drawActor(ctx: CanvasRenderingContext2D, a: Actor) {

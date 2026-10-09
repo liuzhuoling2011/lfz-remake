@@ -1,6 +1,6 @@
 // AI policy (INFERRED, driven by character attrack permutations from spec/data/ai_rules.json).
 import { D } from './data';
-import { RULES } from './config';
+import { RULES, PLOT } from './config';
 import type { Board } from './board';
 import type { GameState, Player } from './state';
 import { netWorth, scale, ownedPlots } from './rules';
@@ -98,7 +98,8 @@ function tileScore(g: GameState, b: Board, p: Player, t: number) {
     const ps = g.plots[pl];
     if (!ps) s += p.cash > reserve(g) ? 3 : 0.5;
     else if (ps.owner === p.seat) s += ps.level < RULES.maxLevel ? 2 : 0.3;
-    else { // rent risk relative to cash
+    else if (ps.type === PLOT.RESIDENCE) s += 0.2; // 住宅不收租
+    else { // rent / visit risk relative to cash
       const v = Math.floor(RULES.levelPct[ps.level] * b.plots[pl].base / 100);
       s -= 1.5 + 4 * Math.min(1.5, v / Math.max(300, p.cash));
     }

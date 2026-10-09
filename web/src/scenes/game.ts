@@ -7,7 +7,7 @@ import { Board } from '../game/board';
 import { MapView } from '../game/view';
 import { Engine, type GameUI, type ChoiceOpt, type UIOpts, type TurnAction, type ToastOpts } from '../game/engine';
 import { newGame, saveSlot, loadSlot, type GameState, type Player } from '../game/state';
-import { RULES, MAPS, PLAYER_COLORS, PLAYER_COLORS_DARK, SEASONS, SFX } from '../game/config';
+import { RULES, MAPS, PLAYER_COLORS, PLAYER_COLORS_DARK, SEASONS, SFX, plotTypeName, PLOT } from '../game/config';
 import { D, charName, msg } from '../game/data';
 import { netWorth, ownedPlots, season, yearOf, plotValue } from '../game/rules';
 import { setup } from './setup';
@@ -424,13 +424,17 @@ export class GameScene implements Scene {
     const x = Math.max(6, Math.min(w - tw - 6, s.x - tw / 2)), y = Math.max(6, s.y - th);
     ctx.fillStyle = 'rgba(255,250,235,0.95)'; roundRect(ctx, x, y, tw, th, 10 * u); ctx.fill();
     ctx.strokeStyle = ps ? PLAYER_COLORS[ps.owner] : '#c98a2c'; ctx.lineWidth = 3; ctx.stroke();
-    const types = ['', '商業中心', '食肆', '住宅', '屋企'];
+    const ancient = MAPS[this.g.map].ancient;
     text(ctx, `${p.lotId}號地  地價 ${fmtMoney(Math.floor(p.base * Math.pow(1.1, Math.floor(this.g.week / 13))))}`, x + 10 * u, y + 22 * u, { size: 14 * u, color: '#4a2a00' });
     if (ps) {
-      text(ctx, `${charName(this.g.players[ps.owner].char)}的${types[ps.type]}  等級 ${ps.level + 1}`, x + 10 * u, y + 44 * u, { size: 13 * u, color: '#333' });
+      text(ctx, `${charName(this.g.players[ps.owner].char)}的${plotTypeName(ps.type, ancient)}  等級 ${ps.level + 1}`, x + 10 * u, y + 44 * u, { size: 13 * u, color: '#333' });
       const v = plotValue(this.g, this.board, pl);
       text(ctx, `價值 ${fmtMoney(v)}`, x + 10 * u, y + 64 * u, { size: 13 * u, color: '#333' });
-      text(ctx, ps.type >= 3 ? '探訪送禮：現金 5–10%' : `消費：${fmtMoney(Math.floor(v / 2))}`, x + 10 * u, y + 83 * u, { size: 13 * u, color: '#b03000' });
+      let feeLine = '無租金';
+      if (ps.type === PLOT.HOME) feeLine = '探訪送禮：現金 5–10%';
+      else if (ps.type === PLOT.SHOP || ps.type === PLOT.RESTAURANT) feeLine = `消費：${fmtMoney(Math.floor(v / 2))}`;
+      else if (ps.type === PLOT.RESIDENCE) feeLine = '住宅：訪客免租金';
+      text(ctx, feeLine, x + 10 * u, y + 83 * u, { size: 13 * u, color: '#b03000' });
     } else text(ctx, '空地 — 停在旁邊即可購買興建', x + 10 * u, y + 50 * u, { size: 13 * u, color: '#333' });
   }
 

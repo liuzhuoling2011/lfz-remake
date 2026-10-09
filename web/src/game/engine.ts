@@ -1,12 +1,12 @@
 // Turn engine: async state machine driving rules + view + UI.
 import { wait, TURBO } from '../core/app';
 import { sfx, voice, music } from '../core/audio';
-import { RULES, MAPS, SFX, SFXI, SEASONS } from './config';
+import { RULES, MAPS, SFX, SFXI, SEASONS, PLOT, plotTypeName } from './config';
 import { D, msg, fmt, charName, type ChanceCard, type WordCard } from './data';
 import type { Board, Landmark } from './board';
 import type { GameState, Player } from './state';
 import { saveSlot } from './state';
-import { scale, value, buildCost, upgradeCost, plotValue, netWorth, ownedPlots, landPrice, season } from './rules';
+import { scale, value, buildCost, upgradeCost, plotValue, netWorth, ownedPlots, landPrice, season, rentFee, residenceIncome, investDelta, hasOwnerInvest } from './rules';
 import * as AI from './ai';
 import type { MapView } from './view';
 import type { MGResult } from '../mini/core';
@@ -145,22 +145,26 @@ export class Engine {
   async newWeek() {
     const s0 = season(this.g);
     this.g.week++;
+    // 住宅 → 屋企存款：每週按物業價值抽成（INFERRED；邏輯按 type id=3，與地圖顯示名無關）
+    for (const p of this.alive()) {
+      let gained = 0;
+      for (const i of ownedPlots(this.g, p)) {
+        const ps = this.g.plots[i]!;
+        if (ps.type !== PLOT.RESIDENCE) continue;
+        const amt = residenceIncome(plotValue(this.g, this.b, i));
+        if (amt > 0) { p.home += amt; gained += amt; }
+      }
+      if (gained > 0) {
+        const a = this.view.actor(p.seat);
+        this.view.float(`住宅收租 +${gained}`, a.x, a.y - 120, '#9fe8ff');
+        this.onChange();
+      }
+    }
     const s1 = season(this.g);
     if (s1 !== s0) {
       this.view.season = s1;
       await this.ui.seasonChange(s1);
       music(MAPS[this.g.map].music[s1]);
-      // commercial investment results each season (type1_1 / type1_2) — INFERRED trigger
-      for (const p of this.alive()) {
-        const shops = ownedPlots(this.g, p).filter(i => this.g.plots[i]!.type === 1);
-        if (!shops.length) continue;
-        const tot = shops.reduce((a, i) => a + plotValue(this.g, this.b, i), 0);
-        const pct = Math.floor(Math.random() * 21) - 6; // -6%..+14%
-        const amt = Math.floor(tot * Math.abs(pct) / 100);
-        if (amt <= 0) continue;
-        if (pct >= 0) { this.gain(p, amt); this.speak(p, GOOD); await this.info(this.name(p) + '：' + msg('Misc', 'type1_1', amt), {}, p); }
-        else { await this.pay(p, amt); this.speak(p, BAD); await this.info(this.name(p) + '：' + msg('Misc', 'type1_2', amt), {}, p); }
-      }
     }
   }
 
@@ -275,17 +279,7 @@ export class Engine {
       this.g.roadMoney = this.g.roadMoney.filter(r => r.tile !== p.tile);
       this.gain(p, amt); this.speak(p, GOOD, 1);
     }
-    // home deposit when passing own 屋企
-    if (p.homePlot !== null && this.b.plots[p.homePlot].tiles.includes(p.tile) && p.cash > 0) {
-      const dep = Math.floor(p.cash * RULES.homeDepositPct / 100);
-      if (dep > 0) {
-        p.cash -= dep; p.home += dep;
-        const a = this.view.actor(p.seat);
-        this.view.float('存入屋企 ' + dep, a.x, a.y - 130, '#9fe8ff');
-        if (!TURBO) void sfx('season/drip');
-        this.speak(p, L.home, 1);
-      }
-    }
+    // (家存取改為停在自有屋企時的對話，見 homeBank；路過不再自動存入)
   }
 
   async teleportTo(p: Player, tile: number) {
@@ -333,7 +327,7 @@ export class Engine {
   }
 
   // ---------------- landing ----------------
-  async land(p: Player) {
+  async land(p: Player, opts: { skipTransport?: boolean } = {}) {
     if (++this.depth > 4) { this.depth--; return; }
     try {
       const t = this.b.tiles[p.tile];
@@ -349,7 +343,8 @@ export class Engine {
         }
         case 'minigame': await this.minigame(p); break;
         case 'jockey': await this.jockey(p); break;
-        case 'transport': await this.transport(p); break;
+        // Arrival after ferry/tram/cart must not re-prompt the paired pier (九龍渡海 / 古代馬車 loop)
+        case 'transport': if (!opts.skipTransport) await this.transport(p); break;
         case 'smallman': await this.smallman(p); break;
       }
       for (const lm of t.landmarks) { if (!p.alive) return; await this.landmark(p, lm); }
@@ -368,28 +363,36 @@ export class Engine {
   async property(p: Player, pl: number) {
     const ps = this.g.plots[pl];
     const plot = this.b.plots[pl];
+    const ancient = MAPS[this.g.map].ancient;
     if (!ps) {
       if (p.status.confused > 0) { this.speak(p, L.badLuck); await this.info(`${this.name(p)}神智不清，不能購買物業！`, {}, p); return; }
       if (p.homePlot === null) {
-        const cost = buildCost(this.g, this.b, pl, 4);
+        const cost = buildCost(this.g, this.b, pl, PLOT.HOME);
         if (p.cash < cost) return;
         if (!p.ai) this.speak(p, L.choose, 1);
         const ok = await this.ask(p, msg('SelectBuilding', 'homeTitle') + '\n' + msg('SelectBuilding', 'homeText', cost), { title: `${plot.lotId}號地` },
-          AI.wantHome(this.g, p, cost), `${this.name(p)}購入 ${plot.lotId}號地 興建屋企（$${cost}）`);
+          AI.wantHome(this.g, p, cost), `${this.name(p)}購入 ${plot.lotId}號地 興建${plotTypeName(PLOT.HOME, ancient)}（$${cost}）`);
         if (!ok) return;
         await this.pay(p, cost);
         this.sfxi(SFXI.build);
         this.speak(p, L.home);
-        await this.view.construct(pl, false, () => { this.g.plots[pl] = { owner: p.seat, type: 4, level: 0 }; });
-        this.g.plots[pl] = { owner: p.seat, type: 4, level: 0 }; p.homePlot = pl;
+        await this.view.construct(pl, false, () => { this.g.plots[pl] = { owner: p.seat, type: PLOT.HOME, level: 0 }; });
+        this.g.plots[pl] = { owner: p.seat, type: PLOT.HOME, level: 0 }; p.homePlot = pl;
         return;
       }
-      const costs: Record<number, number> = { 1: buildCost(this.g, this.b, pl, 1), 2: buildCost(this.g, this.b, pl, 2), 3: buildCost(this.g, this.b, pl, 3) };
-      const opts: ChoiceOpt[] = [
-        { label: '住宅', sub: msg('SelectBuilding', 'building1', costs[3]), disabled: p.cash < costs[3] },
-        { label: '商業中心', sub: msg('SelectBuilding', 'building2', costs[1]), disabled: p.cash < costs[1] },
-        { label: '食肆', sub: msg('SelectBuilding', 'building3', costs[2]), disabled: p.cash < costs[2] },
-      ];
+      // Build options by type id: 3 住宅 / 1 士多 / 2 食肆 (labels follow map family; costs from ExtText)
+      const costs: Record<number, number> = {
+        [PLOT.SHOP]: buildCost(this.g, this.b, pl, PLOT.SHOP),
+        [PLOT.RESTAURANT]: buildCost(this.g, this.b, pl, PLOT.RESTAURANT),
+        [PLOT.RESIDENCE]: buildCost(this.g, this.b, pl, PLOT.RESIDENCE),
+      };
+      const order = [PLOT.RESIDENCE, PLOT.SHOP, PLOT.RESTAURANT]; // UI order matches original SelectBuilding rows
+      const costKeys = ['building1', 'building2', 'building3'] as const; // ExtText still says 住宅/商業中心/食肆
+      const opts: ChoiceOpt[] = order.map((ty, i) => ({
+        label: plotTypeName(ty, ancient),
+        sub: msg('SelectBuilding', costKeys[i], costs[ty]),
+        disabled: p.cash < costs[ty],
+      }));
       if (opts.every(o => o.disabled)) return;
       let type: number;
       if (p.ai) {
@@ -399,9 +402,9 @@ export class Engine {
         this.speak(p, L.choose, 1); // VERIFIED: line 29 when the building-type selector opens (@0x417c40)
         const pick = await this.ui.choose(msg('SelectBuilding', 'title'), opts, { title: `${plot.lotId}號地  地價 ${landPrice(this.g, this.b, pl)}`, cancel: msg('SelectBuilding', 'exit') });
         if (pick < 0) return;
-        type = [3, 1, 2][pick];
+        type = order[pick];
       }
-      const tname = ({ 1: '商業中心', 2: '食肆', 3: '住宅' } as Record<number, string>)[type];
+      const tname = plotTypeName(type, ancient);
       if (p.ai) this.ui.toast(`${this.name(p)}在 ${plot.lotId}號地 興建${tname}（$${costs[type]}）`, { seat: p.seat });
       await this.pay(p, costs[type]);
       this.sfxi(SFXI.build);
@@ -411,6 +414,9 @@ export class Engine {
       return;
     }
     if (ps.owner === p.seat) {
+      // Own tile: type-specific actions, then optional upgrade (max level 3)
+      if (ps.type === PLOT.HOME) await this.homeBank(p);
+      else if (hasOwnerInvest(ps.type)) await this.ownerInvest(p, pl);
       if (ps.level >= RULES.maxLevel || p.status.confused > 0) return;
       const cost = upgradeCost(this.g, this.b, pl);
       if (p.cash < cost) return;
@@ -423,26 +429,101 @@ export class Engine {
       await this.view.construct(pl, false, () => { ps.level++; });
       return;
     }
-    // opponent's property
+    // Opponent's property — VERIFIED FUN_00417b90: type 3 (住宅) never charges; 1/2 rent value/2; 4 visit %
     const owner = this.g.players[ps.owner];
     if (!owner.alive) return;
     if (p.status.wealthGod > 0) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); return; }
     if (owner.status.hospital > 0) { await this.info(msg('Misc', 'GiveMoney4', this.name(owner)), {}, p); return; }
     if (owner.status.jail > 0) { await this.info(msg('Misc', 'GiveMoney5', this.name(owner)), {}, p); return; }
-    let fee: number, text: string;
-    if (ps.type === 3 || ps.type === 4) {
-      const pct = RULES.visitPctMin + Math.floor(Math.random() * (RULES.visitPctMax - RULES.visitPctMin + 1));
-      fee = Math.floor(Math.max(0, p.cash) * pct / 100);
-      text = msg('Misc', 'GiveMoney3', this.name(owner), fee);
-    } else {
-      fee = Math.floor(plotValue(this.g, this.b, pl) / 2);
-      text = msg('Misc', ps.type === 1 ? 'GiveMoney2' : 'GiveMoney1', this.name(owner), fee);
-    }
+    if (ps.type === PLOT.RESIDENCE) return; // 住宅：訪客不付錢
+    const fee = rentFee(ps, plotValue(this.g, this.b, pl), p.cash);
+    if (fee <= 0) return;
+    let text: string;
+    if (ps.type === PLOT.HOME) text = msg('Misc', 'GiveMoney3', this.name(owner), fee);
+    else text = msg('Misc', ps.type === PLOT.SHOP ? 'GiveMoney2' : 'GiveMoney1', this.name(owner), fee);
     await this.pay(p, fee, owner);
     // VERIFIED (@0x417da0 / 0x417e9f): payer reacts BAD, owner reacts GOOD
     this.speak(p, BAD);
     setTimeout(() => this.speak(owner, GOOD, 1), 900);
     await this.info(text, {}, p);
+  }
+
+  /** 家：到家可存錢 / 取錢（INFERRED UI；金額預設一半或全部）. */
+  async homeBank(p: Player) {
+    const ancient = MAPS[this.g.map].ancient;
+    const title = plotTypeName(PLOT.HOME, ancient);
+    if (p.ai) {
+      // keep a cash reserve; park surplus at home; withdraw when broke
+      if (p.cash > AI.reserve(this.g) * 2) {
+        const dep = Math.floor(p.cash * RULES.homeDepositPct / 100);
+        if (dep > 0) {
+          p.cash -= dep; p.home += dep;
+          this.view.float(`存入${title} ${dep}`, this.view.actor(p.seat).x, this.view.actor(p.seat).y - 130, '#9fe8ff');
+          if (!TURBO) void sfx('season/drip');
+          this.speak(p, L.home, 1);
+          this.ui.toast(`${this.name(p)}存入${title} $${dep}`, { seat: p.seat });
+          this.onChange();
+        }
+      } else if (p.cash < AI.reserve(this.g) && p.home > 0) {
+        const w = Math.min(p.home, AI.reserve(this.g) - p.cash);
+        p.home -= w; p.cash += w;
+        this.view.float(`取出 ${w}`, this.view.actor(p.seat).x, this.view.actor(p.seat).y - 130, '#ffe36a');
+        this.ui.toast(`${this.name(p)}從${title}取出 $${w}`, { seat: p.seat });
+        this.onChange();
+      }
+      return;
+    }
+    const opts: ChoiceOpt[] = [
+      { label: '存錢', sub: `手上現金 $${p.cash}`, disabled: p.cash <= 0 },
+      { label: '取錢', sub: `${title}存款 $${p.home}`, disabled: p.home <= 0 },
+    ];
+    if (opts.every(o => o.disabled)) return;
+    this.speak(p, L.home, 1);
+    const pick = await this.ui.choose(`回到${title}，要存錢或取錢嗎？`, opts, { title, cancel: '不用了' });
+    if (pick < 0) return;
+    if (pick === 0) {
+      const half = Math.floor(p.cash * RULES.homeDepositPct / 100);
+      const amtOpts: ChoiceOpt[] = [
+        { label: `存入一半（$${half}）`, disabled: half <= 0 },
+        { label: `全部存入（$${p.cash}）`, disabled: p.cash <= 0 },
+      ];
+      const a = await this.ui.choose('存多少？', amtOpts, { title, cancel: '取消' });
+      if (a < 0) return;
+      const dep = a === 0 ? half : p.cash;
+      if (dep <= 0) return;
+      p.cash -= dep; p.home += dep;
+      this.view.float(`存入${title} ${dep}`, this.view.actor(p.seat).x, this.view.actor(p.seat).y - 130, '#9fe8ff');
+      if (!TURBO) void sfx('season/drip');
+    } else {
+      const half = Math.floor(p.home / 2);
+      const amtOpts: ChoiceOpt[] = [
+        { label: `取出一半（$${half}）`, disabled: half <= 0 },
+        { label: `全部取出（$${p.home}）`, disabled: p.home <= 0 },
+      ];
+      const a = await this.ui.choose('取多少？', amtOpts, { title, cancel: '取消' });
+      if (a < 0) return;
+      const w = a === 0 ? half : p.home;
+      if (w <= 0) return;
+      p.home -= w; p.cash += w;
+      this.view.float(`取出 ${w}`, this.view.actor(p.seat).x, this.view.actor(p.seat).y - 130, '#ffe36a');
+      this.sfxi(SFXI.gain, 0.7);
+    }
+    this.onChange();
+  }
+
+  /** 士多 / 食肆：所有者停靠時隨機投資盈虧（ExtText type1_1 / type1_2）. */
+  async ownerInvest(p: Player, pl: number) {
+    const pv = plotValue(this.g, this.b, pl);
+    const delta = investDelta(pv);
+    if (delta === 0) return;
+    const amt = Math.abs(delta);
+    if (delta > 0) {
+      this.gain(p, amt); this.speak(p, GOOD);
+      await this.info(msg('Misc', 'type1_1', amt), {}, p);
+    } else {
+      await this.pay(p, amt); this.speak(p, BAD);
+      await this.info(msg('Misc', 'type1_2', amt), {}, p);
+    }
   }
 
   // ---------------- chance ----------------
@@ -503,9 +584,9 @@ export class Engine {
         const pl = free[Math.floor(Math.random() * free.length)];
         const pv = b.plots[pl]; this.view.focusOn(pv.x, pv.y);
         this.sfxi(SFXI.build);
-        const st = p.homePlot === null ? { owner: p.seat, type: 4, level: 0 } : { owner: p.seat, type: 1 + Math.floor(Math.random() * 3), level: 0 };
+        const st = p.homePlot === null ? { owner: p.seat, type: PLOT.HOME, level: 0 } : { owner: p.seat, type: PLOT.SHOP + Math.floor(Math.random() * 3), level: 0 };
         await this.view.construct(pl, false, () => { g.plots[pl] = st; });
-        g.plots[pl] = st; if (st.type === 4) p.homePlot = pl;
+        g.plots[pl] = st; if (st.type === PLOT.HOME) p.homePlot = pl;
         break;
       }
       case 'set_status': await this.sendTo(p, e.status === 'jail' ? 'jail' : 'hospital', e.weeks ?? 1); break;
@@ -670,7 +751,8 @@ export class Engine {
     const ok = await this.ask(p, `要乘搭${label}嗎？`, { title: label }, Math.random() < 0.6, `${this.name(p)}乘搭${label}`);
     if (!ok) return;
     await this.teleportTo(p, dest);
-    await this.land(p);
+    // Resolve destination tile effects, but never re-open transport (pairs on 九龍/古代 would loop A↔B)
+    await this.land(p, { skipTransport: true });
   }
 
   async smallman(p: Player) {
