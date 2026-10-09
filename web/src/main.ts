@@ -5,6 +5,7 @@ import { loadData } from './game/data';
 import { text } from './core/text';
 import { TitleScene, MainMenuScene, SelectYearScene, SelectMapScene, SelectActorScene, OptionsScene, LoadScene, bindNav } from './scenes/menus';
 import { GameScene, bindGameNav } from './scenes/game';
+import { setup } from './scenes/setup';
 
 const errors: string[] = [];
 (window as any).__errors = errors;
@@ -48,7 +49,8 @@ async function boot() {
       'selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04', 'selectactor/actor', 'selectactor/button', 'selectactor/device', 'selectactor/frame',
       'option/bg', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06'];
     await loadSheets(ui, (d, t) => { bs.p = d / t; });
-    const start = new URLSearchParams(location.search).get('scene');
+    const qp = new URLSearchParams(location.search), start = qp.get('scene');
+    const mq = Number(qp.get('map')); if (qp.has('map') && mq >= 0 && mq < 3) setup.map = mq; // ?scene=game&map=N (tests)
     nav(AUTO ? 'mainmenu' : start ?? 'title');
   } catch (e) { bs.msg = '載入失敗 ' + e; console.error(e); }
 }

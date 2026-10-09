@@ -21,3 +21,13 @@
 - 08:50 tools/upscale.py batch (nohup, spawn pool 4×2 threads, resumable): sprites 691 s, images 72 s, in-context ground layer 127 s. Scales: map 2x (4x net → Lanczos), interface 4x, menus/misc 2x, cards 4x. Edge-padded RGB, separate alpha, frame rects ×S exact. Output webp q85 in web/public/assets/hd (62.4 MB vs SD 22 MB).
 - 09:00 Renderer: HD sheets drawn at 1/scale, 2x baked chunk cache with HD ground tiles, auto SD/HD by DPR×viewport and deviceMemory, 'lite' tier on touch, ?q= override, 選項 畫質 自動/標準/高清; per-map lazy load + deferred non-essential sheets.
 - 09:07 Autoplay on dist for q=hd/lite/sd → winners, 0 console errors; screenshots hd_board/closeup/card_* and hd_before_after_*.
+
+## Round 3 — flicker + original windows (2026-10-09, Asia/Shanghai)
+- 09:30 Flicker root cause: the hard-coded animated-scenery list cycled 大山 big_hill, 碼頭 pier and 荷花 sea_fllower_0102. Those sheets hold distinct *variants* (SPR anim_param = 0), so hills and harbour piers swapped shape every 140 ms on all maps. Animation is now taken from the SPR header (anim_param > 0 and more than 1 frame per group, `isAnimated`). This also correctly animates the 斑馬燈 beacons. The frame index stays inside its direction group. tools/upscale.py uses the same rule; the HD ground set is unchanged.
+- 09:40 tests/flicker.mjs records 16 frames at a fixed camera per spot (hills, piers, ships, flowers), maps 0/1/2 × SD/HD, and diffs them against sprites marked animated in the SPR data. Before the fix: Kowloon hill 180k px and ancient hill 103k px of non-animation change. After: 0 on every spot (dev and dist). Proof images: screenshots/flicker_proof_*.png.
+- 09:45 Rebuilt three windows from the original sprites and exe layout (static RE):
+  - 選擇四字真言: card.spr. Dialog @0x40cb10, paint @0x40d050; 5-row list with a selection band, scroll strips, X/O.
+  - 角色資產: detailinfo.spr. Dialog @0x407d70, paint @0x4081b0; face tabs, home/cash/net worth, L1–L3 building table.
+  - 系統 + 設定: system.spr @0x40dd60 and option.spr @0x404c60 / paint @0x405250. The option window slides in beside the system window. Row 0 (originally 螢幕區域) now holds 畫質.
+  - Removed the two bottom-right buttons; their functions are in the ring menu.
+- 09:49 Autoplay on dist, SD and HD × 3 maps: winners, 0 errors. tests/uiwins.mjs drives the windows with real clicks/taps at 1920x1080 and 390x844@3x: 0 failures, 0 errors.

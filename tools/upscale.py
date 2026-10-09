@@ -299,9 +299,11 @@ if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] in ('sprites', '
 # So the *static ground layer* of every map is composited at SD exactly like the renderer bakes it, upscaled as one
 # image (tiled inference with overlap → seamless), and cut into chunk tiles that the renderer uses as the base of its
 # 2x chunk cache. Discrete objects (trees, buildings, characters) keep the per-sprite HD sheets.
-# Must mirror web/src/game/view.ts (ANIM / LIVE_GROUND / SEASONAL, CHUNK).
-ANIM = {'sea', 'smallsea', 'bigsea01', 'bigsea02', 'big_sea', 'sea2', 'sea_side1', 'sea_side2', 'sea_side3', 'sea_bird', 'dolphin', 'fishman', 'stone1', 'stone2',
-        'smallship', 'hk_ship', 'kln_ship', 'oldship', 'ufo', 'taiping_hill', 'hill4', 'pier', 'sea_fllower_0102', 'chance', 'money_add', 'money_des', 'big_hill'}
+# Must mirror web/src/game/view.ts (isAnimated / LIVE_GROUND / SEASONAL, CHUNK).
+def is_anim(index, nm):
+    """Animated per the SPR header: anim_param ('a') > 0 and >1 frame per direction group (same rule as assets.ts isAnimated)."""
+    m = index.get('map/' + nm)
+    return bool(m and m.get('a', 0) > 0 and any(n > 1 for n in m.get('g', [len(m['f'])])))
 SEASONAL = {'tree_change1', 'tree_change2'}
 LIVE_GROUND = {'big_sea', 'icon'}
 CHUNK = 512
@@ -323,7 +325,7 @@ def ground(force=False):
             if L['flag'] == 1 or L['name'] in LIVE_GROUND: continue
             for s, f, x, y, a in L['o']:
                 nm = d['sprites'][s]
-                if nm in ANIM or nm in SEASONAL: continue
+                if is_anim(sd_index, nm) or nm in SEASONAL: continue
                 meta = sd_index.get('map/' + nm)
                 if not meta: continue
                 fr = meta['f'][min(f, len(meta['f']) - 1)]

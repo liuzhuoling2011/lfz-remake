@@ -11,7 +11,11 @@ import { RULES, MAPS, PLAYER_COLORS, PLAYER_COLORS_DARK, SEASONS, SFX } from '..
 import { D, charName, msg } from '../game/data';
 import { netWorth, ownedPlots, season, yearOf, plotValue } from '../game/rules';
 import { setup } from './setup';
-import { drawOptions, drawSlots } from './menus';
+import { drawSlots } from './menus';
+import { winBegin, winEnd, wbtn, wr, centredWin, sysScale, type Win } from '../ui/origwin';
+import { settings, saveSettings, applyVolumes } from '../core/audio';
+import { setQuality, hdActive, hdAvailable } from '../core/assets';
+import { setSpeedIndex } from '../core/app';
 
 let go: (name: string, arg?: any) => void = () => {};
 export function bindGameNav(fn: typeof go) { go = fn; }
@@ -23,6 +27,8 @@ interface Dlg {
   buttons: DlgBtn[]; resolve: (v: any) => void; auto?: { ms: number; value: any }; t: number; seat?: number;
   /** AI-turn information: auto-closes, drawn without dimming and never blocks input */
   passive?: boolean; cardId?: number; caption?: string;
+  /** card selection window state (selected row / first visible row) */
+  sel?: number; scroll?: number;
 }
 interface Toast { text: string; o: ToastOpts; t: number; ms: number }
 /** dice animation state (original dice dialog @0x4089d0: 30 frames, hold, fade) */
@@ -47,6 +53,11 @@ export class GameScene implements Scene {
   tooltip: { plot: number; t: number } | null = null;
   winnerInfo: { seat: number; rank: number[]; t: number; res: () => void } | null = null;
   downPos: { x: number; y: number } | null = null;
+  hideHud = false;
+  /** time since the overlay last changed (window fade / slide-in like the original's alpha += 0x20 per tick) */
+  ovT = 0; private ovPrev = 'none';
+  /** original option window: values being edited + snapshot for X (cancel) */
+  opt: { q: number; spd: number; sfx: number; mus: number; voice: number; orig: { q: number; spd: number; sfx: number; mus: number; voice: number } } | null = null;
 
   constructor(private arg: { new?: boolean; load?: GameState }) {}
 
@@ -62,7 +73,8 @@ export class GameScene implements Scene {
       await Promise.all([
         this.view.load(this.board, (d, t) => { this.progress = d / t; }),
         loadSheets(['interface/chance', 'interface/card', 'interface/step', 'interface/messagebox', 'interface/gameover', 'interface/luckydraw', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06',
-          ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'misc/balloon']),
+          ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'misc/balloon',
+          'interface/detailinfo', 'interface/system', 'interface/option']),
         // season / winner art is big and rarely shown → fetched on demand (seasonChange / winner) instead of up front
       ]);
       // pre-decode card art; pre-load the sounds used every turn + each player's voice lines (no first-play latency)
@@ -143,6 +155,8 @@ export class GameScene implements Scene {
   update(dt: number) {
     if (!this.ready) return;
     this.view.update(dt);
+    if (this.overlay !== this.ovPrev) { this.ovPrev = this.overlay; this.ovT = 0; }
+    this.ovT += dt;
     for (const d of this.dlgs) d.t += dt;
     for (const d of this.dlgs) if (d.auto && d.t >= d.auto.ms * speedMul.v) { d.resolve(d.auto.value); break; }
     { let n = 0; for (const b of this.bubbles) { b.t += dt; if (b.t < 2600) this.bubbles[n++] = b; } this.bubbles.length = n; }
@@ -174,6 +188,11 @@ export class GameScene implements Scene {
   onWheel(dx: number, dy: number) { this.view.onWheel(dy); this.view.lastManualPan = app.time; }
   onKey(k: string) {
     const top = this.dlgs[this.dlgs.length - 1];
+    if (top && !top.passive && top.kind === 'cards') {
+      const n = this.cardEntries(top).length; const sel = top.sel ?? 0;
+      if (k === 'ArrowUp' || k === 'ArrowDown') { top.sel = Math.max(0, Math.min(n - 1, sel + (k === 'ArrowUp' ? -1 : 1))); this.fixCardScroll(top, n); return; }
+      if (k === 'Enter' || k === ' ') { const e = this.cardEntries(top)[sel]; if (e) top.resolve(e.id); return; }
+    }
     if (top && !top.passive && (k === 'Enter' || k === ' ')) { const b = top.buttons.find(b => !b.disabled); if (b && top.kind !== 'cards') top.resolve(b.value); return; }
     if (top && !top.passive && k === 'Escape') { const b = top.buttons[top.buttons.length - 1]; if (top.kind !== 'msg') top.resolve(b.value); return; }
     if (this.turnMenuRes && this.overlay === 'none') {
@@ -181,7 +200,7 @@ export class GameScene implements Scene {
       else if (k === '2' || k === ' ' || k === 'Enter') this.turnMenuRes('roll2');
       else if (k === 'c' || k === 'C') { if (this.g.players[this.g.current].cards.length) this.turnMenuRes('card'); }
     }
-    if (k === 'Escape') this.overlay = this.overlay === 'none' ? 'system' : 'none';
+    if (k === 'Escape') { if (this.overlay === 'options') this.closeOptions(false); else this.overlay = this.overlay === 'none' ? 'system' : 'none'; }
     if (k === '+' || k === '=') this.view.userZoom = Math.min(3, this.view.userZoom * 1.15);
     if (k === '-') this.view.userZoom = Math.max(0.4, this.view.userZoom / 1.15);
   }
@@ -190,6 +209,7 @@ export class GameScene implements Scene {
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.ready) { this.renderLoading(ctx, w, h); return; }
     this.view.render(ctx, w, h);
+    if (this.hideHud) return; // tests (frame-diff flicker proof): map only
     this.renderBubbles(ctx);
     this.renderHUD(ctx, w, h);
     if (this.tooltip && !this.dlgs.length) this.renderTooltip(ctx, w, h);
@@ -276,10 +296,7 @@ export class GameScene implements Scene {
     const left = g.weeksLimit > 0 ? `剩餘 ${Math.max(0, g.weeksLimit - g.week)} 週` : '年期 ∞';
     text(ctx, `${left} · 馬會獎金 ${fmtMoney(g.jackpot)}`, ix + 10 * u, iy + 44 * u, { size: 12 * u, color: '#ffe36a', maxWidth: iw - 20 * u });
     text(ctx, '拖曳移動地圖 · 滾輪/雙指縮放', ix + 10 * u, iy + 58 * u, { size: 9.5 * u, color: 'rgba(255,255,255,0.6)', weight: 'normal', maxWidth: iw - 20 * u });
-    // system button (top-right)
-    const sb = 46 * u; const sx = w - sb - 8, sy = h - sb - 8;
-    button(ctx, 'sysbtn', { x: sx, y: sy, w: sb, h: sb }, '☰', () => { this.overlay = 'system'; }, { size: 22 * u });
-    button(ctx, 'camc', { x: sx - sb - 6, y: sy, w: sb, h: sb }, '◎', () => { const a = this.view.actor(g.current); this.view.lastManualPan = -1e9; this.view.focusOn(a.x, a.y); this.view.userZoom = 1; }, { size: 22 * u });
+    // (round 3) no extra corner buttons: system / centre-camera live in the original ring menu (game_menu.spr)
     // banner
     if (this.bannerT < 1600 && this.bannerText) {
       const k = this.bannerT < 250 ? this.bannerT / 250 : this.bannerT > 1300 ? (1600 - this.bannerT) / 300 : 1;
@@ -451,6 +468,7 @@ export class GameScene implements Scene {
     if (!d.passive) { dim(ctx, w, h, 0.35); app.block(); }
     const k = Math.min(1, d.t / 160);
     if (d.style === 'card' && d.cardId) { this.renderCardCast(ctx, w, h, d); return; }
+    if (d.kind === 'cards') { this.renderCardSelect(ctx, w, h, d); return; }
     ctx.save();
     const sc = (d.passive ? 0.82 : 0.9) + 0.1 * k; ctx.globalAlpha = k * (d.passive && d.auto ? Math.min(1, (d.auto.ms * speedMul.v - d.t) / 250) : 1);
     ctx.translate(w / 2, h / 2); ctx.scale(sc, sc); ctx.translate(-w / 2, -h / 2);
@@ -462,12 +480,11 @@ export class GameScene implements Scene {
     const size = 18 * u;
     const lines = d.text ? wrap(ctx, d.text, textW, size) : [];
     let btnRows = 1, bh = 50 * u;
-    const isList = d.kind === 'choose' || d.kind === 'cards' || d.kind === 'players';
+    const isList = d.kind === 'choose' || d.kind === 'players';
     if (d.kind === 'choose') { btnRows = d.buttons.length; bh = 50 * u; }
-    if (d.kind === 'cards' || d.kind === 'players') btnRows = Math.ceil(d.buttons.length / 2);
+    if (d.kind === 'players') btnRows = Math.ceil(d.buttons.length / 2);
     const textH = Math.max(lines.length * size * 1.45, hasImg ? imgS : 0);
     let ph = 60 * u + textH + 24 * u + btnRows * (bh + 10 * u) + 10 * u;
-    if (d.kind === 'cards') ph = Math.min(h - 20, 90 * u + btnRows * (96 * u));
     ph = Math.min(h - 16, ph);
     const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
     panel(ctx, r, { title: d.title ?? (d.kind === 'confirm' ? '請選擇' : '訊息') });
@@ -482,7 +499,6 @@ export class GameScene implements Scene {
     const tx = r.x + 30 * u + (hasImg ? imgS + 20 * u : 0);
     lines.forEach((l, i) => text(ctx, l, hasImg ? tx : r.x + pw / 2, y + size + i * size * 1.45, { size, color: '#4a2a00', align: hasImg ? 'left' : 'center' }));
     y += textH + 20 * u;
-    if (d.kind === 'cards') { this.renderCardList(ctx, r, d, u); ctx.restore(); return; }
     const aiPick = d.auto ? d.auto.value : undefined;
     if (d.kind === 'choose') {
       d.buttons.forEach((b, i) => {
@@ -591,40 +607,10 @@ export class GameScene implements Scene {
     }
   }
 
-  renderCardList(ctx: CanvasRenderingContext2D, r: { x: number; y: number; w: number; h: number }, d: Dlg, u: number) {
-    const cards = d.buttons.filter(b => b.value !== null);
-    const cols = 2, cw = (r.w - 70 * u) / cols, chh = 86 * u;
-    cards.forEach((b, i) => {
-      const c = D.words[b.value - 1];
-      const x = r.x + 30 * u + (i % cols) * (cw + 10 * u), y = r.y + 40 * u + Math.floor(i / cols) * (chh + 10 * u);
-      const id = 'card' + i; const st = app.state(id);
-      ctx.fillStyle = st ? '#fff1c4' : '#fffaf0'; roundRect(ctx, x, y, cw, chh, 8 * u); ctx.fill();
-      ctx.strokeStyle = '#c98a2c'; ctx.lineWidth = 2; ctx.stroke();
-      const im = image('images/cards/' + c.jpg); if (im) ctx.drawImage(im, x + 6 * u, y + 6 * u, chh - 12 * u, chh - 12 * u);
-      text(ctx, c.title, x + chh + 2 * u, y + 24 * u, { size: 17 * u, color: '#8a1a00' });
-      textBlock(ctx, c.text, x + chh + 2 * u, y + 32 * u, cw - chh - 10 * u, { size: 10.5 * u, color: '#333', weight: 'normal', lineHeight: 13 * u });
-      app.hit(id, { x, y, w: cw, h: chh }, () => d.resolve(b.value));
-    });
-    button(ctx, 'cardback', { x: r.x + r.w / 2 - 70 * u, y: r.y + r.h - 62 * u, w: 140 * u, h: 44 * u }, '返回', () => d.resolve(null), { size: 17 * u });
-  }
-
   renderOverlay(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const close = () => { this.overlay = 'none'; };
     const u = Math.max(0.8, Math.min(1.2, Math.min(w / 700, h / 560)));
-    if (this.overlay === 'system') {
-      dim(ctx, w, h, 0.5); app.block({ x: 0, y: 0, w, h });
-      const pw = Math.min(360 * u, w - 20), ph = 380 * u; const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
-      panel(ctx, r, { title: '系統選單' });
-      const canSave = !!this.turnMenuRes;
-      const items: [string, () => void, boolean?][] = [
-        ['繼續遊戲', close],
-        [canSave ? '儲存進度' : '儲存進度（輪到玩家時）', () => { this.overlay = 'save'; }, !canSave],
-        ['載入進度', () => { this.overlay = 'load'; }],
-        ['系統設定', () => { this.overlay = 'options'; }],
-        ['返回主選單', () => { this.overlay = 'quitConfirm'; }],
-      ];
-      items.forEach(([l, cb, dis], i) => button(ctx, 'sys' + i, { x: r.x + 30 * u, y: r.y + 40 * u + i * 62 * u, w: pw - 60 * u, h: 50 * u }, l, cb, { primary: i === 0, disabled: dis, size: 18 * u }));
-    } else if (this.overlay === 'options') drawOptions(ctx, w, h, close);
+    if (this.overlay === 'system' || this.overlay === 'options') this.renderSystemWin(ctx, w, h);
     else if (this.overlay === 'save') drawSlots(ctx, w, h, 'save', slot => { saveSlot(slot, this.g); this.overlay = 'none'; this.ui.banner('已儲存至記錄 ' + slot, '#9fe8ff'); }, close);
     else if (this.overlay === 'load') drawSlots(ctx, w, h, 'load', slot => { const d = loadSlot(slot); if (d) { this.engine.stopped = true; go('game', { load: d.g }); } }, close);
     else if (this.overlay === 'quitConfirm') {
@@ -635,28 +621,209 @@ export class GameScene implements Scene {
       text(ctx, '（每回合開始時會自動存檔）', w / 2, r.y + 106, { size: 13, align: 'center', color: '#7a5a20', weight: 'normal' });
       button(ctx, 'q-y', { x: w / 2 - 130, y: r.y + 125, w: 120, h: 48 }, '是', () => { this.engine.stopped = true; go('mainmenu'); }, { primary: true });
       button(ctx, 'q-n', { x: w / 2 + 10, y: r.y + 125, w: 120, h: 48 }, '否', close);
-    } else if (this.overlay === 'detail') this.renderDetail(ctx, w, h, u, close);
+    } else if (this.overlay === 'detail') this.renderDetailWin(ctx, w, h);
+    void u;
   }
 
-  renderDetail(ctx: CanvasRenderingContext2D, w: number, h: number, u: number, close: () => void) {
-    const p = this.g.players[this.detailSeat];
-    dim(ctx, w, h, 0.5); app.block({ x: 0, y: 0, w, h });
-    const pw = Math.min(520 * u, w - 20), ph = Math.min(420 * u, h - 20); const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
-    panel(ctx, r, { title: charName(p.char) + (p.alive ? '' : '（破產）') });
-    drawFrame(ctx, `winner/character0${p.char}`, 0, r.x + 90 * u, r.y + 120 * u, 0.6 * u);
-    const own = ownedPlots(this.g, p);
-    const types = [0, 0, 0, 0, 0]; own.forEach(i => types[this.g.plots[i]!.type]++);
-    const rows = [
-      [D.main.detailInfo?.homeMoney?.replace(':', '').trim() ?? 'HomeMoney', fmtMoney(p.home)], ['現金', fmtMoney(p.cash)],
-      [D.main.detailInfo?.total?.replace(':', '').trim() ?? 'total', fmtMoney(netWorth(this.g, this.board, p))],
-      [D.main.detailInfo?.houseCount?.replace(':', '').trim() ?? 'HouseCount', `${own.length}（商${types[1]} 食${types[2]} 住${types[3]} 屋企${types[4]}）`],
-      [D.main.detailInfo?.cardCount?.replace(':', '').trim() ?? 'CardCount', String(p.cards.length)],
+  // ================================================================== original-style windows (round 3)
+  /**
+   * 系統 window — interface/system.spr, exe dialog @0x40dd60: anchored bottom-left at (10, H-300), fades in
+   * (alpha += 0x20/tick). Widgets (normal/hover/press frames) from the table @0x442320:
+   * 1-3 close · 4-6 options (@0x404be0) · 7-9 exit game (Misc/ExitGame box) · 10-12 save · 13-15 load (@0x40a6b0).
+   */
+  renderSystemWin(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const S = sysScale(w, h);
+    const W: Win = { sc: S, ax: 10 * S, ay: Math.max(4, h - 300 * S) };
+    app.block({ x: 0, y: 0, w, h });
+    const active = this.overlay === 'system';
+    winBegin(ctx, W, active ? Math.min(1, this.ovT / 250) : 1);
+    drawFrame(ctx, 'interface/system', 0, 0, 0);
+    const canSave = !!this.turnMenuRes;
+    const items: [string, [number, number, number], () => void, string, boolean?][] = [
+      ['sy-x', [1, 2, 3], () => { this.overlay = 'none'; }, '關閉'],
+      ['sy-opt', [4, 5, 6], () => this.openOptions(), '系統設定'],
+      ['sy-exit', [7, 8, 9], () => { this.overlay = 'quitConfirm'; }, '結束遊戲'],
+      ['sy-save', [10, 11, 12], () => { this.overlay = 'save'; }, canSave ? '儲存進度' : '儲存進度（輪到玩家時）', !canSave],
+      ['sy-load', [13, 14, 15], () => { this.overlay = 'load'; }, '載入進度'],
     ];
-    rows.forEach(([a, b], i) => { text(ctx, a, r.x + 170 * u, r.y + 60 * u + i * 30 * u, { size: 15 * u, color: '#7a4a10' }); text(ctx, b, r.x + 300 * u, r.y + 60 * u + i * 30 * u, { size: 15 * u, color: '#222', maxWidth: pw - 320 * u }); });
-    const cy = r.y + 60 * u + rows.length * 30 * u + 10 * u;
-    const cardNames = p.cards.map(c => D.words[c - 1].title).join('、') || '（沒有四字真言）';
-    textBlock(ctx, '四字真言：' + cardNames, r.x + 30 * u, cy, pw - 60 * u, { size: 14 * u, color: '#4a2a00' });
-    button(ctx, 'detclose', { x: r.x + pw / 2 - 70 * u, y: r.y + ph - 64 * u, w: 140 * u, h: 46 * u }, '返回', close, { primary: true, size: 17 * u });
+    let tip: { t: string; r: { x: number; y: number; w: number; h: number } } | null = null;
+    for (const [id, fr, cb, label, dis] of items) {
+      if (!active) { drawFrame(ctx, 'interface/system', fr[0], 0, 0); continue; }
+      const r = wbtn(ctx, W, id, 'interface/system', fr, cb, { disabled: dis });
+      if (app.isHover(id) || (dis && app.isHover('sy-dis-' + id))) tip = { t: label, r };
+      if (dis) app.hit('sy-dis-' + id, r, () => {}, false);
+    }
+    winEnd(ctx);
+    // unobtrusive hover caption (the original icons carry no text)
+    if (tip) {
+      const fs = Math.max(12, 13 * S);
+      ctx.font = `bold ${fs}px ${'sans-serif'}`;
+      text(ctx, tip.t, tip.r.x + tip.r.w / 2, tip.r.y - 4, { size: fs, align: 'center', color: '#fff', stroke: '#5a2a00', strokeWidth: 4 });
+    }
+    if (this.overlay === 'options') this.renderOptionWin(ctx, w, h, S, W.ay);
+  }
+
+  openOptions() {
+    const cur = { q: settings.quality, spd: settings.speed, sfx: Math.round(settings.sfx * 3), mus: Math.round(settings.music * 3), voice: settings.voice };
+    this.opt = { ...cur, orig: { ...cur } };
+    this.overlay = 'options';
+  }
+  /** apply the edited values live (so volume / speed / 畫質 can be heard and seen); X restores the snapshot */
+  private applyOpt() {
+    const o = this.opt!;
+    settings.speed = o.spd as 0 | 1 | 2; setSpeedIndex(o.spd);
+    settings.sfx = o.sfx / 3; settings.music = o.mus / 3;
+    // the original has a single 音效 level for effects + voices; keep the separate voice volume in step with it
+    settings.voice = o.sfx === o.orig.sfx ? o.orig.voice : o.sfx / 3;
+    applyVolumes();
+    if (settings.quality !== o.q) { settings.quality = o.q as 0 | 1 | 2; void setQuality(o.q); }
+  }
+  closeOptions(ok: boolean) {
+    if (this.opt && !ok) { const keep = this.opt.orig; this.opt = { ...keep, orig: keep }; this.applyOpt(); }
+    saveSettings();
+    this.opt = null; this.overlay = 'system';
+  }
+  /**
+   * 設定 window — interface/option.spr, exe dialog @0x404c60 / paint @0x405250: slides in from x = -width to x = 140
+   * beside the system window (y = H-300). Rows (widget frames normal/hover from @0x441608): 14/13, 16/15, 18/17, 20/19;
+   * labels at (30,33) (30,73) (70,113) (70,153); rows 0-1 value text centred at x=176, rows 2-3 level bars frames 7-9 /
+   * 10-12; X = frames 1-3, O = frames 4-6. Row 0 was 螢幕區域 (edge-scroll area, meaningless in a browser) and now
+   * holds 畫質 (自動/標準/高清) with the same three-value box.
+   */
+  renderOptionWin(ctx: CanvasRenderingContext2D, w: number, h: number, S: number, ay: number) {
+    if (!this.opt) this.openOptions();
+    const o = this.opt!;
+    const k = ease.outCubic(Math.min(1, this.ovT / 320));
+    const W: Win = { sc: S, ax: (-251 + (140 + 251) * k) * S, ay };
+    winBegin(ctx, W);
+    drawFrame(ctx, 'interface/option', 0, 0, 0);
+    const T = D.main['Option-Title'] ?? {};
+    const sp = D.main['Option-Speed'] ?? { 0: '慢速', 1: '正常速度', 2: '快速' };
+    const ql = ['自動', '標準', '高清'];
+    const lab = { size: 14, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
+    const rows: [string, [number, number, number], () => void][] = [
+      ['op-q', [14, 13, 13], () => { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; this.applyOpt(); }],
+      ['op-spd', [16, 15, 15], () => { o.spd = (o.spd + 1) % 3; this.applyOpt(); }],
+      ['op-sfx', [18, 17, 17], () => { o.sfx = (o.sfx + 1) % 4; this.applyOpt(); }],
+      ['op-mus', [20, 19, 19], () => { o.mus = (o.mus + 1) % 4; this.applyOpt(); }],
+    ];
+    rows.forEach(([id, fr, cb], i) => {
+      wbtn(ctx, W, id, 'interface/option', fr, cb, { sound: 'option/button' });
+      if (i === 0) {
+        text(ctx, '畫質', 30, 33, lab);
+        text(ctx, ql[o.q] + (o.q === 0 ? (hdActive() ? '·高清' : '·標準') : ''), 176, 33, { ...lab, align: 'center' });
+      } else if (i === 1) {
+        text(ctx, T['1'] ?? '遊戲速度', 30, 73, lab);
+        text(ctx, sp[o.spd], 176, 73, { ...lab, align: 'center' });
+      } else if (i === 2) {
+        text(ctx, T['2'] ?? '音效', 70, 113, lab);
+        if (o.sfx > 0) drawFrame(ctx, 'interface/option', 6 + o.sfx, 0, 0);
+      } else {
+        text(ctx, T['3'] ?? '音樂', 70, 153, lab);
+        if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, 0);
+      }
+    });
+    wbtn(ctx, W, 'op-x', 'interface/option', [1, 2, 3], () => this.closeOptions(false));
+    wbtn(ctx, W, 'op-o', 'interface/option', [4, 5, 6], () => this.closeOptions(true));
+    winEnd(ctx);
+  }
+
+  /**
+   * 角色資產 window — interface/detailinfo.spr, exe dialog @0x407d70 / paint @0x4081b0. Anchor = ((W-487)/2+10,
+   * (H-261)/2-40). Left tabs: each living player's face (frame 0 = selected, 1 = others) at (53, 38/98/159/220).
+   * Selected player: 屋企 money "%d" at (170,40), cash at (345,40), net worth (orange 255,135,0) at (170,80);
+   * building table: 樓1 / 商業1 / 食市1 frame 0 at (170+120k, 160) scaled 2/3, rows "L%d." at (107, 184+20r),
+   * counts at x = 140 / 260 / 380. Close = frames 1-3. (Added: 四字真言 count at (345,80), an empty spot.)
+   */
+  renderDetailWin(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const g = this.g;
+    dim(ctx, w, h, 0.25 * Math.min(1, this.ovT / 250)); app.block({ x: 0, y: 0, w, h });
+    const W = centredWin(w, h, 487, 261, [3, 7]);
+    winBegin(ctx, W, Math.min(1, this.ovT / 250));
+    drawFrame(ctx, 'interface/detailinfo', 0, 0, 0);
+    const alive = g.players.filter(p => p.alive);
+    if (!g.players[this.detailSeat]?.alive && alive.length) this.detailSeat = alive[0].seat;
+    const TABY = [38, 98, 159, 220];
+    alive.slice(0, 4).forEach((p, k) => {
+      const nm = 'interface/face0' + p.char;
+      drawFrame(ctx, nm, p.seat === this.detailSeat ? 0 : 1, 53, TABY[k]);
+      // player colour pip (the original identified players by face only; colours are this remake's markers)
+      ctx.fillStyle = PLAYER_COLORS[p.seat]; ctx.fillRect(22, TABY[k] - 8 + 14, 4, 26);
+      app.hit('di-tab' + k, wr(W, frameRect(nm, 0, 53, TABY[k])), () => { this.detailSeat = p.seat; void sfx('interface/click'); });
+    });
+    wbtn(ctx, W, 'di-x', 'interface/detailinfo', [1, 2, 3], () => { this.overlay = 'none'; });
+    const p = g.players[this.detailSeat];
+    const o = { size: 14, color: '#fff', baseline: 'top' as CanvasTextBaseline };
+    text(ctx, String(Math.round(p.home)), 170, 40, o);
+    text(ctx, String(Math.round(p.cash)), 345, 40, o);
+    text(ctx, String(Math.round(netWorth(g, this.board, p))), 170, 80, { ...o, color: 'rgb(255,135,0)' });
+    text(ctx, `四字真言 ${p.cards.length}`, 345, 80, { ...o, size: 13, color: '#cfe8ff' });
+    text(ctx, charName(p.char), 456, 24, { ...o, size: 12, align: 'right', color: 'rgba(255,255,255,0.8)' });
+    const pre = this.board.key === 'ancient' ? 'map/a_' : 'map/';
+    [pre + 'house1', pre + 'commcal1', pre + 'eating1'].forEach((nm, k) => drawFrame(ctx, nm, 0, 170 + 120 * k, 160, 2 / 3));
+    const cnt = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+    for (const i of ownedPlots(g, p)) {
+      const ps = g.plots[i]!; const col = ps.type === 1 ? 1 : ps.type === 2 ? 2 : 0;
+      cnt[Math.min(2, ps.level)][col]++;
+    }
+    for (let r = 0; r < 3; r++) {
+      text(ctx, `L${r + 1}.`, 107, 184 + 20 * r, o);
+      [140, 260, 380].forEach((x, c) => text(ctx, String(cnt[r][c]), x, 184 + 20 * r, o));
+    }
+    winEnd(ctx);
+  }
+
+  /** hand grouped by card (first-seen order) → one row per card with a count */
+  cardEntries(d: Dlg) {
+    const m = new Map<number, { id: number; n: number; disabled: boolean }>();
+    for (const b of d.buttons) { if (b.value === null) continue; const e = m.get(b.value); if (e) e.n++; else m.set(b.value, { id: b.value, n: 1, disabled: !!b.disabled }); }
+    return [...m.values()];
+  }
+  fixCardScroll(d: Dlg, n: number) {
+    const sel = d.sel ?? 0; let sc = d.scroll ?? 0;
+    if (sel < sc) sc = sel; if (sel >= sc + 5) sc = sel - 4;
+    d.scroll = Math.max(0, Math.min(Math.max(0, n - 5), sc));
+  }
+  /**
+   * 選擇四字真言 window — interface/card.spr, exe dialog @0x40cb10 / paint @0x40d050. Anchor = ((W-481)/2+10,
+   * (H-281)/2-40). Picture of the selected card at (24,18); its description (black, 181 px wide) at (293,155);
+   * the hand list: 5 rows at y = 30 + 20i centred on x = 383, the selected row on a translucent black band
+   * x 309–459 with white text (grey when the card can't be used now). Widgets @0x442220: 1-3 X (cancel),
+   * 4-6 O (use), 7-9 / 10-12 the scroll strips above / below the list.
+   */
+  renderCardSelect(ctx: CanvasRenderingContext2D, w: number, h: number, d: Dlg) {
+    const list = this.cardEntries(d);
+    if (!list.length) { d.resolve(null); return; }
+    d.sel = Math.max(0, Math.min(list.length - 1, d.sel ?? 0)); this.fixCardScroll(d, list.length);
+    const W = centredWin(w, h, 481, 281, [7, 8]);
+    winBegin(ctx, W, Math.min(1, d.t / 250));
+    drawFrame(ctx, 'interface/card', 0, 0, 0);
+    const cur = list[d.sel]; const card = D.words[cur.id - 1];
+    const im = image('images/cards/' + card.jpg);
+    if (im) ctx.drawImage(im, 24, 18, 248, 248);
+    // description: largest size ≤14 that fits the panel below the list
+    let size = 14, lines: string[] = [];
+    for (; size >= 10; size -= 0.5) { lines = wrap(ctx, card.text, 181, size, 'normal'); if (lines.length * size * 1.3 <= 118) break; }
+    lines.forEach((l, i) => text(ctx, l, 293, 155 + i * size * 1.3, { size, color: '#000', baseline: 'top', weight: 'normal' }));
+    const sc = d.scroll ?? 0;
+    for (let i = 0; i < 5; i++) {
+      const idx = sc + i; const e = list[idx]; if (!e) break;
+      const y = 30 + 20 * i; const sel = idx === d.sel;
+      if (sel) { ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(309, y, 150, 20); }
+      const label = D.words[e.id - 1].title + (e.n > 1 ? ` ×${e.n}` : '');
+      text(ctx, label, 383, y + 2, { size: 15, align: 'center', baseline: 'top', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
+      app.hit('cs-row' + i, wr(W, { x: 309, y, w: 150, h: 20 }), () => {
+        if (d.sel === idx && !e.disabled) { d.resolve(e.id); return; } // second tap on the highlighted card = use
+        d.sel = idx; void sfx('interface/sfx042');
+      });
+    }
+    wbtn(ctx, W, 'cs-up', 'interface/card', [7, 8, 9], () => { d.sel = Math.max(0, d.sel! - 1); this.fixCardScroll(d, list.length); }, { disabled: d.sel === 0, sound: 'interface/sfx042' });
+    wbtn(ctx, W, 'cs-dn', 'interface/card', [10, 11, 12], () => { d.sel = Math.min(list.length - 1, d.sel! + 1); this.fixCardScroll(d, list.length); }, { disabled: d.sel >= list.length - 1, sound: 'interface/sfx042' });
+    wbtn(ctx, W, 'cs-x', 'interface/card', [1, 2, 3], () => d.resolve(null), { sound: 'interface/sfx040' });
+    wbtn(ctx, W, 'cs-o', 'interface/card', [4, 5, 6], () => d.resolve(cur.id), { disabled: cur.disabled });
+    // scroll position hint when the hand is longer than the 5 visible rows
+    if (list.length > 5) text(ctx, `${d.sel + 1}/${list.length}`, 455, 136, { size: 10, align: 'right', baseline: 'bottom', color: '#8a1a00', weight: 'normal' });
+    winEnd(ctx);
   }
 
   renderWinner(ctx: CanvasRenderingContext2D, w: number, h: number) {

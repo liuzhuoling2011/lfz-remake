@@ -125,6 +125,7 @@ class App {
 export function inRect(x: number, y: number, r: Rect) { return x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h; }
 
 export const app = new App();
+(window as any).__lfzApp = app; // tests: hit regions by id
 
 // ---------------- timing helpers ----------------
 const params = new URLSearchParams(location.search);

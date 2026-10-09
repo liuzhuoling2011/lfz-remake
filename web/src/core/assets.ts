@@ -162,6 +162,16 @@ export function frameRect(name: string, fi: number, ax: number, ay: number, scal
 }
 
 export function frameCount(name: string) { return index[name]?.f.length ?? 0; }
+/**
+ * True when the SPR header marks the sheet as an animation: anim_param (meta.a) > 0 and more than one frame per direction
+ * group. Sheets with a = 0 but several frames per group (大山 big_hill, 碼頭 pier, 荷花 sea_fllower_0102) hold *variants*
+ * of a static object (the map picks one by frame index) and must never be cycled.
+ */
+export function isAnimated(name: string) {
+  const m = index[name];
+  if (!m || !((m.a ?? 0) > 0)) return false;
+  return (m.g ?? [m.f.length]).some(n => n > 1);
+}
 const giCache = new Map<string, { g: number[]; start: number[] }>();
 /** Direction-group layout of a sheet (cached: called every frame for animated objects). */
 export function groupInfo(name: string): { g: number[]; start: number[] } {

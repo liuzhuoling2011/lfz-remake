@@ -15,8 +15,9 @@ interface MapObj {
 }
 interface MapData { key: string; sprites: string[]; layers: { name: string; flag: number; o: [number, number, number, number, number][] }[] }
 
-const ANIM = new Set(['sea', 'smallsea', 'bigsea01', 'bigsea02', 'big_sea', 'sea2', 'sea_side1', 'sea_side2', 'sea_side3', 'sea_bird', 'dolphin', 'fishman', 'stone1', 'stone2',
-  'smallship', 'hk_ship', 'kln_ship', 'oldship', 'ufo', 'taiping_hill', 'hill4', 'pier', 'sea_fllower_0102', 'chance', 'money_add', 'money_des', 'big_hill']);
+// Animated scenery is decided by the sprite's own SPR header (anim_param > 0), not a name list: the old list also cycled
+// 大山/碼頭/荷花, whose frames are distinct variants → hills and piers flickered between shapes (round-3 bug).
+const isAnimSheet = (nm: string) => Assets.isAnimated('map/' + nm);
 const SEASONAL = new Set(['tree_change1', 'tree_change2']);
 const LIVE_GROUND = new Set(['big_sea', 'icon']);
 const isIcon = (nm: string) => nm === 'chance' || nm === 'money_add' || nm === 'money_des' || nm.endsWith('_icon') || nm.startsWith('icon_');
@@ -87,7 +88,7 @@ export class MapView {
       const man = await fetchJSON<{ skip: string[] }>(`hd/ground/${board.key}.json`).catch(() => null);
       if (man) {
         const used = new Set<string>();
-        for (const L of this.data.layers) for (const o of L.o) { const nm = this.data.sprites[o[0]]; if (L.flag === 1 || LIVE_GROUND.has(L.name) || ANIM.has(nm) || SEASONAL.has(nm)) used.add('map/' + nm); }
+        for (const L of this.data.layers) for (const o of L.o) { const nm = this.data.sprites[o[0]]; if (L.flag === 1 || LIVE_GROUND.has(L.name) || isAnimSheet(nm) || SEASONAL.has(nm)) used.add('map/' + nm); }
         for (const n of man.skip) if (!used.has(n)) Assets.preferSD.add(n);
       }
     }
@@ -126,7 +127,7 @@ export class MapView {
     for (const L of this.data.layers) {
       for (const [s, f, x, y, a] of L.o) {
         const nm = this.data.sprites[s];
-        const o: MapObj = { s, f, x, y, a, anim: ANIM.has(nm), seasonal: SEASONAL.has(nm), icon: isIcon(nm), x0: x, y0: y, x1: x, y1: y };
+        const o: MapObj = { s, f, x, y, a, anim: isAnimSheet(nm), seasonal: SEASONAL.has(nm), icon: isIcon(nm), x0: x, y0: y, x1: x, y1: y };
         const sh0 = this.sheets[s];
         if (sh0) { const fr = sh0.f[Math.min(f, sh0.f.length - 1)]; o.x0 = x - fr[4]; o.y0 = y - fr[5]; o.x1 = o.x0 + fr[2]; o.y1 = o.y0 + fr[3]; }
         if (L.flag === 1) { this.objects.push(o); continue; }
@@ -374,7 +375,7 @@ export class MapView {
     if (o.anim) {
       const gi = groupInfo(sh.name); const g = Math.min(o.a, gi.g.length - 1);
       const st = gi.start[g], n = gi.g[g];
-      if (n > 1) fi = st + ((o.f - st + tick + ((o.x * 7 + o.y * 3) % n)) % n);
+      if (n > 1) fi = st + ((((o.f - st + tick + (o.x * 7 + o.y * 3)) % n) + n) % n); // stays inside the object's direction group
     } else if (o.seasonal) fi = this.season % sh.f.length;
     drawFrame(ctx, sh, fi, o.x, o.y);
   }
