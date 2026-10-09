@@ -64,6 +64,8 @@ export class MapView {
   chars: number[] = [];
   season = 0;
   current = -1;
+  /** Plots whose owner-marker should animate (flash) this visit; cleared when the turn ends. */
+  flashPlots = new Set<number>();
   private drag: { x: number; y: number; cx: number; cy: number; moved: boolean; id: number } | null = null;
   private pinch = new Map<number, { x: number; y: number }>();
   private pinchD = 0;
@@ -517,7 +519,7 @@ export class MapView {
         drawFrame(ctx, name, p.dir, p.x, p.y);
         if (ps.level >= 3) drawFrame(ctx, 'map/havemoney', Math.floor(app.time / 60) % 32, p.x, p.y - 40, 0.6, 0.8);
         // Owner marker above building (same playermark gem that floats over the token)
-        this.ownerMark(ctx, name, p.dir, p.x, p.y, ps.owner);
+        this.ownerMark(ctx, name, p.dir, p.x, p.y, ps.owner, i);
       }
     }
     if (c) {
@@ -542,16 +544,19 @@ export class MapView {
     ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 20, y); ctx.lineTo(x + 20, y - 34); ctx.stroke();
     ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x + 21, y - 34); ctx.lineTo(x + 40, y - 28 + wv); ctx.lineTo(x + 21, y - 21); ctx.closePath(); ctx.fill();
   }
-  /** Seat-coloured playermark bobbing above an owned building (same asset as the token head marker). */
-  private ownerMark(ctx: CanvasRenderingContext2D, building: string, dir: number, x: number, y: number, seat: number) {
-    // Prefer the larger *_2 playermark sheet over buildings (same seat colours as the token head gem).
+  flashPlot(i: number) { this.flashPlots.add(i); }
+  clearFlash() { this.flashPlots.clear(); }
+  /** Owner marker: animate only while this plot is in flashPlots (landed this turn); otherwise frame 0 static. */
+  private ownerMark(ctx: CanvasRenderingContext2D, building: string, dir: number, x: number, y: number, seat: number, plotId: number) {
     const mk2 = `map/playermark0${seat + 1}_2`;
     const mk = sheet(mk2) ? mk2 : `map/playermark0${seat + 1}`;
     const sh = sheet(mk); if (!sh) return;
     const b = sheet(building);
     const hy = b?.f[Math.min(dir, (b?.f.length ?? 1) - 1)]?.[5] ?? 70;
-    const bob = Math.sin(app.time / 220 + seat) * 2.5;
-    drawFrame(ctx, mk, Math.floor(app.time / 90) % sh.f.length, x, y - hy - 4 + bob, sheet(mk2) ? 0.85 : 1.15);
+    const flash = this.flashPlots.has(plotId);
+    const fi = flash ? Math.floor(app.time / 90) % sh.f.length : 0;
+    const bob = flash ? Math.sin(app.time / 220 + seat) * 2.5 : 0;
+    drawFrame(ctx, mk, fi, x, y - hy - 4 + bob, sheet(mk2) ? 0.85 : 1.15);
   }
 
   drawActor(ctx: CanvasRenderingContext2D, a: Actor) {

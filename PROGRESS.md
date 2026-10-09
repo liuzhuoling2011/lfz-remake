@@ -1,4 +1,11 @@
 
+## Round 11 — marker flash, home calculater, debug map-teleport (2026-10-10 Asia/Shanghai)
+
+- Owner markers: animate (`flashPlots`) only while a plot is being visited this turn; `clearFlash()` at turn end → static frame 0 afterwards.
+- 家 存/取: original `interface/calculater` + `calcnumber2` LCD UI (存/取 modes, O/X/C, ±100, 一半/全部).
+- Debug 傳送: arms button (裝填中); next map click teleports human; Esc or Debug toggle cancels.
+
+
 ## Round 10 — property rules + ferry loop (2026-10-10 Asia/Shanghai)
 
 - Owner markers: seat-coloured `playermark0N_2` bob above every owned building (not only 家).

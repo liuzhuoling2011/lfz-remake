@@ -23,6 +23,8 @@ export interface GameUI {
   message(text: string, o?: UIOpts): Promise<void>;
   confirm(text: string, o?: UIOpts): Promise<boolean>;
   choose(title: string, opts: ChoiceOpt[], o?: UIOpts & { cancel?: string }): Promise<number>;
+  /** Original calculater-style 屋企存取. null = cancel. */
+  homeBank(cash: number, home: number): Promise<{ mode: 'in' | 'out'; amount: number } | null>;
   /** dice animation; d2 = 0 → single die */
   dice(d1: number, d2: number): Promise<void>;
   turnMenu(p: Player): Promise<TurnAction>;
@@ -240,6 +242,7 @@ export class Engine {
     if (p.alive) await this.npcEvent(p);
     this.tickStatuses(p);
     this.view.actor(p.seat).anim = 'stand';
+    this.view.clearFlash(); // owner markers stop blinking after the turn
   }
 
   tickStatuses(p: Player) {
@@ -372,6 +375,7 @@ export class Engine {
   }
 
   async property(p: Player, pl: number) {
+    this.view.flashPlot(pl);
     const ps = this.g.plots[pl];
     const plot = this.b.plots[pl];
     const ancient = MAPS[this.g.map].ancient;
@@ -484,36 +488,18 @@ export class Engine {
       }
       return;
     }
-    const opts: ChoiceOpt[] = [
-      { label: '存錢', sub: `手上現金 $${p.cash}`, disabled: p.cash <= 0 },
-      { label: '取錢', sub: `${title}存款 $${p.home}`, disabled: p.home <= 0 },
-    ];
-    if (opts.every(o => o.disabled)) return;
+    if (p.cash <= 0 && p.home <= 0) return;
     this.speak(p, L.home, 1);
-    const pick = await this.ui.choose(`回到${title}，要存錢或取錢嗎？`, opts, { title, cancel: '不用了' });
-    if (pick < 0) return;
-    if (pick === 0) {
-      const half = Math.floor(p.cash * RULES.homeDepositPct / 100);
-      const amtOpts: ChoiceOpt[] = [
-        { label: `存入一半（$${half}）`, disabled: half <= 0 },
-        { label: `全部存入（$${p.cash}）`, disabled: p.cash <= 0 },
-      ];
-      const a = await this.ui.choose('存多少？', amtOpts, { title, cancel: '取消' });
-      if (a < 0) return;
-      const dep = a === 0 ? half : p.cash;
+    const res = await this.ui.homeBank(p.cash, p.home);
+    if (!res || res.amount <= 0) return;
+    if (res.mode === 'in') {
+      const dep = Math.min(res.amount, p.cash);
       if (dep <= 0) return;
       p.cash -= dep; p.home += dep;
       this.view.float(`存入${title} ${dep}`, this.view.actor(p.seat).x, this.view.actor(p.seat).y - 130, '#9fe8ff');
       if (!TURBO) void sfx('season/drip');
     } else {
-      const half = Math.floor(p.home / 2);
-      const amtOpts: ChoiceOpt[] = [
-        { label: `取出一半（$${half}）`, disabled: half <= 0 },
-        { label: `全部取出（$${p.home}）`, disabled: p.home <= 0 },
-      ];
-      const a = await this.ui.choose('取多少？', amtOpts, { title, cancel: '取消' });
-      if (a < 0) return;
-      const w = a === 0 ? half : p.home;
+      const w = Math.min(res.amount, p.home);
       if (w <= 0) return;
       p.home -= w; p.cash += w;
       this.view.float(`取出 ${w}`, this.view.actor(p.seat).x, this.view.actor(p.seat).y - 130, '#ffe36a');

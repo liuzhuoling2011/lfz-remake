@@ -25,7 +25,8 @@ let go: (name: string, arg?: any) => void = () => {};
 export const GAME_UI_SHEETS = ['interface/chance', 'interface/card', 'interface/step', 'interface/messagebox', 'interface/smessagebox', 'interface/gameover', 'interface/luckydraw',
   'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06',
   ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'misc/balloon',
-  'interface/detailinfo', 'interface/system', 'interface/option', 'interface/info', 'interface/round', 'interface/loadsave'];
+  'interface/detailinfo', 'interface/system', 'interface/option', 'interface/info', 'interface/round', 'interface/loadsave',
+  'interface/calculater', 'interface/calcnumber1', 'interface/calcnumber2', 'interface/home'];
 /** Warm the caches while the player is still on the select screens so 開始遊戲 is (near) instant. */
 export function prewarmGame(mapIdx: number, chars: number[]) {
   void loadSheets(GAME_UI_SHEETS);
@@ -47,6 +48,11 @@ interface Toast { text: string; o: ToastOpts; t: number; ms: number }
 /** dice animation state (original dice dialog @0x4089d0: 30 frames, hold, fade) */
 interface DiceAnim { d1: number; d2: number; t: number; res: () => void; landed: boolean }
 interface Bubble { seat: number; text: string; t: number }
+/** Original calculater UI for 屋企存/取 */
+interface HomeBankDlg {
+  mode: 'in' | 'out'; amount: number; cash: number; home: number; t: number;
+  resolve: (v: { mode: 'in' | 'out'; amount: number } | null) => void;
+}
 
 const DICE_LAND = 900, DICE_HOLD = 1500, DICE_END = 1850;
 
@@ -73,6 +79,9 @@ export class GameScene implements Scene {
   debugPanel = false;
   dbgD1 = 6; dbgD2 = 0; // 0 = one die
   dbgTile = 0;
+  /** Armed map-click teleport (Debug 傳送). */
+  dbgTpArmed = false;
+  homeBankDlg: HomeBankDlg | null = null;
   /** original console command ShowDetailInfo: extra lines under each HUD panel (key I) */
   showDetail = false;
   private optRaw: { quality: 0 | 1 | 2; speed: 0 | 1 | 2; sfx: number; music: number; voice: number; fullscreen: boolean } | null = null;
@@ -148,6 +157,21 @@ export class GameScene implements Scene {
       auto: AUTO ? { ms: 400, value: true } : undefined }),
     choose: (title, opts, o = {}) => this.push({ kind: 'choose', text: title, title: o.title, buttons: [...opts.map((x, i) => ({ label: x.label, sub: x.sub, disabled: x.disabled, value: i, primary: true })), { label: o.cancel ?? '取消', value: -1 }],
       auto: AUTO ? { ms: 400, value: opts.findIndex(x => !x.disabled) } : undefined }),
+    homeBank: (cash, home) => {
+      if (AUTO || TURBO) {
+        // AI path never calls this; turbo humans auto-deposit half if possible
+        if (cash > 0) return Promise.resolve({ mode: 'in' as const, amount: Math.floor(cash * 0.5) || cash });
+        if (home > 0) return Promise.resolve({ mode: 'out' as const, amount: Math.floor(home * 0.5) || home });
+        return Promise.resolve(null);
+      }
+      void loadSheets(['interface/calculater', 'interface/calcnumber1', 'interface/calcnumber2', 'interface/home']);
+      return new Promise(res => {
+        const mode: 'in' | 'out' = cash > 0 ? 'in' : 'out';
+        const max = mode === 'in' ? cash : home;
+        this.homeBankDlg = { mode, amount: Math.min(max, Math.floor(max * RULES.homeDepositPct / 100) || max), cash, home, t: 0,
+          resolve: v => { this.homeBankDlg = null; res(v); } };
+      });
+    },
     dice: (d1, d2) => {
       if (TURBO) return Promise.resolve();
       void sfx('dice/dice1'); // VERIFIED: dice1.wav when the throw starts, dice2.wav on landing
@@ -208,6 +232,7 @@ export class GameScene implements Scene {
     if (this.seasonAnim) { this.seasonAnim.t += dt; if (this.seasonAnim.t > 2600) this.seasonAnim.res(); }
     if (this.winnerInfo) this.winnerInfo.t += dt;
     if (this.tooltip) { this.tooltip.t += dt; if (this.tooltip.t > 4000) this.tooltip = null; }
+    if (this.homeBankDlg) this.homeBankDlg.t += dt;
   }
 
   // ------------------------------------------------------------ input
@@ -217,10 +242,19 @@ export class GameScene implements Scene {
     if (e.type === 'down') this.downPos = { x: e.x, y: e.y };
     this.view.onPointer(e);
     if (e.type === 'up' && this.downPos && Math.hypot(e.x - this.downPos.x, e.y - this.downPos.y) < 8) {
-      const w = this.view.toWorld(e.x, e.y);
-      let best = -1, bd = 40;
-      this.board.plots.forEach((p, i) => { const d = Math.hypot(p.x - w.x, (p.y - w.y) * 2); if (d < bd) { bd = d; best = i; } });
-      this.tooltip = best >= 0 ? { plot: best, t: 0 } : null;
+      const wpos = this.view.toWorld(e.x, e.y);
+      if (this.dbgTpArmed && !this.homeBankDlg && !this.dlgs.length) {
+        // Next map click completes armed Debug teleport
+        let best = 0, bd = 1e9;
+        this.board.tiles.forEach((tt, i) => { const d = Math.hypot(tt.x - wpos.x, (tt.y - wpos.y) * 2); if (d < bd) { bd = d; best = i; } });
+        this.dbgTile = best;
+        this.dbgTpArmed = false;
+        void this.debugTeleportTo(best);
+      } else {
+        let best = -1, bd = 40;
+        this.board.plots.forEach((pp, i) => { const d = Math.hypot(pp.x - wpos.x, (pp.y - wpos.y) * 2); if (d < bd) { bd = d; best = i; } });
+        this.tooltip = best >= 0 ? { plot: best, t: 0 } : null;
+      }
     }
     if (e.type === 'up') this.downPos = null;
   }
@@ -230,6 +264,8 @@ export class GameScene implements Scene {
     if (this.mini) return;
     if (this.lsWin && (this.overlay === 'save' || this.overlay === 'load')) { this.lsWin.key(k); return; }
     if (this.overlay === 'quitConfirm') { if (k === 'Enter' || k === ' ') { this.engine.stopped = true; go('mainmenu'); } else if (k === 'Escape') this.overlay = 'none'; return; }
+    if (this.homeBankDlg && k === 'Escape') { this.homeBankDlg.resolve(null); return; }
+    if (this.dbgTpArmed && k === 'Escape') { this.dbgTpArmed = false; this.ui.toast('已取消傳送', { color: '#ffb347' }); return; }
     const top = this.dlgs[this.dlgs.length - 1];
     if (top && !top.passive && top.kind === 'cards') {
       const n = this.cardEntries(top).length; const sel = top.sel ?? 0;
@@ -264,6 +300,7 @@ export class GameScene implements Scene {
     if (this.seasonAnim) this.renderSeason(ctx, w, h);
     const top = this.dlgs[this.dlgs.length - 1];
     if (top) this.renderDialog(ctx, w, h, top);
+    if (this.homeBankDlg) this.renderHomeBank(ctx, w, h);
     this.renderOverlay(ctx, w, h);
     // 全螢幕 + Debug floating controls — drawn last so they sit above the 設定 modal block
     if (!this.winnerInfo) {
@@ -828,16 +865,24 @@ export class GameScene implements Scene {
     roundRect(ctx, ix, iy, bw, bh, 8); ctx.fill();
     ctx.strokeStyle = 'rgba(255,210,140,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.restore();
-    text(ctx, '🛠 Debug', ix + bw / 2, iy + bh / 2, {
-      size: Math.round(13 * u), align: 'center', baseline: 'middle', color: this.debugOn ? '#ffe36a' : '#e8f0ff',
+    text(ctx, this.dbgTpArmed ? '⏳ 點地圖' : '🛠 Debug', ix + bw / 2, iy + bh / 2, {
+      size: Math.round(13 * u), align: 'center', baseline: 'middle', color: this.dbgTpArmed ? '#ffd46a' : (this.debugOn ? '#ffe36a' : '#e8f0ff'),
       stroke: 'rgba(40,20,0,0.7)', strokeWidth: 3,
     });
     app.hit('dbg-toggle', { x: ix, y: iy, w: bw, h: bh }, () => {
+      if (this.dbgTpArmed) {
+        this.dbgTpArmed = false;
+        this.ui.toast('已取消傳送', { color: '#ffb347' });
+        void sfx('option/button');
+        return;
+      }
       this.debugOn = !this.debugOn;
       this.debugPanel = this.debugOn;
       if (this.debugOn) {
         const hp = this.g.players.find(pp => pp.alive && !pp.ai) ?? this.g.players[this.g.current];
         this.dbgTile = hp?.tile ?? 0;
+      } else {
+        this.dbgTpArmed = false;
       }
       void sfx('option/button');
     });
@@ -894,11 +939,27 @@ export class GameScene implements Scene {
     }, !hp);
 
     const nTiles = this.board.tiles.length;
-    text(ctx, `傳送 tile ${this.dbgTile}/${nTiles - 1}`, px + 10 * u, py + 138 * u, lab);
+    text(ctx, this.dbgTpArmed ? '點地圖傳送…' : `傳送 tile ${this.dbgTile}/${nTiles - 1}`, px + 10 * u, py + 138 * u, lab);
     const ty = py + 140 * u;
-    btn('dbg-t-', px + 130 * u, ty, 28 * u, 22 * u, '−', () => { this.dbgTile = (this.dbgTile - 1 + nTiles) % nTiles; this.focusDbgTile(); });
-    btn('dbg-t+', px + 162 * u, ty, 28 * u, 22 * u, '+', () => { this.dbgTile = (this.dbgTile + 1) % nTiles; this.focusDbgTile(); });
-    btn('dbg-tp', px + 196 * u, ty, 52 * u, 22 * u, '傳送', () => { void this.debugTeleport(); }, !hp);
+    btn('dbg-t-', px + 130 * u, ty, 28 * u, 22 * u, '−', () => { this.dbgTile = (this.dbgTile - 1 + nTiles) % nTiles; this.focusDbgTile(); }, this.dbgTpArmed);
+    btn('dbg-t+', px + 162 * u, ty, 28 * u, 22 * u, '+', () => { this.dbgTile = (this.dbgTile + 1) % nTiles; this.focusDbgTile(); }, this.dbgTpArmed);
+    // Armed state: button reads 裝填中 / loading
+    {
+      const id = 'dbg-tp'; const bw2 = 52 * u, bh2 = 22 * u; const x = px + 196 * u, y = ty;
+      const st2 = app.state(id);
+      ctx.save();
+      ctx.globalAlpha = !hp ? 0.35 : st2 ? 0.95 : 0.8;
+      ctx.fillStyle = this.dbgTpArmed ? 'rgba(180,100,20,0.95)' : 'rgba(40,70,120,0.85)';
+      roundRect(ctx, x, y, bw2, bh2, 6); ctx.fill();
+      ctx.strokeStyle = this.dbgTpArmed ? 'rgba(255,200,80,0.8)' : 'rgba(180,210,255,0.4)'; ctx.stroke();
+      ctx.restore();
+      text(ctx, this.dbgTpArmed ? '裝填中' : '傳送', x + bw2 / 2, y + bh2 / 2, { size: Math.round(11 * u), align: 'center', baseline: 'middle', color: '#fff', stroke: 'rgba(0,0,0,0.5)', strokeWidth: 2 });
+      if (hp) app.hit(id, { x, y, w: bw2, h: bh2 }, () => {
+        this.dbgTpArmed = !this.dbgTpArmed;
+        this.ui.toast(this.dbgTpArmed ? '點地圖完成傳送（Esc/Debug 取消）' : '已取消傳送', { color: '#ffe36a' });
+        void sfx('interface/click');
+      });
+    }
   }
 
   private focusDbgTile() {
@@ -914,15 +975,99 @@ export class GameScene implements Scene {
     this.ui.toast(`${charName(pp.char)} 現金 ${delta >= 0 ? '+' : ''}${delta} → $${pp.cash}`, { seat: pp.seat, color: '#ffe36a' });
   }
 
-  async debugTeleport() {
+  async debugTeleportTo(tile: number) {
     const pp = this.humanPlayer(); if (!pp || !this.engine) return;
     if (this.diceAnim) { this.ui.toast('擲骰中，稍後再傳送', { color: '#ff8a6a' }); return; }
-    const tile = Math.max(0, Math.min(this.board.tiles.length - 1, this.dbgTile | 0));
+    tile = Math.max(0, Math.min(this.board.tiles.length - 1, tile | 0));
+    this.dbgTile = tile;
     await this.engine.teleportTo(pp, tile);
     await this.engine.land(pp, { skipTransport: true });
     this.engine.onChange();
     this.ui.toast(`${charName(pp.char)} → tile ${tile}`, { seat: pp.seat, color: '#9fe8ff' });
   }
+
+  /**
+   * Original 屋企 calculator (interface/calculater.spr + calcnumber2 digits).
+   * Left icons = 存錢/取錢 mode; LCD amount; O/X/C + arrows from calculater sheet.
+   */
+  renderHomeBank(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const d = this.homeBankDlg!; const u = Math.max(0.85, this.uis);
+    dim(ctx, w, h, 0.4 * Math.min(1, d.t / 200));
+    app.block({ x: 0, y: 0, w, h });
+    const panelW = 306, panelH = 152;
+    const ax = Math.round((w - (panelW + 56) * u) / 2);
+    const ay = Math.round((h - (panelH + 40) * u) / 2);
+    drawFrame(ctx, 'interface/calculater', 0, ax, ay, u);
+
+    // Mode hit zones over left cash / house icons on the panel
+    const modeIn = d.mode === 'in';
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = modeIn ? '#3aa0ff' : '#000';
+    ctx.fillRect(ax + 10 * u, ay + 16 * u, 52 * u, 44 * u);
+    ctx.fillStyle = !modeIn ? '#3aa0ff' : '#000';
+    ctx.fillRect(ax + 10 * u, ay + 86 * u, 52 * u, 44 * u);
+    ctx.restore();
+    text(ctx, '存', ax + 36 * u, ay + 38 * u, { size: 14 * u, align: 'center', baseline: 'middle', color: '#fff', stroke: '#024', strokeWidth: 3 });
+    text(ctx, '取', ax + 36 * u, ay + 108 * u, { size: 14 * u, align: 'center', baseline: 'middle', color: '#fff', stroke: '#024', strokeWidth: 3 });
+    app.hit('hb-in', { x: ax + 10 * u, y: ay + 16 * u, w: 52 * u, h: 44 * u }, () => {
+      if (d.cash <= 0) return;
+      d.mode = 'in';
+      d.amount = Math.min(d.cash, Math.max(0, Math.floor(d.cash * RULES.homeDepositPct / 100)) || d.cash);
+      void sfx('interface/click');
+    });
+    app.hit('hb-out', { x: ax + 10 * u, y: ay + 86 * u, w: 52 * u, h: 44 * u }, () => {
+      if (d.home <= 0) return;
+      d.mode = 'out';
+      d.amount = Math.min(d.home, Math.max(0, Math.floor(d.home / 2)) || d.home);
+      void sfx('interface/click');
+    });
+
+    const maxAmt = d.mode === 'in' ? d.cash : d.home;
+    d.amount = Math.max(0, Math.min(maxAmt, Math.floor(d.amount)));
+    const digits = String(Math.floor(d.amount));
+    const step = 18 * u;
+    const slotCX = ax + 178 * u, slotCY = ay + 74 * u;
+    const startX = slotCX - (digits.length * step) / 2;
+    for (let i = 0; i < digits.length; i++) {
+      const di = digits.charCodeAt(i) - 48;
+      if (di >= 0 && di <= 9) drawFrame(ctx, 'interface/calcnumber2', di, startX + i * step + step / 2, slotCY, u * 0.8);
+    }
+    text(ctx, modeIn ? '存入屋企' : '從屋企取出', ax + 178 * u, ay + 30 * u, { size: 12 * u, align: 'center', color: '#4a2a00', weight: 'bold' });
+    text(ctx, `手上 $${d.cash}　屋企 $${d.home}`, ax + 178 * u, ay + 122 * u, { size: 11 * u, align: 'center', color: '#4a2a00' });
+
+    // Widget frames share the panel anchor (SPR hx/hy place O/X/C/arrows)
+    const calcBtn = (id: string, frames: number[], fn: () => void) => {
+      const st = app.state(id);
+      const fi = frames[Math.min(frames.length - 1, st ? 1 : 0)];
+      drawFrame(ctx, 'interface/calculater', fi, ax, ay, u);
+      app.hit(id, frameRect('interface/calculater', fi, ax, ay, u), () => { fn(); void sfx('interface/click'); });
+    };
+    calcBtn('hb-o', [1, 2, 3], () => { if (d.amount > 0) d.resolve({ mode: d.mode, amount: d.amount }); });
+    calcBtn('hb-x', [4, 5, 6], () => d.resolve(null));
+    calcBtn('hb-c', [7, 8, 9], () => { d.amount = 0; });
+    calcBtn('hb-dn', [10, 10, 10], () => { d.amount = Math.max(0, d.amount - 100); });
+    calcBtn('hb-up', [11, 11, 11], () => { d.amount = Math.min(maxAmt, d.amount + 100); });
+
+    const chipY = ay + (panelH + 12) * u;
+    const chips: [string, string, () => void][] = [
+      ['hb-half', '一半', () => { d.amount = Math.floor(maxAmt / 2); }],
+      ['hb-all', '全部', () => { d.amount = maxAmt; }],
+      ['hb-p500', '+500', () => { d.amount = Math.min(maxAmt, d.amount + 500); }],
+      ['hb-m500', '-500', () => { d.amount = Math.max(0, d.amount - 500); }],
+    ];
+    chips.forEach(([id, lab, fn], i) => {
+      const cw = 64 * u, ch = 26 * u;
+      const cx = ax + i * (cw + 8 * u);
+      const st = app.state(id);
+      ctx.save(); ctx.globalAlpha = st ? 0.95 : 0.8;
+      ctx.fillStyle = 'rgba(20,60,120,0.88)'; roundRect(ctx, cx, chipY, cw, ch, 6); ctx.fill();
+      ctx.strokeStyle = 'rgba(160,200,255,0.5)'; ctx.stroke(); ctx.restore();
+      text(ctx, lab, cx + cw / 2, chipY + ch / 2, { size: 12 * u, align: 'center', baseline: 'middle', color: '#fff' });
+      app.hit(id, { x: cx, y: chipY, w: cw, h: ch }, () => { fn(); void sfx('interface/click'); });
+    });
+  }
+
 
   renderOptionWin(ctx: CanvasRenderingContext2D, w: number, h: number, S: number, ay: number) {
     if (!this.opt) this.openOptions();
