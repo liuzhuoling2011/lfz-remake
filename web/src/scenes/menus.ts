@@ -56,46 +56,80 @@ export class TitleScene implements Scene {
 }
 
 // ---------------------------------------------------------------- Main menu
+// Original (scene 0x4414a0, FUN_00403560..00403d80, spec/minigames/data/main_menu.json): one row of 6 buttons at
+// y = H-50, x = OX+80+95·i; menu.spr frame0 glow eases (div 4) to the hovered button, labels = frames 2..7, frame1 on top
+// of the glow; bg.spr frame0 (老夫子) at (W/2, W/2+80), frame2 bar at (W/2, H-50), frame1 logo at (W/2, H/4+100).
+// Layout below is the exe's 800x600 mode. 30 s without mouse movement → opening (attract).
 interface Coin { x: number; y: number; vy: number; vx: number; t: number; k: number; rot: number }
+const MM_ITEMS = [
+  { id: 'opt', label: 2, name: '系統設定' }, { id: 'album', label: 3, name: '相簿' }, { id: 'mini', label: 4, name: '小遊戲' },
+  { id: 'new', label: 5, name: '新遊戲' }, { id: 'load', label: 6, name: '載入進度' }, { id: 'exit', label: 7, name: '離開遊戲' },
+];
+let mmLast = 3;
 export class MainMenuScene implements Scene {
   coins: Coin[] = [];
-  confirmExit = false; exitT = -1;
-  enter() { music('audiotrack03.mp3'); if (AUTO) setTimeout(() => go('selectyear'), 50); }
+  confirmExit = false; exitT = -1; albumMsg = false; albumT = -1;
+  sel = mmLast; glowX = 0; idle = 0; lastMx = -1; lastMy = -1;
+  enter() {
+    music('audiotrack03.mp3'); setup.mode = 'game';
+    this.glowX = this.bx(this.sel);
+    if (AUTO) setTimeout(() => go('selectyear'), 50);
+  }
+  bx(i: number) { return 80 + 80 + 95 * i; }
   update(dt: number) {
     if (Math.random() < dt / 260) this.coins.push({ x: Math.random() * 800, y: -60, vy: 40 + Math.random() * 60, vx: (Math.random() - 0.5) * 30, t: Math.random() * 1000, k: Math.random() < 0.5 ? 1 : 2, rot: 0 });
     for (const c of this.coins) { c.y += c.vy * dt / 1000; c.x += c.vx * dt / 1000 + Math.sin(c.t / 300) * 0.3; c.t += dt; }
     this.coins = this.coins.filter(c => c.y < 700);
+    // glow eases toward the selected button (div 4 per 25 ms tick)
+    const k = 1 - Math.pow(1 - 0.25, dt / 25); this.glowX += (this.bx(this.sel) - this.glowX) * k;
+    if (app.mx !== this.lastMx || app.my !== this.lastMy || this.confirmExit || this.albumMsg) { this.idle = 0; this.lastMx = app.mx; this.lastMy = app.my; }
+    else if ((this.idle += dt) > 30000 && !AUTO && !(navigator as any).webdriver) go('title');
+  }
+  activate(i: number) {
+    mmLast = i; this.sel = i;
+    const id = MM_ITEMS[i].id;
+    if (id === 'opt') go('options');
+    else if (id === 'album') this.albumMsg = true;
+    else if (id === 'mini') { setup.mode = 'mini'; go('selectactor'); }
+    else if (id === 'new') go('selectyear');
+    else if (id === 'load') go('load');
+    else this.confirmExit = true;
   }
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     patternBg(ctx, w, h);
     const st = stage(w, h);
     applyStage(ctx, st);
-    for (const c of this.coins) if (c.k === 2) drawFrame(ctx, 'mainmenu/money02', Math.floor(c.t / 120) % 5, c.x, c.y);
-    drawFrame(ctx, 'mainmenu/bg', 2, 400, 560, 0.8);
-    drawFrame(ctx, 'mainmenu/bg', 0, 255, 300, 0.92);
-    drawFrame(ctx, 'mainmenu/bg', 1, 560, 180 + Math.sin(app.time / 600) * 3, 0.82);
-    for (const c of this.coins) if (c.k === 1) drawFrame(ctx, 'mainmenu/money01', Math.floor(c.t / 120) % 5, c.x, c.y);
-    const items: [number, string, () => void][] = [
-      [5, 'new', () => go('selectyear')],
-      [6, 'load', () => go('load')],
-      [2, 'opt', () => go('options')],
-      [7, 'exit', () => { this.confirmExit = true; }],
-    ];
-    items.forEach(([lab, id, cb], i) => {
-      const x = 575, y = 330 + i * 58;
-      const hov = app.state('mm' + id);
-      drawFrame(ctx, 'mainmenu/menu', 0, x, y, 2.3);
-      if (hov) drawFrame(ctx, 'mainmenu/menu', 1, x, y, 2.05);
-      drawFrame(ctx, 'mainmenu/menu', lab, x, y + (hov === 2 ? 2 : 0), 1.7);
-      const r = frameRect('mainmenu/menu', 0, x, y, 2.3);
-      app.hit('mm' + id, sr(st, r), () => { void sfx('mainmenu/button'); cb(); });
+    drawFrame(ctx, 'mainmenu/bg', 0, 400, 480);
+    for (const c of this.coins) drawFrame(ctx, c.k === 1 ? 'mainmenu/money01' : 'mainmenu/money02', Math.floor(c.t / 120) % 5, c.x, c.y);
+    drawFrame(ctx, 'mainmenu/bg', 2, 400, 550);
+    drawFrame(ctx, 'mainmenu/bg', 1, 400, 250 + Math.sin(app.time / 600) * 3);
+    // button row; enlarged around the centre on small screens so the labels stay tappable
+    const rk = Math.max(1, Math.min(1.33, 0.75 / st.s));
+    const rx = (x: number) => 400 + (x - 400) * rk, ry = 550 - (rk - 1) * 24;
+    drawFrame(ctx, 'mainmenu/menu', 0, rx(this.glowX), ry, rk);
+    MM_ITEMS.forEach((it, i) => {
+      const x = rx(this.bx(i)), id = 'mm' + it.id, stt = app.state(id);
+      if (stt && this.sel !== i && !this.confirmExit && !this.albumMsg) { this.sel = i; void sfx('mainmenu/button'); }
+      drawFrame(ctx, 'mainmenu/menu', it.label, x, ry + (stt === 2 ? 1 : 0), rk, it.id === 'album' ? 0.5 : 1);
+      app.hit(id, sr(st, { x: x - 47 * rk, y: ry - 22 * rk, w: 94 * rk, h: 44 * rk }), () => { void sfx('mainmenu/click'); this.activate(i); });
     });
-    text(ctx, 'Ver 1.05H · Web', 790, 592, { size: 11, align: 'right', color: 'rgba(255,255,255,0.6)', weight: 'normal' });
+    drawFrame(ctx, 'mainmenu/menu', 1, rx(this.glowX), ry, rk);
+    text(ctx, 'Ver 1.05H', 790, 586, { size: 12, align: 'right', color: '#fff', stroke: '#000', strokeWidth: 3, weight: 'normal' });
     resetT(ctx);
     if (this.confirmExit) {
       if (this.exitT < 0) this.exitT = app.time;
       drawMsgBox(ctx, w, h, { text: msg('Misc', 'ExitGame'), t: app.time - this.exitT, yes: () => { this.confirmExit = false; go('title'); }, no: () => { this.confirmExit = false; } }, 'ex');
     } else this.exitT = -1;
+    if (this.albumMsg) {
+      if (this.albumT < 0) this.albumT = app.time;
+      drawMsgBox(ctx, w, h, { text: '相簿（機會卡 / 四字真言）的圖片收錄於原版第二張光碟的 album.dat，網頁版暫時沒有這些內容。', t: app.time - this.albumT, yes: () => { this.albumMsg = false; } }, 'al');
+    } else this.albumT = -1;
+  }
+  onKey(k: string) {
+    if (this.confirmExit || this.albumMsg) { if (k === 'Escape' || k === 'Enter') { this.confirmExit = false; this.albumMsg = false; } return; }
+    if (k === 'ArrowLeft') { this.sel = (this.sel + 5) % 6; void sfx('mainmenu/button'); }
+    if (k === 'ArrowRight') { this.sel = (this.sel + 1) % 6; void sfx('mainmenu/button'); }
+    if (k === 'Enter' || k === ' ') this.activate(this.sel);
   }
 }
 
@@ -152,13 +186,17 @@ export class SelectMapScene implements Scene {
 
 // ---------------------------------------------------------------- Select actor
 export class SelectActorScene implements Scene {
-  enter() { prewarmGame(setup.map, setup.seats.filter(s => s.on).map(s => s.char)); if (AUTO) { setup.seats.forEach(s => (s.ai = true)); setTimeout(() => this.start(), 50); } }
+  enter() {
+    if (setup.mode === 'game') prewarmGame(setup.map, setup.seats.filter(s => s.on).map(s => s.char));
+    if (AUTO) { setup.seats.forEach(s => (s.ai = true)); setTimeout(() => this.start(), 50); }
+  }
+  back() { go(setup.mode === 'mini' ? 'mainmenu' : 'selectmap'); }
   cycleChar(i: number, d = 1) {
     const used = new Set(setup.seats.filter((s, j) => j !== i && s.on).map(s => s.char));
     let c = setup.seats[i].char;
     for (let k = 0; k < 6; k++) { c = ((c - 1 + d + 6) % 6) + 1; if (!used.has(c)) break; }
     setup.seats[i].char = c;
-    prewarmGame(setup.map, [c]);
+    if (setup.mode === 'game') prewarmGame(setup.map, [c]);
     const pre = CHAR_VOICE_PREFIX[c];
     void voice(pre + '28.mp3');
   }
@@ -171,11 +209,15 @@ export class SelectActorScene implements Scene {
     if (s.on) { const used = new Set(setup.seats.filter((x, j) => j !== i && x.on).map(x => x.char)); if (used.has(s.char)) this.cycleChar(i); }
     void sfx('selectactor/button1');
   }
-  start() { if (setup.seats.filter(s => s.on).length >= 2) go('game', { new: true }); }
+  start() {
+    const n = setup.seats.filter(s => s.on).length;
+    if (setup.mode === 'mini') { if (n >= 1) go('selectmini'); return; }
+    if (n >= 2) go('game', { new: true });
+  }
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     patternBg(ctx, w, h);
     const st = stage(w, h); applyStage(ctx, st);
-    text(ctx, '選擇角色', 400, 46, { size: 30, align: 'center', color: '#ffe36a', stroke: '#4a0a00', strokeWidth: 6 });
+    text(ctx, setup.mode === 'mini' ? '小遊戲 · 選擇角色' : '選擇角色', 400, 46, { size: 30, align: 'center', color: '#ffe36a', stroke: '#4a0a00', strokeWidth: 6 });
     const pos = [[205, 175], [595, 175], [205, 395], [595, 395]];
     setup.seats.forEach((s, i) => {
       const [cx, cy] = pos[i];
@@ -207,12 +249,13 @@ export class SelectActorScene implements Scene {
       void f0;
     });
     const n = setup.seats.filter(s => s.on).length;
-    text(ctx, n < 2 ? '最少需要兩位玩家' : '點擊頭像換角色 · 點擊右方圖示切換 玩家 / 電腦 / 關閉', 400, 520, { size: 14, align: 'center', color: '#fff7c2', stroke: '#1b2b5a', strokeWidth: 3 });
-    sbtn(ctx, st, 'aok', 'selectactor/button', [3, 4, 5], 440, 340, () => this.start(), { disabled: n < 2 });
-    sbtn(ctx, st, 'aback', 'selectactor/button', [0, 1, 2], 380, 340, () => go('selectmap'));
+    const minN = setup.mode === 'mini' ? 1 : 2;
+    text(ctx, n < minN ? '最少需要兩位玩家' : '點擊頭像換角色 · 點擊右方圖示切換 玩家 / 電腦 / 關閉', 400, 520, { size: 14, align: 'center', color: '#fff7c2', stroke: '#1b2b5a', strokeWidth: 3 });
+    sbtn(ctx, st, 'aok', 'selectactor/button', [3, 4, 5], 440, 340, () => this.start(), { disabled: n < minN });
+    sbtn(ctx, st, 'aback', 'selectactor/button', [0, 1, 2], 380, 340, () => this.back());
     resetT(ctx);
   }
-  onKey(k: string) { if (k === 'Enter') this.start(); if (k === 'Escape') go('selectmap'); }
+  onKey(k: string) { if (k === 'Enter') this.start(); if (k === 'Escape') this.back(); }
 }
 
 // ---------------------------------------------------------------- Options (also used in-game as overlay)

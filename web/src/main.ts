@@ -6,6 +6,7 @@ import { text } from './core/text';
 import { TitleScene, MainMenuScene, SelectYearScene, SelectMapScene, SelectActorScene, OptionsScene, LoadScene, bindNav } from './scenes/menus';
 import { GameScene, bindGameNav } from './scenes/game';
 import { setup } from './scenes/setup';
+import { SelectMiniGameScene, MiniPlayScene, bindMiniNav } from './mini/scenes';
 
 const errors: string[] = [];
 (window as any).__errors = errors;
@@ -17,11 +18,13 @@ function nav(name: string, arg?: any) {
     title: () => new TitleScene(), mainmenu: () => new MainMenuScene(), selectyear: () => new SelectYearScene(),
     selectmap: () => new SelectMapScene(), selectactor: () => new SelectActorScene(), options: () => new OptionsScene(),
     load: () => new LoadScene(), game: () => new GameScene(arg ?? {}),
+    selectmini: () => new SelectMiniGameScene(), miniplay: () => new MiniPlayScene(Number(arg) || 0),
   };
   (window as any).__scene = name;
   app.setScene(map[name]());
 }
-bindNav(nav); bindGameNav(nav);
+bindNav(nav); bindGameNav(nav); bindMiniNav(nav);
+(window as any).__nav = nav; (window as any).__setup = setup; // tests
 
 class BootScene implements Scene {
   p = 0; msg = '載入中…';
@@ -47,9 +50,10 @@ async function boot() {
     const ui = ['logo/bg', 'logo/button', 'mainmenu/bg', 'mainmenu/menu', 'mainmenu/money01', 'mainmenu/money02', 'misc/pattern', 'misc/loading',
       'selectyear/bg', 'selectyear/buttons', 'selectyear/fg', 'selectmap/bg', 'selectmap/buttons', 'selectmap/fg', 'selectmap/map',
       'selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04', 'selectactor/actor', 'selectactor/button', 'selectactor/device', 'selectactor/frame',
-      'option/bg', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06'];
+      'option/bg', 'selectminigame/bg', 'selectminigame/fg', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06'];
     await loadSheets(ui, (d, t) => { bs.p = d / t; });
     const qp = new URLSearchParams(location.search), start = qp.get('scene');
+    if (qp.has('mini')) setup.mode = 'mini'; // ?scene=selectactor&mini (tests)
     const mq = Number(qp.get('map')); if (qp.has('map') && mq >= 0 && mq < 3) setup.map = mq; // ?scene=game&map=N (tests)
     nav(AUTO ? 'mainmenu' : start ?? 'title');
   } catch (e) { bs.msg = '載入失敗 ' + e; console.error(e); }

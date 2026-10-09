@@ -1,0 +1,52 @@
+{
+ "id": "03",
+ "nameZh": "彈叉打賊 (INFERRED name)",
+ "scene": "0x443200 = {0x41b990,0x41cf60,0x41d040/0x41ce10,0x41d050/0x41cea0}",
+ "thief": {
+  "y": "H/2+100",
+  "xStart": "W/2",
+  "stepPx": 16,
+  "stepEveryTicks": 4,
+  "sprites": {
+   "0": "thief_01 run left",
+   "1": "thief_02 run right",
+   "2": "thief_03 turn (left→right)",
+   "3": "thief_04 turn (right→left)",
+   "4": "thief_05 hit/dizzy"
+  },
+  "ai": "moving right: each step if x > W-W/3 then 25% turn, forced turn if x > W-100; moving left: if x < W/3 25% turn, forced if x < 100; turn anim plays once",
+  "hit": "plays thief_05 (each frame 12 ticks), barf.wav once, then continues in previous direction",
+  "shadow": "current frame drawn scaled (w, h/5) alpha 100 at same anchor"
+ },
+ "cat": {
+  "chance": "1/100 per tick while hidden",
+  "x": "rand()%400+150+OX",
+  "y": "H/2+30 raised 40 px for 20 ticks",
+  "sound": "cat.wav (vol 0x40)",
+  "sprite": "03/bg frame2",
+  "gameplay": "decorative (no collision code) — INFERRED"
+ },
+ "players": {
+  "handSprite": "03/hand{slot+1}.png frames 0..4 pull/release, last frame = score tag",
+  "handX": "layout formula; moves ±6 px/tick, clamp [50, W-50]",
+  "handY": "OY + 490 - frame0.h",
+  "scoreTag": "x = OX + 67 + (487/n)/2 + k*(487/n), y = OY+18; '%d' hits in player colour"
+ },
+ "shot": {
+  "fireAnim": "hand frames advance 1/tick to frameCount-1 then stone spawns",
+  "stone": "03/stone.png from (handX, handY); y -= 12 per tick; scale (3 - t/4)/3; shadow at y+100 alpha 0x40; pop.wav (vol 0x40)",
+  "hitTest": "at tick 13 test 5 points (x,y),(x±5,y),(x,y±5) against thief's current frame opaque pixels (FUN_00420fd0)",
+  "miss": "stone ends at tick 15"
+ },
+ "controls": {
+  "keyboard/joystick": "key0 down = pull (draw), key0 up = release → fire; key2 held = left, key3 held = right",
+  "mouse": "pull when cursorY > 2H/3, fire when pulled and cursorY < H/2 (flick up); mouse button 0 held = left, button 1 held = right (button order INFERRED)",
+  "onlyOneStone": "input ignored/flushed while own stone in flight"
+ },
+ "ai": "each tick 5/6 chance: if no stone: d=|thiefX-handX|; d<5 and pulled → fire; not pulled and d<30 → pull; move 6 px toward thief only when thief is moving toward the same side (handX<thiefX and thief moving right → +6; handX>=thiefX and moving left → -6)",
+ "timer": "30 s (1200 ticks) then TIME IS UP → score result with score = hits*10",
+ "reward": "cash += hits*10",
+ "bg": "03/bg frame0 (sky/trees) and frame1 (ground, hy=66) at (W/2,H/2), repeated ±640; frame3 timer band",
+ "src": "FUN_0041b990..0041d050",
+ "conf": "VERIFIED"
+}

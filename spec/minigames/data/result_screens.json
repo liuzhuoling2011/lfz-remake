@@ -1,0 +1,65 @@
+{
+ "wordCardResult": {
+  "scene": "0x442ea0 = {0x418b80 enter(winnerSlot),0x419380 exit,0x4193e0 update,0x4193f0 draw}",
+  "usedBy": [
+   "01 畫展 (board mode only)",
+   "04 吹氣球 (board mode only)"
+  ],
+  "background": {
+   "tile": "result/player{slot+1}.png frame1 ('WIN' 80x80) tiled over whole screen",
+   "center": [
+    "result/bg.png frame0 at (W/2,H/2)",
+    "result/player{slot+1}.png frame0 at (W/2,H/2) (anchor hx/hy places the badge)",
+    "result/{charName}.png frame0 at (W/2,H/2) — winner's character face, charName = player+4 (character01..06)"
+   ],
+   "src": "FUN_004191a0/00419280"
+  },
+  "reel": {
+   "cards": "all DAT_00448724 (=16) word cards, image dat\\WordCard\\<jpg> (assets: images/cards/*.jpg), stacked vertically, wrap-around",
+   "clip": "x0=OX+0xc3 (195), y0=OY+0xb7 (183), w,h = first card image size",
+   "cardX": "W/2 - cardW/2",
+   "speedStart": 40,
+   "stopHuman": "winner human (player+0x3c==0): key-DOWN of button 0/1 on own device; plays drip.wav, stops drum_long loop, plays drum_short",
+   "stopAI": "after rand()%80+40 ticks",
+   "decel": "after stop: speed -1 per tick down to 0; at 0 if no card top equals y0 → speed=1 (crawl) until aligned; selected = first card whose y == y0",
+   "src": "FUN_00418bf0/00418e70"
+  },
+  "pressButton": {
+   "sprite": "minigame/pressbutton.png",
+   "pos": "(W*5/6, H/2+200); frame1 base, frame0 at +bob (bob range -10..2)",
+   "hiddenAfterStop": true
+  },
+  "message": {
+   "text": "maindata Misc.winnerMsg = '%s得到一張「%s」四字真言！' (player name, card name)",
+   "pos": "centred x, y=H/2+0xdc, white with black outline (DAT_004488d8 font)"
+  },
+  "hold": 120,
+  "onEnd": "card appended to winner's hand (player+0x20 list) via FUN_00423140; pop scene stack (restores board fps)",
+  "sounds": [
+   "result/drum_long (looped from start)",
+   "result/drum_short (on stop)",
+   "drip"
+  ],
+  "conf": "VERIFIED"
+ },
+ "scoreResult": {
+  "object": "FUN_0041e8c0(int scores[4]) — created inside the game scene",
+  "usedBy": [
+   "02 機械人 (score = rhythm points)",
+   "03 彈叉打賊 (score = hits*10)"
+  ],
+  "assets": [
+   "minigame/result2/bg.png (RESULT title bar, 637x87) at (W/2, y) with y easing from 0 to H/2 (div 8)",
+   "minigame/result2/player{slot+1}.png (472x79 row)",
+   "minigame/result2/face.png frame = character id",
+   "minigame/result2/number.png frames 0..3 = rank 1..4",
+   "fonts/minigame/01/number.png (score digits)",
+   "audio/sfx/minigame/result2/dan02.ogg (on enter)"
+  ],
+  "rows": "participants (score!=-1) sorted by score descending (qsort FUN_0041ed00); rank k row target y = OY+140+k*77, x = W/2; row starts at y=H+200 and after delay 30*(k+1) ticks eases to target (div 4); draw: row bar (x,y), face at (x+5,y), rank number at (x-0x95,y), score '%d' at (x - textW/2 + 0x9c, y-10)",
+  "duration": 320,
+  "onEnd": "each participant's cash (player+0x28) += score; done flag → game pops scene",
+  "src": "FUN_0041e8f0/0041ed90/0041eb80/0041ec50",
+  "conf": "VERIFIED"
+ }
+}

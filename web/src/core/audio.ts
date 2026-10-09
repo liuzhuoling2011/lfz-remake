@@ -128,3 +128,32 @@ function fadeOut(el: HTMLAudioElement) {
 }
 
 export function setMuted(m: boolean) { muted = m; applyVolumes(); if (!m && musicEl && musicEl.paused && unlocked) void musicEl.play().catch(() => {}); }
+
+/** One-shot effect with volume (0..1) and stereo pan (-1..1); no de-duplication (mini-game claps / pumps overlap). */
+export async function sfxEx(name: string, vol = 1, pan = 0) {
+  if (muted || settings.sfx <= 0) return;
+  const c = ctx(); if (!c || c.state !== 'running') return;
+  const b = await load('sfx/' + name + '.mp3'); if (!b) return;
+  const s = c.createBufferSource(); s.buffer = b;
+  const g = c.createGain(); g.gain.value = vol;
+  let node: AudioNode = g;
+  if (pan && (c as any).createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); g.connect(p); node = p; }
+  s.connect(g); node.connect(sfxGain!);
+  s.start(); logPlay('sfx', name);
+}
+
+/** Looping effect (original DirectSound loop flag): returns a handle; stop() is idempotent and safe before load. */
+export interface LoopHandle { stop(): void; playing: boolean }
+export function sfxLoop(name: string, vol = 1): LoopHandle {
+  const h: LoopHandle & { src?: AudioBufferSourceNode; dead?: boolean } = { playing: true, stop() { h.playing = false; h.dead = true; try { h.src?.stop(); } catch { /* ignore */ } } };
+  if (muted || settings.sfx <= 0) { h.playing = false; return h; }
+  const c = ctx(); if (!c || c.state !== 'running') { h.playing = false; return h; }
+  void load('sfx/' + name + '.mp3').then(b => {
+    if (!b || h.dead) return;
+    const s = c.createBufferSource(); s.buffer = b; s.loop = true;
+    const g = c.createGain(); g.gain.value = vol; s.connect(g); g.connect(sfxGain!);
+    s.start(); h.src = s; logPlay('sfx', name + ':loop');
+  });
+  return h;
+}
+export function currentMusic() { return musicName; }

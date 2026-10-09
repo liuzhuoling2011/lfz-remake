@@ -1,0 +1,125 @@
+{
+ "_doc": "Shared mini-game framework (omasterq.exe 1.05H). Coordinates: W,H = screen size (640x480|800x600|1024x768); OX=(W-640)/2, OY=(H-480)/2. Sprites drawn at anchor (x,y) using frame hx/hy (assets/sprites/*.json).",
+ "fps": {
+  "value": 40,
+  "tickMs": 25,
+  "src": "FUN_0041dfe0 calls FUN_004238c0(0x28); FUN_004238c0 sets tickMs=1000/fps",
+  "restore": "on exit (result scene FUN_00419380) FUN_004238c0(DAT_00448150) restores board game speed; scene stack also saves/restores tickMs (FUN_004238d0 / pop in FUN_00419040)",
+  "conf": "VERIFIED"
+ },
+ "easeStep": {
+  "formula": "step(cur,target,div) = (target-cur)/div (integer, toward 0), but at least ±1 when cur!=target",
+  "src": "FUN_0040e970",
+  "conf": "VERIFIED"
+ },
+ "launcher": {
+  "scene": "0x4433d0 = {enter 0x41dfe0, exit 0x41e370, update 0x41e3b0, draw 0x41e3c0}",
+  "param": "p<100 → standalone (from 小遊戲 menu), game index = p; p>=100 → from board tile, game index = p-100",
+  "boardTrigger": "tile type 5 (minigame_icon 小遊戲) in FUN_00416ff0 case 5: FUN_0040edf0(); player+0x48=1; push scene 0x4433d0 with rand()%4+100",
+  "music": "maindata [Music] MiniGame{index+1}: 1→mus\\minigame03.mp3, 2→mus\\AudioTrack07_1.mp3, 3→mus\\minigame03.mp3, 4→mus\\AudioTrack07_1.mp3",
+  "src": "FUN_0041dfe0, FUN_00416ff0 @0x4172xx",
+  "conf": "VERIFIED"
+ },
+ "introComic": {
+  "assets": [
+   "sprites/minigame/turn/bg.png",
+   "sprites/minigame/turn/game01..04.png",
+   "audio/sfx/minigame/turn/frame.ogg"
+  ],
+  "panels": "center = game{i+1}, left (x-0x267) = game{((i+1)&3)+1}, right (x+0xee) = game{((i+2)&3)+1}; each 370x278 drawn top-left at (stripX+dx, stripY-0x8c) where dx ∈ {-0x267,-0xbe,+0xee}; film-strip overlay turn/bg frame0 drawn at (stripX, stripY) on top",
+  "motion": "stripY=H/2; stripX starts at W + turnBg.w/2 (=W+772) and eases to W/2 with div 8; then all three panels advance frame 0..5 every 31 ticks (counter >30); after last frame the game scene replaces this one",
+  "sound": "frame.wav once on enter (vol 255, pan centre)",
+  "background": "screen snapshot captured at enter (FUN_00423f30) drawn first",
+  "src": "FUN_0041e0b0/0041e210/0041e250/0041e2c0",
+  "conf": "VERIFIED"
+ },
+ "zoomIn": {
+  "desc": "each game starts by growing a centred window from 370x278 (the comic panel size) to W×H; width/height each ease with div 4; the game's draw list is rendered into an off-screen surface and blitted scaled into the window over the launch snapshot; finishes when both steps <2",
+  "src": "FUN_0041a3f0/0041a480 (MG01), 0041b6e0/0041b770 (MG02), 0041ce10/0041cea0 (MG03), 0041dd60/0041ddf0 (MG04)",
+  "conf": "VERIFIED"
+ },
+ "playfieldClip": {
+  "rect": "(0, OY, W-1, OY+479)",
+  "note": "games draw inside a 640x480-high band; MG02/03/04 backgrounds are repeated at x±640 when W>640",
+  "conf": "VERIFIED"
+ },
+ "readyPhase": {
+  "desc": "every participating player shows dat\\MiniGame\\pressbutton.spr (frame1 base + frame0 'PRESS' button bobbing: offset += dir, dir flips at <-10 and >2, i.e. range -10..2 px per tick). Humans must RELEASE (key-up event) button 0 or 1 of their own device; AI is ready immediately. Ready players set bit (1<<slot) in a mask; when mask == all participants the READY/GO banner starts. Ready-ack sound drip.wav (vol 0x80).",
+  "src": "MG01 FUN_00419790, MG02 FUN_0041ac10, MG03 FUN_0041bf00, MG04 FUN_0041d300",
+  "conf": "VERIFIED"
+ },
+ "banner": {
+  "kinds": {
+   "0": "ready.spr (4 frames: 0 left half, 1 right half, 2 'READY', 3 'GO')",
+   "1": "timeout.spr ('TIME IS UP')",
+   "2": "finish.spr ('FINISH')"
+  },
+  "table": "0x443450 = [ready, timeout, finish]",
+  "sequence": [
+   "enter: zoomin.wav (vol 200); half A (frame1) x from -frame0.w/2, half B (frame0) x from W+frame1.w/2, both y=H/2; text frame2 at (W/2,H/2) alpha 0",
+   "each tick: both halves ease to W/2 (div 4); text alpha += 16 (max 255)",
+   "when halves arrive: hold 60 ticks",
+   "then shrink: frames 1,0,2 drawn at (W/2,H/2) scaled s/32, s from 32 down to 1 (-1/tick)",
+   "if sprite has >3 frames (READY): GO (frame3) grows s from 1 by +3/tick to 32, then hold 40 ticks",
+   "done flag set → game removes banner"
+  ],
+  "src": "FUN_0041e4c0/0041e4f0/0041e630/0041e6c0/0041e7b0/0041e7f0/0041e850/0041e890",
+  "conf": "VERIFIED"
+ },
+ "timer": {
+  "limitTicks": 1200,
+  "seconds": 30,
+  "check": "(t/40)==30",
+  "display": "number.fnt '%02d' of 30 - t/40 at (W/2 - textW/2 + 0x112, H/2 - 0xd9); bar from x0=W/2-0xfd, width t*0x1e7/0x4b0 (0..487 px), rows: y=H/2-0xc3 colour RGB(0x9a,0xff,0x99); y=H/2-0xc2..-0xaf colour RGB(3,0xe4,0); y=H/2-0xae colour RGB(1,0x5b,0); right edge vertical line in dark green",
+  "usedBy": [
+   "01",
+   "03",
+   "04"
+  ],
+  "timerFrame": "bg frame (640x72) at (W/2,H/2) with hy=238 → top band",
+  "src": "FUN_00419f90, FUN_0041c860, FUN_0041d8a0, FUN_0041a200, FUN_0041cb30, FUN_0041db00",
+  "conf": "VERIFIED"
+ },
+ "eligibility": {
+  "rule": "player slot participates unless player+0x34 status ∈ {-1 eliminated, 1 hospital, 2 jail, 5 (set by 0x416f30/0x416f60, meaning PARTIAL)}",
+  "src": "FUN_00419550, FUN_0041ab00, FUN_0041bdc0, FUN_0041d190",
+  "conf": "VERIFIED"
+ },
+ "layoutByCount": {
+  "rule": "MG02/03/04 recompute x of the k-th participant (k=0..n-1): x = W/(2n) + k*(W/n) when n<4; for n==4 the init value x = (W/4)*slot + W/8 is kept (same formula)",
+  "src": "FUN_0041b650, FUN_0041cd30, FUN_0041dca0",
+  "conf": "VERIFIED"
+ },
+ "playerColours": {
+  "src": "0x443608 (used by MG03 score text)",
+  "rgb": [
+   [
+    92,
+    203,
+    255
+   ],
+   [
+    255,
+    149,
+    0
+   ],
+   [
+    74,
+    209,
+    9
+   ],
+   [
+    152,
+    71,
+    223
+   ]
+  ],
+  "names": [
+   "blue",
+   "orange",
+   "green",
+   "purple"
+  ],
+  "conf": "VERIFIED"
+ }
+}

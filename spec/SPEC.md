@@ -326,15 +326,19 @@ lucky = 100   # character06 only
 
 Mini-game 02 weights: `data/minigame02_weights.json`.
 
-## 11. Mini-games — VERIFIED (assets)
-| ID | Folder hints | Notes |
-|----|--------------|-------|
-| 01 | number.fnt, characters | timing / pick |
-| 02 | robot, hand, data.txt | rhythm/weights |
-| 03 | thief, cat, stone | catch thief |
-| 04 | balloon | balloon pop |
+## 11. Mini-games — VERIFIED (code, static RE) → full spec `minigames/MINIGAMES.md`
+| idx | Folder | Name (descriptive) | Rule | Reward in board mode |
+|----|--------|------|------|------|
+| 0 | `MiniGame\01` | 畫展 portrait puzzle | fix your own 8×6 tiled portrait (6 wrong cells, 3 layers each); first done wins; 30 s | winner spins the word-card reel → 1 四字真言 card; TIME IS UP → nothing |
+| 1 | `MiniGame\02` | 機械人打拍子 robot rhythm | repeat the robot's clap rhythm, ≤10 pts per beat, 5 rounds (`data.txt` patterns) | **cash += points** for every player |
+| 2 | `MiniGame\03` | 彈叉打賊 slingshot | hit the running thief; 30 s | **cash += hits × 10** for every player |
+| 3 | `MiniGame\04` | 吹氣球 balloon | alternate two buttons to pop the balloon (0→180) against a leak; 30 s | winner spins the word-card reel; TIME IS UP → nothing |
 
-Triggered from board type 5 or SelectMiniGame. Awards word-card via `winnerMsg`.
+Triggered from board tile type 5 (`rand()%4 + 100`, every landing, all players not bankrupt / in hospital / in jail / status 5 take part)
+or from main menu 小遊戲 → SelectActor → SelectMiniGame (standalone flag: no rewards).
+**Correction:** an earlier version of this section said every mini-game awards a word card via `winnerMsg`. Only 01 and 04 do
+(word-card result scene 0x442ea0); 02 and 03 end on the result2 ranking and add the score to each player's cash
+(FUN_0041a3f0 / FUN_0041dd60 push 0x442ea0 only when `DAT_00448870 == 0`).
 
 ---
 
@@ -364,7 +368,7 @@ Exact pixel hit-boxes: **not** extracted (resolution-dependent sprites).
 5. Win/bankruptcy from §9 (`rules_core.json`).  
 6. SpBuilding / temple / lock / hospital / jail.  
 7. AI heuristics from `ai_rules.json`.  
-8. Mini-games optional stretch.
+8. Mini-games (`minigames/MINIGAMES.md`) — implemented in the web remake (`web/src/mini/`).
 
 ## 15. Verified vs inferred (gap closure status)
 

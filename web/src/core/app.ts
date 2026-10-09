@@ -8,8 +8,10 @@ export interface Scene {
   onPointer?(e: PtrEvent): boolean | void; // return true if consumed
   onWheel?(dx: number, dy: number, x: number, y: number): void;
   onKey?(key: string): void;
+  /** raw key events incl. key-up (mini-games need press/release like the original's device events) */
+  onKeyEv?(e: KeyboardEvent, down: boolean): boolean | void;
 }
-export interface PtrEvent { type: 'down' | 'move' | 'up' | 'cancel'; x: number; y: number; id: number; button: number }
+export interface PtrEvent { type: 'down' | 'move' | 'up' | 'cancel'; x: number; y: number; id: number; button: number; ptype?: string }
 
 interface Hit { id: string; r: Rect; cb: () => void; cursor: boolean }
 
@@ -40,7 +42,8 @@ class App {
     window.addEventListener('pointercancel', e => this.ptr('cancel', e));
     canvas.addEventListener('wheel', e => { e.preventDefault(); this.scene?.onWheel?.(e.deltaX, e.deltaY, e.offsetX, e.offsetY); }, { passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', e => { this.scene?.onKey?.(e.key); });
+    window.addEventListener('keydown', e => { if (this.scene?.onKeyEv?.(e, true)) { e.preventDefault(); return; } this.scene?.onKey?.(e.key); });
+    window.addEventListener('keyup', e => { if (this.scene?.onKeyEv?.(e, false)) e.preventDefault(); });
     requestAnimationFrame(t => this.loop(t));
   }
 
@@ -98,7 +101,7 @@ class App {
     const x = e.clientX - rect.left, y = e.clientY - rect.top;
     if (type !== 'move' || e.pointerType === 'mouse') { this.mx = x; this.my = y; }
     if (type === 'move' && e.pointerType !== 'mouse' && this.down) { this.mx = x; this.my = y; }
-    const pe: PtrEvent = { type, x, y, id: e.pointerId, button: e.button };
+    const pe: PtrEvent = { type, x, y, id: e.pointerId, button: e.button, ptype: e.pointerType };
     if (type === 'down') {
       this.down = true; this.mx = x; this.my = y;
       const h = this.topHit(x, y);

@@ -1,0 +1,97 @@
+{
+ "scene": "0x4414a0 = {0x403560 enter,0x403d30 exit,0x403d80 update,0x403380 draw}",
+ "buttons": [
+  {
+   "i": 0,
+   "label": "系統設定",
+   "frame": 2,
+   "goes": "scene 0x4415f8 Options (FUN_00404300)"
+  },
+  {
+   "i": 1,
+   "label": "相簿",
+   "frame": 3,
+   "goes": "scene 0x441048 Album (album\\*.spr from album.dat on Disc 2): 3 buttons → card viewer arg0 = 機會卡 (album\\chance\\), arg1 = 四字真言 (album\\card\\), 2 = back; viewer has prev/next/back"
+  },
+  {
+   "i": 2,
+   "label": "小遊戲",
+   "frame": 4,
+   "goes": "SelectActor(arg 1) 0x441880 → OK → SelectMiniGame 0x441ab8"
+  },
+  {
+   "i": 3,
+   "label": "新遊戲",
+   "frame": 5,
+   "goes": "SelectActor(arg 0) 0x441880 → OK → SelectMap 0x441980"
+  },
+  {
+   "i": 4,
+   "label": "載入進度",
+   "frame": 6,
+   "goes": "load dialog FUN_0040a6b0 → scene 0x4411b0 (game) with slot"
+  },
+  {
+   "i": 5,
+   "label": "離開遊戲",
+   "frame": 7,
+   "goes": "ExitGame confirm (FUN_0040b850) → quit"
+  }
+ ],
+ "layout": "buttons in one row: x = (W-640)/2 + 0x50 + i*0x5f (80,175,270,365,460,555 in 640), y = H-50 (y1=y2); menu.spr frame0 (glow) eases to hovered button x (div 4), frames 2..7 labels; frame1 drawn at selection",
+ "idle": "no mouse movement for 30 s → attract: scene 0x4411f0 (opening video loop)",
+ "version": "'Ver 1.05H' bottom-right (W - textW - 10, H-20)",
+ "selectMiniGame": {
+  "buttons": [
+   {
+    "i": 0,
+    "game": "03 彈叉",
+    "bgFrames": [
+     0,
+     1,
+     2
+    ],
+    "anchor640": "(32,14) top-left"
+   },
+   {
+    "i": 1,
+    "game": "02 機械人",
+    "bgFrames": [
+     3,
+     4,
+     5
+    ]
+   },
+   {
+    "i": 2,
+    "game": "04 吹氣球",
+    "bgFrames": [
+     6,
+     7,
+     8
+    ]
+   },
+   {
+    "i": 3,
+    "game": "01 畫展",
+    "bgFrames": [
+     9,
+     10,
+     11
+    ]
+   },
+   {
+    "i": 4,
+    "exit": "fg frames 2,3,4 → back to main menu"
+   }
+  ],
+  "mapTable": "0x441a78 = [2,1,3,0] (button → game index)",
+  "frames": "normal/hover/pressed = n,n+1,n+2; fg frame0+1 drawn at centre",
+  "sounds": "dan01.wav on hover change, button.wav on click",
+  "returnDelay": "80 ticks after click before launching; on return re-inits + random transition (FUN_0041e3d0)",
+  "src": "FUN_00406db0..00407140",
+  "conf": "VERIFIED"
+ },
+ "src": "FUN_00403640/00403720/00403d80/004038f0",
+ "conf": "VERIFIED"
+}

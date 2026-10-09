@@ -1,0 +1,30 @@
+{
+ "id": "04",
+ "nameZh": "吹氣球 (INFERRED name)",
+ "scene": "0x4432f8 = {0x41d0a0,0x41deb0,0x41df80/0x41dd60,0x41df90/0x41ddf0}",
+ "pressure": {
+  "max": 180,
+  "pumpRule": "human: key-down of key0 or key1 counts only if different from the previous key (alternate 0/1); +1 per valid press, resets leak counter",
+  "leak": "leak counter +1/tick; when >5 → reset and pressure-1 (if >0)",
+  "ai": "25% per tick: +1 and reset leak counter"
+ },
+ "sprite": {
+  "file": "minigame/04/balloon.png (shared)",
+  "frame": "(pressure/36)*3 + wobble[phase]; wobble = [0,1,0,2], phase cycles 0→1→2→3→0 every tick (tables 0x4432d4/0x4432e4)",
+  "pop": "pressure 180 → frames 15..17 POW"
+ },
+ "sounds": {
+  "rising": "balloon01 loop (vol 0x40) when pressure increased",
+  "falling": "balloon02 loop when decreased",
+  "pop": "balloon03 (vol 255) at >=180"
+ },
+ "layout": {
+  "man": "(x, H/2 + 10 - 20*(k&1))",
+  "gauge": "04/player{slot+1}: frame1 at (x, H - h/2 - OY), fill bar width pressure/2 (0..90) from x-66, rows y-11..y+12 colour RGB(255,244,53), frame0 overlay on top",
+  "pressButton": "(x, gaugeY-20)"
+ },
+ "win": "first slot with pressure >= 180 → FINISH → board mode: word-card result; standalone: return",
+ "timeout": "30 s → TIME IS UP, no reward",
+ "src": "FUN_0041d0a0..0041df90",
+ "conf": "VERIFIED"
+}

@@ -1,0 +1,114 @@
+{
+ "_doc": "Device list (FUN_0041f5xx @ 0x41f5b0-ish, data 0x443614..): each device exposes N logical keys; key index meaning in mini-games: 0,1 = action buttons, 2 = left, 3 = right, 4 = up, 5 = down. Events: {key, up} where up=0 on key-down, 1 on key-up (FUN_0042b570). Held state array also available.",
+ "devices": {
+  "MOUSE": {
+   "type": 2,
+   "keys": 2,
+   "map": [
+    1,
+    0
+   ],
+   "note": "2 mouse buttons (order of L/R INFERRED); cursor position via FUN_00420dc0"
+  },
+  "JOYSTICK01-04": {
+   "type": 1,
+   "keys": 6,
+   "map": [
+    4,
+    5,
+    1,
+    0,
+    2,
+    3
+   ],
+   "note": "map = DirectInput button/axis indices (INFERRED)"
+  },
+  "KEYBOARD01": {
+   "type": 0,
+   "vk": [
+    34,
+    46,
+    37,
+    39,
+    38,
+    40
+   ],
+   "keys": [
+    "PageDown",
+    "Delete",
+    "←",
+    "→",
+    "↑",
+    "↓"
+   ]
+  },
+  "KEYBOARD02": {
+   "type": 0,
+   "vk": [
+    69,
+    81,
+    65,
+    68,
+    87,
+    83
+   ],
+   "keys": [
+    "E",
+    "Q",
+    "A",
+    "D",
+    "W",
+    "S"
+   ]
+  },
+  "KEYBOARD03": {
+   "type": 0,
+   "vk": [
+    79,
+    85,
+    74,
+    76,
+    73,
+    75
+   ],
+   "keys": [
+    "O",
+    "U",
+    "J",
+    "L",
+    "I",
+    "K"
+   ]
+  },
+  "SYSTEM": {
+   "vk": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    27
+   ],
+   "keys": "F1..F12, Esc"
+  }
+ },
+ "iniOrder": [
+  "MOUSE",
+  "JOYSTICK01",
+  "JOYSTICK02",
+  "JOYSTICK03",
+  "JOYSTICK04",
+  "KEYBOARD01",
+  "KEYBOARD02",
+  "KEYBOARD03"
+ ],
+ "src": "0x443614 table, FUN_00426980 factory, FUN_0042b630 keyboard ctor, FUN_0042b570 GetKeyboardState poll, names 0x441650",
+ "conf": "VERIFIED (vk codes); joystick/mouse index semantics INFERRED"
+}

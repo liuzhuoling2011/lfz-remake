@@ -16,6 +16,8 @@ import { winBegin, winEnd, wbtn, wr, centredWin, sysScale, type Win } from '../u
 import { settings, saveSettings, applyVolumes } from '../core/audio';
 import { setQuality, hdActive, hdAvailable } from '../core/assets';
 import { setSpeedIndex } from '../core/app';
+import { startMiniGame } from '../mini/host';
+import type { Runner } from '../mini/core';
 
 let go: (name: string, arg?: any) => void = () => {};
 
@@ -77,6 +79,8 @@ export class GameScene implements Scene {
 
   /** last frame of the previous screen (the original loading dialog @0x401d10 darkens what was on screen) */
   private snap: HTMLCanvasElement | null = null;
+  /** active mini-game (takes over update / render / input while running) */
+  mini: Runner | null = null;
   constructor(private arg: { new?: boolean; load?: GameState }) {
     try {
       const c = app.canvas; if (c && c.width > 0) { const k = document.createElement('canvas'); k.width = c.width; k.height = c.height; k.getContext('2d')!.drawImage(c, 0, 0); this.snap = k; }
@@ -115,7 +119,7 @@ export class GameScene implements Scene {
       }).catch(e => { console.error(e); (window as any).__lfz.error = String(e?.stack || e); });
     } catch (e) { console.error(e); this.loadingText = '載入失敗：' + e; }
   }
-  exit() { if (this.engine) this.engine.stopped = true; this.dlgs.forEach(d => d.resolve(d.buttons[0]?.value)); }
+  exit() { this.mini?.abort(); this.mini = null; if (this.engine) this.engine.stopped = true; this.dlgs.forEach(d => d.resolve(d.buttons[0]?.value)); }
 
   get uis() { return Math.max(0.62, Math.min(1.5, Math.min(app.w / 960, app.h / 640))); }
   isAIturn() { const p = this.g?.players[this.g.current]; return !!p && (p.ai || AUTO); }
@@ -164,6 +168,11 @@ export class GameScene implements Scene {
       if (o.cardId) void preloadImage('images/cards/' + D.words[o.cardId - 1].jpg).catch(() => null);
     },
     say: (seat, t) => { if (TURBO) return; this.bubbles = this.bubbles.filter(b => b.seat !== seat); this.bubbles.push({ seat, text: t, t: 0 }); void sfx(SFX[22], 0.6); },
+    minigame: (game, seats) => new Promise(res => {
+      this.mini = startMiniGame(game, seats.map(seat => { const p = this.g.players[seat]; return { slot: seat, char: p.char, human: !p.ai && !AUTO }; }), false, r => {
+        this.mini = null; (window as any).__lfz.minigames = ((window as any).__lfz.minigames ?? 0) + 1; (window as any).__lfz.lastMini = r; res(r);
+      });
+    }),
     winner: (seat, rank) => loadSheets(['winner/winner', `winner/character0${this.g.players[seat].char}`]).then(() => new Promise<void>(res => {
       music('winner.mp3', false);
       (window as any).__lfz.winner = { seat, char: this.g.players[seat].char, name: charName(this.g.players[seat].char), week: this.g.week, rank };
@@ -174,6 +183,7 @@ export class GameScene implements Scene {
   // ------------------------------------------------------------ update
   update(dt: number) {
     if (!this.ready) return;
+    if (this.mini) { this.mini.update(dt); return; }
     this.view.update(dt);
     if (this.overlay !== this.ovPrev) { this.ovPrev = this.overlay; this.ovT = 0; if (this.overlay !== 'save' && this.overlay !== 'load') this.lsWin = null; }
     this.lsWin?.update(dt);
@@ -196,6 +206,7 @@ export class GameScene implements Scene {
   // ------------------------------------------------------------ input
   onPointer(e: PtrEvent) {
     if (!this.ready) return;
+    if (this.mini) { this.mini.pointer(e); return; }
     if (e.type === 'down') this.downPos = { x: e.x, y: e.y };
     this.view.onPointer(e);
     if (e.type === 'up' && this.downPos && Math.hypot(e.x - this.downPos.x, e.y - this.downPos.y) < 8) {
@@ -206,8 +217,10 @@ export class GameScene implements Scene {
     }
     if (e.type === 'up') this.downPos = null;
   }
-  onWheel(dx: number, dy: number) { this.view.onWheel(dy); this.view.lastManualPan = app.time; }
+  onWheel(dx: number, dy: number) { if (this.mini) return; this.view.onWheel(dy); this.view.lastManualPan = app.time; }
+  onKeyEv(e: KeyboardEvent, down: boolean) { return this.mini ? this.mini.keyEv(e, down) : false; }
   onKey(k: string) {
+    if (this.mini) return;
     if (this.lsWin && (this.overlay === 'save' || this.overlay === 'load')) { this.lsWin.key(k); return; }
     if (this.overlay === 'quitConfirm') { if (k === 'Enter' || k === ' ') { this.engine.stopped = true; go('mainmenu'); } else if (k === 'Escape') this.overlay = 'none'; return; }
     const top = this.dlgs[this.dlgs.length - 1];
@@ -232,6 +245,7 @@ export class GameScene implements Scene {
   // ------------------------------------------------------------ render
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.ready) { this.renderLoading(ctx, w, h); return; }
+    if (this.mini) { this.mini.render(ctx, w, h); return; }
     this.view.render(ctx, w, h);
     if (this.hideHud) return; // tests (frame-diff flicker proof): map only
     this.renderBubbles(ctx);

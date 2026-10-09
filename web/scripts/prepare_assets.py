@@ -22,7 +22,8 @@ def fresh(src, dst):
 
 sprites = set()
 UI_DIRS = ['logo', 'mainmenu', 'selectyear', 'selectmap', 'selectactor', 'option', 'interface', 'interface/option',
-           'winner', 'season', 'misc', 'dice']
+           'winner', 'season', 'misc', 'dice', 'selectminigame', 'minigame', 'minigame/01', 'minigame/02', 'minigame/03', 'minigame/04',
+           'minigame/turn', 'minigame/result', 'minigame/result2']
 for d in UI_DIRS:
     for p in glob.glob(os.path.join(A, 'sprites', d, '*.json')):
         sprites.add(os.path.relpath(p, os.path.join(A, 'sprites'))[:-5])
@@ -103,6 +104,12 @@ for f in ['rules_core.json', 'chance_effects.json', 'word_card_effects.json', 'c
     if os.path.exists(os.path.join(SPEC, f)):
         shutil.copy(os.path.join(SPEC, f), ensure(os.path.join(OUT, 'data', f)))
 shutil.copy(os.path.join(A, 'data', 'text', 'exttext', 'maindata.json'), ensure(os.path.join(OUT, 'data', 'maindata.json')))
+
+# bitmap fonts used by the mini-games (2x supersampled glyph sheet)
+for f in ['minigame/01/number']:
+    for ext in ['.png', '.json']:
+        src = os.path.join(A, 'fonts', f + ext); dst = os.path.join(OUT, 'fonts', f + ext)
+        if fresh(src, dst): shutil.copy(src, ensure(dst))
 
 # images (cards)
 for p in glob.glob(os.path.join(A, 'images', 'wordcard', '*.jpg')):

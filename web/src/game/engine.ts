@@ -9,6 +9,7 @@ import { saveSlot } from './state';
 import { scale, value, buildCost, upgradeCost, plotValue, netWorth, ownedPlots, landPrice, season } from './rules';
 import * as AI from './ai';
 import type { MapView } from './view';
+import type { MGResult } from '../mini/core';
 
 export interface ChoiceOpt { label: string; sub?: string; disabled?: boolean }
 export interface UIOpts {
@@ -34,6 +35,8 @@ export interface GameUI {
   toast(text: string, o?: ToastOpts): void;
   say(seat: number, text: string): void;
   winner(seat: number, ranking: number[]): Promise<void>;
+  /** run original mini-game `game` (0..3) with these seats; resolves after its result screen */
+  minigame(game: number, seats: number[]): Promise<MGResult>;
 }
 
 // character line numbers (characterNN.txt [word]); call sites verified against omasterq.exe speak(player,line) @0x416770
@@ -616,13 +619,28 @@ export class Engine {
   }
 
   // ---------------- specials ----------------
+  /**
+   * 小遊戲 tile (FUN_00416ff0 case 5): board BGM stops, a random game (rand()%4) starts with EVERY eligible player —
+   * not bankrupt, not in hospital / jail, not under status 5 (一曝十寒 in the HUD status table). Rewards (VERIFIED):
+   * 01 畫展 / 04 吹氣球 → the winner spins the word-card reel (nothing on TIME IS UP); 02 / 03 → each player's cash
+   * += score (02: rhythm points, 03: hits×10).
+   */
   async minigame(p: Player) {
-    // Simplified mini-game: the 4 original mini-games are not implemented; award a word card as their prize (winnerMsg).
-    const id = this.drawCardId();
-    this.sfxi(SFXI.minigame);
-    this.speak(p, L.win);
-    await this.info(msg('Misc', 'winnerMsg', this.name(p), D.words[id - 1].title), { title: '小遊戲', image: 'images/cards/' + D.words[id - 1].jpg, kind: 'card', cardId: id }, p);
-    this.giveCard(p, id);
+    const parts = this.g.players.filter(q => q.alive && q.status.hospital <= 0 && q.status.jail <= 0 && q.status.frozen <= 0);
+    if (!parts.length) return;
+    const force = (globalThis as any).__forceMini; // tests
+    const game = typeof force === 'number' ? force : Math.floor(Math.random() * 4);
+    music(null);
+    const r = await this.ui.minigame(game, parts.map(q => q.seat));
+    if (this.stopped) return;
+    music(MAPS[this.g.map].music[season(this.g)]);
+    if (r.winner !== null && r.cardId) {
+      const w = this.g.players[r.winner];
+      this.giveCard(w, r.cardId); this.speak(w, L.win);
+      this.ui.toast(msg('Misc', 'winnerMsg', this.name(w), D.words[r.cardId - 1]?.title ?? ''), { cardId: r.cardId, seat: w.seat });
+    } else if (game === 0 || game === 3) this.ui.toast('時間到！沒有人勝出');
+    r.scores.forEach((sc, seat) => { if (sc && sc > 0) this.gain(this.g.players[seat], sc); });
+    void p;
   }
 
   async jockey(p: Player) {

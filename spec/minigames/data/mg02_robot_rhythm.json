@@ -1,0 +1,602 @@
+{
+ "id": "02",
+ "nameZh": "機械人打拍子 (INFERRED name)",
+ "scene": "0x443100 = {0x41a660,0x41b830,0x41b930/0x41b6e0,0x41b940/0x41b770}",
+ "rounds": 5,
+ "patternChoice": "section = rand()%4 + round*4 (round 0..4) from dat\\MiniGame\\02\\data.txt",
+ "patterns": [
+  {
+   "section": "00",
+   "round": 1,
+   "raw": [
+    160,
+    50,
+    30,
+    20,
+    10,
+    10
+   ],
+   "phraseTicks": 160,
+   "beatTicks": [
+    50,
+    80,
+    100,
+    110,
+    120
+   ],
+   "beats": 5,
+   "maxScore": 50
+  },
+  {
+   "section": "01",
+   "round": 1,
+   "raw": [
+    180,
+    20,
+    50,
+    50,
+    40,
+    10
+   ],
+   "phraseTicks": 180,
+   "beatTicks": [
+    20,
+    70,
+    120,
+    160,
+    170
+   ],
+   "beats": 5,
+   "maxScore": 50
+  },
+  {
+   "section": "02",
+   "round": 1,
+   "raw": [
+    150,
+    40,
+    20,
+    20,
+    20,
+    10
+   ],
+   "phraseTicks": 150,
+   "beatTicks": [
+    40,
+    60,
+    80,
+    100,
+    110
+   ],
+   "beats": 5,
+   "maxScore": 50
+  },
+  {
+   "section": "03",
+   "round": 1,
+   "raw": [
+    170,
+    30,
+    20,
+    10,
+    20,
+    10,
+    40
+   ],
+   "phraseTicks": 170,
+   "beatTicks": [
+    30,
+    50,
+    60,
+    80,
+    90,
+    130
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "04",
+   "round": 2,
+   "raw": [
+    160,
+    50,
+    10,
+    10,
+    10,
+    20,
+    20
+   ],
+   "phraseTicks": 160,
+   "beatTicks": [
+    50,
+    60,
+    70,
+    80,
+    100,
+    120
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "05",
+   "round": 2,
+   "raw": [
+    120,
+    30,
+    10,
+    10,
+    10,
+    20,
+    20
+   ],
+   "phraseTicks": 120,
+   "beatTicks": [
+    30,
+    40,
+    50,
+    60,
+    80,
+    100
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "06",
+   "round": 2,
+   "raw": [
+    160,
+    30,
+    20,
+    20,
+    10,
+    30,
+    30
+   ],
+   "phraseTicks": 160,
+   "beatTicks": [
+    30,
+    50,
+    70,
+    80,
+    110,
+    140
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "07",
+   "round": 2,
+   "raw": [
+    160,
+    50,
+    10,
+    20,
+    20,
+    10,
+    10
+   ],
+   "phraseTicks": 160,
+   "beatTicks": [
+    50,
+    60,
+    80,
+    100,
+    110,
+    120
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "08",
+   "round": 3,
+   "raw": [
+    140,
+    40,
+    20,
+    10,
+    20,
+    20,
+    10
+   ],
+   "phraseTicks": 140,
+   "beatTicks": [
+    40,
+    60,
+    70,
+    90,
+    110,
+    120
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "09",
+   "round": 3,
+   "raw": [
+    120,
+    30,
+    10,
+    10,
+    30,
+    10,
+    10
+   ],
+   "phraseTicks": 120,
+   "beatTicks": [
+    30,
+    40,
+    50,
+    80,
+    90,
+    100
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "10",
+   "round": 3,
+   "raw": [
+    140,
+    40,
+    20,
+    20,
+    20,
+    10,
+    10
+   ],
+   "phraseTicks": 140,
+   "beatTicks": [
+    40,
+    60,
+    80,
+    100,
+    110,
+    120
+   ],
+   "beats": 6,
+   "maxScore": 60
+  },
+  {
+   "section": "11",
+   "round": 3,
+   "raw": [
+    140,
+    30,
+    20,
+    10,
+    20,
+    20,
+    10,
+    10
+   ],
+   "phraseTicks": 140,
+   "beatTicks": [
+    30,
+    50,
+    60,
+    80,
+    100,
+    110,
+    120
+   ],
+   "beats": 7,
+   "maxScore": 70
+  },
+  {
+   "section": "12",
+   "round": 4,
+   "raw": [
+    160,
+    30,
+    10,
+    40,
+    20,
+    10,
+    10,
+    20
+   ],
+   "phraseTicks": 160,
+   "beatTicks": [
+    30,
+    40,
+    80,
+    100,
+    110,
+    120,
+    140
+   ],
+   "beats": 7,
+   "maxScore": 70
+  },
+  {
+   "section": "13",
+   "round": 4,
+   "raw": [
+    120,
+    40,
+    10,
+    30,
+    10,
+    10,
+    10,
+    10
+   ],
+   "phraseTicks": 120,
+   "beatTicks": [
+    40,
+    50,
+    80,
+    90,
+    100,
+    110,
+    120
+   ],
+   "beats": 7,
+   "maxScore": 70
+  },
+  {
+   "section": "14",
+   "round": 4,
+   "raw": [
+    180,
+    25,
+    30,
+    40,
+    10,
+    30,
+    10,
+    10,
+    10
+   ],
+   "phraseTicks": 180,
+   "beatTicks": [
+    25,
+    55,
+    95,
+    105,
+    135,
+    145,
+    155,
+    165
+   ],
+   "beats": 8,
+   "maxScore": 80
+  },
+  {
+   "section": "15",
+   "round": 4,
+   "raw": [
+    160,
+    20,
+    20,
+    20,
+    10,
+    20,
+    10,
+    10,
+    20,
+    20
+   ],
+   "phraseTicks": 160,
+   "beatTicks": [
+    20,
+    40,
+    60,
+    70,
+    90,
+    100,
+    110,
+    130,
+    150
+   ],
+   "beats": 9,
+   "maxScore": 90
+  },
+  {
+   "section": "16",
+   "round": 5,
+   "raw": [
+    170,
+    20,
+    30,
+    10,
+    20,
+    10,
+    10,
+    20,
+    10,
+    10,
+    10
+   ],
+   "phraseTicks": 170,
+   "beatTicks": [
+    20,
+    50,
+    60,
+    80,
+    90,
+    100,
+    120,
+    130,
+    140,
+    150
+   ],
+   "beats": 10,
+   "maxScore": 100
+  },
+  {
+   "section": "17",
+   "round": 5,
+   "raw": [
+    180,
+    20,
+    10,
+    10,
+    10,
+    10,
+    20,
+    10,
+    20,
+    30,
+    20,
+    10
+   ],
+   "phraseTicks": 180,
+   "beatTicks": [
+    20,
+    30,
+    40,
+    50,
+    60,
+    80,
+    90,
+    110,
+    140,
+    160,
+    170
+   ],
+   "beats": 11,
+   "maxScore": 110
+  },
+  {
+   "section": "18",
+   "round": 5,
+   "raw": [
+    180,
+    25,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    20,
+    20,
+    30
+   ],
+   "phraseTicks": 180,
+   "beatTicks": [
+    25,
+    35,
+    45,
+    55,
+    65,
+    75,
+    85,
+    95,
+    115,
+    135,
+    165
+   ],
+   "beats": 11,
+   "maxScore": 110
+  },
+  {
+   "section": "19",
+   "round": 5,
+   "raw": [
+    190,
+    20,
+    20,
+    20,
+    10,
+    10,
+    10,
+    10,
+    20,
+    20,
+    20,
+    10,
+    10
+   ],
+   "phraseTicks": 190,
+   "beatTicks": [
+    20,
+    40,
+    60,
+    70,
+    80,
+    90,
+    100,
+    120,
+    140,
+    160,
+    170,
+    180
+   ],
+   "beats": 12,
+   "maxScore": 120
+  }
+ ],
+ "patternFormat": "key0 = phrase length (ticks); keys1.. = intervals; beat times = cumulative sums (FUN_0041b0e0)",
+ "roundFlow": [
+  "robot state 2 (think anim, every 6 ticks frames 10,9,8,0) then computer.wav loop starts",
+  "demo: tick counter 0..phrase; at each beat time robot state1 clap (frames 4,5,6,7,5; kk.wav at frame 6) and note mark is added to music bar at that tick",
+  "counter == phrase → stop computer.wav, robot state3 (every 11 ticks frames 8,9,10,11 hold), players' turn (flag DAT_00448790=1), bar cursor resets",
+  "player phase: cursor +1/tick for phrase ticks; players clap",
+  "next round, after round 5 → FINISH banner → score result (result2) → pop"
+ ],
+ "scoring": "on clap (key0 down): among beats from player's next-index onward, nearest with |beat-cursor|<10 → +10-|d| and next-index=beat+1; else 0. kk.wav vol 255 pan = playerX*255/W",
+ "maxPerBeat": 10,
+ "ai": "each tick, 50%: d = cursor - beat[next]; if |d| < rand%5+4 → clap & score; else if d>0 skip that beat (next++)",
+ "controls": {
+  "any device": "key0 down = close cymbals (hand frames 0→3), key0 up = open (anim back to frame count-1 then 0)"
+ },
+ "layout": {
+  "musicBar": "02/music frame0 at (W/2, OY+40); progress fill x0 = W/2-0xd3, width = cursor*0x1a6/phrase (0..422), 10 rows y-10..y+9, colour black; note marks = 02/music frame1 at x0 + beat*422/phrase",
+  "robot": "02/robot frame at (W/2, H/2+50)",
+  "player": "02/player{slot+1} at (x, H - h/2 - OY) (bottom); hand.spr at (x, y-? + slide) ; score '%02d' black at (x - w/2 + 0x1c, y - 0xd)",
+  "bg": "02/bg at (W/2,H/2) (+ copies at ±640 when W>640)"
+ },
+ "robotAnim": {
+  "idle": {
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "every": 1
+  },
+  "clap": {
+   "frames": [
+    4,
+    5,
+    6,
+    7,
+    5
+   ],
+   "kkAtIndex": 2
+  },
+  "think": {
+   "frames": [
+    10,
+    9,
+    8,
+    0
+   ],
+   "every": 6
+  },
+  "listen": {
+   "frames": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "every": 11,
+   "hold": "last"
+  }
+ },
+ "reward": "cash += total score (result2)",
+ "src": "FUN_0041a660..0041b940",
+ "conf": "VERIFIED"
+}

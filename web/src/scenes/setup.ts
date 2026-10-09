@@ -1,5 +1,7 @@
 import type { SeatSetup } from '../game/state';
 export const setup = {
+  /** 'game' = 新遊戲 flow, 'mini' = 小遊戲 flow (SelectActor arg 1 → SelectMiniGame) */
+  mode: 'game' as 'game' | 'mini',
   weeksIdx: 0,
   map: 0,
   seats: [
