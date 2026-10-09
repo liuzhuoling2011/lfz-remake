@@ -5,7 +5,16 @@ Fan remake of **老夫子大富翁** (Old Master Q Monopoly, 2002) using TypeScr
 ## Play
 
 - **GitHub Pages:** https://liuzhuoling2011.github.io/lfz-remake/
-- Optional LAN (Synology): `http://192.168.88.88/lfz/`
+
+## Screenshots
+
+| 开始页面 | 香港岛界面 |
+|:---:|:---:|
+| ![开始页面](docs/screenshots/readme_mainmenu.jpg) | ![香港岛界面](docs/screenshots/readme_hongkong.jpg) |
+
+| 九龙区界面 | 古代界面 |
+|:---:|:---:|
+| ![九龙区界面](docs/screenshots/readme_kowloon.jpg) | ![古代界面](docs/screenshots/readme_ancient.jpg) |
 
 ## What's in this repo
 

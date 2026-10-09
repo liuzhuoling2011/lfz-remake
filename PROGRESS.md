@@ -55,3 +55,10 @@
 - 12:15 全螢幕 option in main-menu 設定 and in-game 設定 (settings.fullscreen + Fullscreen API).
 - 12:18 Slow-net: SD-first sheet load with background HD upgrade (debounced assetEpoch); service worker `public/sw.js` cache-first for hashed JS/CSS + sprites/images/audio.
 - 12:25 tests/ui6.mjs (HD, 1920x1080 + 390x844@3x): ALL OK, 0 errors. Autoplay (dev + dist): winners, 0 errors. TTFM @50KB/s 200ms RTT q=sd ≈ 40 s; unthrottled dist noted in commit.
+
+## Round 7 — SelectActor devices, card overlap, detail pips, 全螢幕 row (2026-10-09, Asia/Shanghai)
+- SelectActor left oval cycles 滑鼠 → 鍵盤1/2/3 → AI → 關閉; face always drawn (even when seat off). Seat.device wired to mini-game KEYBOARD01..03.
+- Removed 角色資產 colour pips left of faces.
+- 四字真言 list: text + selection mask sit between ruled lines (window y=43+20i) and inside red margins; description inset in the panel.
+- In-game / main-menu 設定: 全螢幕 is a proper row (label left, 開/關 right) above X/O — no longer overlapping the chrome.
+- tests/ui7.mjs: device cycle, cards, detail, op-fs/mo-fs geometry. README: drop LAN line; add 4 screenshots under docs/screenshots/.

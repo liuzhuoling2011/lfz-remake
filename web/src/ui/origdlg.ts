@@ -213,11 +213,17 @@ export function drawMenuOptions(ctx: CanvasRenderingContext2D, w: number, h: num
     else if (k === 'sfx') { if (ed.v.sfx > 0) drawFrame(ctx, 'option/setting', 5 + ed.v.sfx, 0, 0); }
     else if (ed.v.mus > 0) drawFrame(ctx, 'option/setting', 10 + ed.v.mus, 0, 0);
   }
-  // 全螢幕 (remake): clickable label under the TV-room rows
+  // 全螢幕 — proper row above O/X (buttons sit at y≈185). Label left, 開/關 value right, inside the panel.
   {
     const on = ed.v.fs;
-    text(ctx, '全螢幕　' + (on ? '開' : '關'), 0, 210, { size: 18, ...WHITE, align: 'center', color: on ? '#9fe8ff' : '#fff' });
-    app.hit('mo-fs', wr(W, { x: -120, y: 190, w: 240, h: 36 }), () => ed.cycle('fs'));
+    const y = 168;
+    ctx.fillStyle = 'rgba(10,30,70,0.72)';
+    ctx.fillRect(-10, y - 14, 120, 28);
+    ctx.strokeStyle = 'rgba(180,220,255,0.45)'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(-10, y - 14, 120, 28);
+    text(ctx, '全螢幕', -100, y, { size: 18, ...WHITE, align: 'left', baseline: 'middle' });
+    text(ctx, on ? '開' : '關', 50, y, { size: 18, ...WHITE, align: 'center', baseline: 'middle', color: on ? '#9fe8ff' : '#fff' });
+    app.hit('mo-fs', wr(W, { x: -110, y: y - 16, w: 230, h: 32 }), () => ed.cycle('fs'));
   }
   wbtn(ctx, W, 'mo-o', 'option/button', [0, 1, 2], () => close(true));
   wbtn(ctx, W, 'mo-x', 'option/button', [3, 4, 5], () => close(false));

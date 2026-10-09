@@ -70,7 +70,11 @@ export class SelectMiniGameScene implements Scene {
 export class MiniPlayScene implements Scene {
   R: Runner;
   constructor(game: number) {
-    const seats = setup.seats.map((s, slot) => ({ ...s, slot })).filter(s => s.on).map(s => ({ slot: s.slot, char: s.char, human: !s.ai && !AUTO }));
+    const seats = setup.seats.map((s, slot) => ({ ...s, slot })).filter(s => s.on).map(s => ({
+      slot: s.slot, char: s.char, human: !s.ai && !AUTO,
+      // device 5/6/7 → KEYBOARD01..03; mouse/AI → scheme 0 (mouse also gets pointer)
+      kb: s.device === 6 ? 1 : s.device === 7 ? 2 : 0,
+    }));
     this.R = startMiniGame(game, seats, true, r => { (window as any).__lfzMiniLast = r; setTimeout(() => go('selectmini'), 0); });
   }
   exit() { this.R.abort(); }

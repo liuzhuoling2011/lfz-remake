@@ -7,6 +7,9 @@ web/node_modules/
 web/dist/
 # Generated images
 screenshots/
+!docs/
+!docs/screenshots/
+!docs/screenshots/**
 spec/overlay_*
 *.log
 .DS_Store

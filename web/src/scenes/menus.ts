@@ -196,7 +196,7 @@ export class SelectActorScene implements Scene {
     void loadSheets(['selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04',
       'selectactor/actor', 'selectactor/button', 'selectactor/device']);
     if (setup.mode === 'game') prewarmGame(setup.map, setup.seats.filter(s => s.on).map(s => s.char));
-    if (AUTO) { setup.seats.forEach(s => (s.ai = true)); setTimeout(() => this.start(), 50); }
+    if (AUTO) { setup.seats.forEach(s => { s.ai = true; s.on = true; s.device = 8; }); setTimeout(() => this.start(), 50); }
   }
   back() { go(setup.mode === 'mini' ? 'mainmenu' : 'selectmap'); }
   cycleChar(i: number, d = 1) {
@@ -208,13 +208,33 @@ export class SelectActorScene implements Scene {
     void voice(CHAR_VOICE_PREFIX[c] + '28.mp3');
     void sfx('selectactor/button2');
   }
+  /**
+   * Left oval cycles input device (exe device picker @0x405e40 + frame 8 = close).
+   * Order: 滑鼠 → 鍵盤1 → 鍵盤2 → 鍵盤3 → 電腦(AI) → 關閉(if seats 2+ and ≥2 remain on) → 滑鼠.
+   * Face always stays drawn (exe paint @0x4062e0 draws the face even when the seat is off).
+   */
   cycleDev(i: number) {
     const s = setup.seats[i];
-    if (!s.on) { s.on = true; s.ai = false; }
-    else if (!s.ai) s.ai = true;
-    else if (i >= 2 || setup.seats.filter(x => x.on).length > 2) s.on = false;
-    else s.ai = false;
-    if (s.on) { const used = new Set(setup.seats.filter((x, j) => j !== i && x.on).map(x => x.char)); if (used.has(s.char)) this.cycleChar(i); }
+    const canOff = i >= 2 || setup.seats.filter((x, j) => j !== i && x.on).length >= 1;
+    // state machine on (on, ai, device)
+    if (!s.on) {
+      // off → mouse
+      s.on = true; s.ai = false; s.device = 0;
+    } else if (!s.ai && s.device === 0) { s.device = 5; }           // mouse → kb1
+    else if (!s.ai && s.device === 5) { s.device = 6; }              // kb1 → kb2
+    else if (!s.ai && s.device === 6) { s.device = 7; }              // kb2 → kb3
+    else if (!s.ai && s.device === 7) { s.ai = true; s.device = 8; } // kb3 → AI
+    else if (s.ai && canOff) { s.on = false; s.ai = false; s.device = 8; } // AI → off
+    else { s.on = true; s.ai = false; s.device = 0; }               // AI (must stay) → mouse
+    // keep device frame in the valid set
+    if (s.on && !s.ai && ![0, 5, 6, 7].includes(s.device)) s.device = 0;
+    if (s.on && s.ai) s.device = 8;
+    if (!s.on) s.device = 8;
+    // ensure unique character when re-enabling a seat
+    if (s.on) {
+      const used = new Set(setup.seats.filter((x, j) => j !== i && x.on).map(x => x.char));
+      if (used.has(s.char)) this.cycleChar(i);
+    }
     void sfx('selectactor/button1');
   }
   start() {
@@ -235,22 +255,23 @@ export class SelectActorScene implements Scene {
       const fx = this.ox(SA_FACE[i][0]), fy = this.oy(SA_FACE[i][1]);
       // paint order matches the exe: left oval → device → right oval → face → banknote on top
       drawFrame(ctx, sh, 1, CX, CY);
-      const devFi = !s.on || s.ai ? 8 : 0;
+      const devFi = Math.max(0, Math.min(8, s.device | 0));
       ctx.save(); if (!s.on) ctx.globalAlpha = 0.55;
       drawFrame(ctx, 'selectactor/device', devFi, dx, dy);
       ctx.restore();
       drawFrame(ctx, sh, 2, CX, CY);
-      if (s.on) {
-        // actor.spr: 2 frames per character (normal / alt); faceNN also works — same art
-        drawFrame(ctx, 'selectactor/actor', (s.char - 1) * 2, fx, fy);
-      }
+      // face always drawn (even when seat is off) — matches exe @0x4062e0; clamp char to 1..6
+      const ch = Math.max(1, Math.min(6, s.char | 0));
+      if (s.char !== ch) s.char = ch;
+      ctx.save(); if (!s.on) ctx.globalAlpha = 0.55;
+      drawFrame(ctx, 'selectactor/actor', (ch - 1) * 2, fx, fy);
+      ctx.restore();
       ctx.save(); if (!s.on) ctx.globalAlpha = 0.55;
       drawFrame(ctx, sh, 0, CX, CY);
       ctx.restore();
-      // hits: left oval = cycle device (玩家/電腦/關閉), right oval = cycle character
+      // hits: left oval = cycle device, right oval = cycle character (or re-enable when off)
       app.hit('dev' + i, sr(st, frameRect(sh, 1, CX, CY)), () => this.cycleDev(i));
-      if (s.on) app.hit('chr' + i, sr(st, frameRect(sh, 2, CX, CY)), () => this.cycleChar(i));
-      else app.hit('chr' + i, sr(st, frameRect(sh, 2, CX, CY)), () => this.cycleDev(i));
+      app.hit('chr' + i, sr(st, frameRect(sh, 2, CX, CY)), () => s.on ? this.cycleChar(i) : this.cycleDev(i));
     });
     // title banner + X / O (hotspots relative to centre, exe @0x406480 / paint @0x404a70)
     drawFrame(ctx, 'selectactor/button', 6, CX, CY);

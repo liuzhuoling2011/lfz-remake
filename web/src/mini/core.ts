@@ -153,7 +153,7 @@ type Phase = 'load' | 'intro' | 'zoom' | 'ready' | 'start' | 'play' | 'end' | 'r
 export interface ResultScreen { tick(R: Runner): void; draw(ctx: CanvasRenderingContext2D, R: Runner): void; done: boolean; key?(p: Part, k: Key, down: boolean): void; tap?(): void; stop?(): void }
 
 export interface RunnerOpts {
-  game: Game; parts: Omit<Part, 'k' | 'x' | 'ready'>[]; standalone: boolean; snapshot?: HTMLCanvasElement | null;
+  game: Game; parts: (Omit<Part, 'k' | 'x' | 'ready'> & { k?: number })[]; standalone: boolean; snapshot?: HTMLCanvasElement | null;
   makeResult: (R: Runner) => ResultScreen | null; onDone: (r: MGResult) => void;
 }
 
@@ -184,7 +184,7 @@ export class Runner {
     else { this.W = 640; this.H = Math.round(Math.min(1440, 640 / a) / 2) * 2; }
     this.OX = (this.W - 640) / 2; this.OY = (this.H - 480) / 2; this.cx = this.W / 2; this.cy = this.H / 2;
     const n = o.parts.length;
-    this.parts = o.parts.map((p, k) => ({ ...p, k, x: n >= 4 ? Math.floor(this.W / 4) * p.slot + Math.floor(this.W / 8) : Math.floor(this.W / (2 * n)) + k * Math.floor(this.W / n), ready: false }));
+    this.parts = o.parts.map((p, i) => ({ ...p, k: (p.k ?? 0) | 0, x: n >= 4 ? Math.floor(this.W / 4) * p.slot + Math.floor(this.W / 8) : Math.floor(this.W / (2 * n)) + i * Math.floor(this.W / n), ready: false }));
     this.humans = this.parts.filter(p => p.human);
     this.touchUI = matchMedia?.('(pointer: coarse)').matches || false;
     const mq = Number(new URLSearchParams(location.search).get('mgspeed'));
@@ -388,10 +388,13 @@ export class Runner {
   keyEv(e: KeyboardEvent, down: boolean): boolean {
     if (!this.humans.length) return false;
     const code = e.code || e.key;
+    // Prefer the seat whose SelectActor device picked this keyboard scheme (Part.k = 0..2).
+    // Fallback: single human → any matching scheme; multi-human → scheme index = human order.
     for (let d = 0; d < KB.length; d++) {
       const k = KB[d][code]; if (k === undefined) continue;
-      const hu = this.humans.length === 1 ? this.humans[0] : this.humans[d];
-      if (!hu) return false;
+      let hu = this.humans.find(p => (p.k | 0) === d);
+      if (!hu) hu = this.humans.length === 1 ? this.humans[0] : this.humans[d];
+      if (!hu) continue;
       if (down && e.repeat) return true;
       this.push(hu.slot, k, down);
       return true;

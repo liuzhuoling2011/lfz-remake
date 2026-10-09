@@ -651,17 +651,18 @@ export class GameScene implements Scene {
     const ax = fx - 7 * sc, ay = fy - 8 * sc;
     ctx.save(); ctx.globalAlpha = k;
     ctx.translate(w / 2, fy + H / 2); ctx.scale(pop, pop); ctx.translate(-w / 2, -(fy + H / 2));
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(fx + 6 * sc, fy + 8 * sc, W, H);
+    // Soft drop shadow behind the frame (offset, not painted over the white frame line art)
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(fx + 10 * sc, fy + 12 * sc, W, H);
     drawFrame(ctx, 'interface/card', 0, ax, ay, sc);
     const im = image('images/cards/' + card.jpg);
     if (im) ctx.drawImage(im, fx + 17 * sc, fy + 9 * sc, 248 * sc, 248 * sc);
-    // Title sits on the first ruled line (y=35); body uses the description panel below the ornamental knot (y≥155),
-    // matching the select-card window's "list / description" split so text lines up with the red rules.
-    const midX = fx + 377.5 * sc, colW = 145 * sc;
-    text(ctx, card.title, midX, fy + 35 * sc, { size: 16 * sc, align: 'center', baseline: 'middle', color: '#8a1a00', maxWidth: colW });
-    let size = 13.5, lines: string[] = [];
-    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, d.text ?? card.text, colW, size * sc); if (lines.length * size * 1.3 <= 100) break; }
-    lines.slice(0, 6).forEach((l, i) => text(ctx, l, fx + 305 * sc, fy + (155 + i * size * 1.3) * sc, { size: size * sc, color: '#3a1a00', baseline: 'top' }));
+    // Title in the gap between rules y=35 and y=55 (centre 45); body inset inside the description panel
+    // (red margins 302..453, top ≥155) so nothing stacks on the white/cream frame lines.
+    const midX = fx + 377.5 * sc, colW = 140 * sc;
+    text(ctx, card.title, midX, fy + 45 * sc, { size: 15 * sc, align: 'center', baseline: 'middle', color: '#8a1a00', maxWidth: colW });
+    let size = 13, lines: string[] = [];
+    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, d.text ?? card.text, colW, size * sc); if (lines.length * size * 1.3 <= 95) break; }
+    lines.slice(0, 6).forEach((l, i) => text(ctx, l, fx + 308 * sc, fy + (158 + i * size * 1.3) * sc, { size: size * sc, color: '#3a1a00', baseline: 'top' }));
     // O (confirm) button in the bottom ornament gap
     const st = app.state('cardok');
     drawFrame(ctx, 'interface/card', 4 + st, ax, ay, sc);
@@ -779,35 +780,54 @@ export class GameScene implements Scene {
     const T = D.main['Option-Title'] ?? {};
     const sp = D.main['Option-Speed'] ?? { 0: '慢速', 1: '正常速度', 2: '快速' };
     const ql = ['自動', '標準', '高清'];
-    const lab = { size: 14, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
-    const rows: [string, [number, number, number], () => void][] = [
-      ['op-q', [14, 13, 13], () => { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; this.applyOpt(); }],
-      ['op-spd', [16, 15, 15], () => { o.spd = (o.spd + 1) % 3; this.applyOpt(); }],
-      ['op-sfx', [18, 17, 17], () => { o.sfx = (o.sfx + 1) % 4; this.applyOpt(); }],
-      ['op-mus', [20, 19, 19], () => { o.mus = (o.mus + 1) % 4; this.applyOpt(); }],
+    const lab = { size: 13, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
+    // Five evenly-spaced rows above the X/O chrome (hotspots put X/O at y≈182). Original 4 rows sat at
+    // y≈30/70/110/150; compress to 28/58/88/118 + 全螢幕 at 148 so the new row matches 畫質/速度 style
+    // (label left, value box right) and never collides with the bottom border or X/O.
+    const Y = [28, 58, 88, 118, 148];
+    const origY = [30, 70, 110, 150]; // baked hotspot row tops for frames 14/16/18/20
+    const rowFr: [number, number, number][] = [[14, 13, 13], [16, 15, 15], [18, 17, 17], [20, 19, 19]];
+    const cycle = [
+      () => { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; this.applyOpt(); },
+      () => { o.spd = (o.spd + 1) % 3; this.applyOpt(); },
+      () => { o.sfx = (o.sfx + 1) % 4; this.applyOpt(); },
+      () => { o.mus = (o.mus + 1) % 4; this.applyOpt(); },
     ];
-    rows.forEach(([id, fr, cb], i) => {
-      wbtn(ctx, W, id, 'interface/option', fr, cb, { sound: 'option/button' });
+    for (let i = 0; i < 4; i++) {
+      const dy = Y[i] - origY[i];
+      const id = ['op-q', 'op-spd', 'op-sfx', 'op-mus'][i];
+      const fr = rowFr[i];
+      // always the small value-box frame — tall hover frames (13/15/17/19) spill into neighbours at 30px pitch
+      const a = ctx.globalAlpha;
+      if (app.state(id)) ctx.globalAlpha = a * 0.9;
+      drawFrame(ctx, 'interface/option', fr[0], 0, dy);
+      ctx.globalAlpha = a;
+      app.hit(id, wr(W, frameRect('interface/option', fr[0], 0, dy)), () => { void sfx('option/button'); cycle[i](); });
       if (i === 0) {
-        text(ctx, '畫質', 30, 33, lab);
-        text(ctx, ql[o.q] + (o.q === 0 ? (hdActive() ? '·高清' : '·標準') : ''), 176, 33, { ...lab, align: 'center' });
+        text(ctx, '畫質', 30, Y[i] + 3, lab);
+        text(ctx, ql[o.q] + (o.q === 0 ? (hdActive() ? '·高清' : '·標準') : ''), 176, Y[i] + 3, { ...lab, align: 'center' });
       } else if (i === 1) {
-        text(ctx, T['1'] ?? '遊戲速度', 30, 73, lab);
-        text(ctx, sp[o.spd], 176, 73, { ...lab, align: 'center' });
+        text(ctx, T['1'] ?? '遊戲速度', 30, Y[i] + 3, lab);
+        text(ctx, sp[o.spd], 176, Y[i] + 3, { ...lab, align: 'center' });
       } else if (i === 2) {
-        text(ctx, T['2'] ?? '音效', 70, 113, lab);
-        if (o.sfx > 0) drawFrame(ctx, 'interface/option', 6 + o.sfx, 0, 0);
+        text(ctx, T['2'] ?? '音效', 70, Y[i] + 3, lab);
+        if (o.sfx > 0) drawFrame(ctx, 'interface/option', 6 + o.sfx, 0, dy);
       } else {
-        text(ctx, T['3'] ?? '音樂', 70, 153, lab);
-        if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, 0);
+        text(ctx, T['3'] ?? '音樂', 70, Y[i] + 3, lab);
+        if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, dy);
       }
-    });
-    // 全螢幕 toggle (remake addition — no spare option.spr row; drawn under the four original rows)
+    }
+    // 全螢幕 — fifth row, same value-box chrome as 畫質 (frame 14), label left / 開·關 right
     {
-      const lab = { size: 13, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
-      text(ctx, '全螢幕', 30, 195, lab);
-      text(ctx, o.fs ? '開' : '關', 176, 195, { ...lab, align: 'center', color: o.fs ? '#9fe8ff' : '#fff' });
-      app.hit('op-fs', wr(W, { x: 20, y: 188, w: 210, h: 28 }), () => { o.fs = !o.fs; this.applyOpt(); void sfx('option/button'); });
+      const dy = Y[4] - origY[0]; // place frame 14's box at Y[4]
+      // always the small value box (frame 14) — frame 13 is too tall and would cover X/O
+      const a = ctx.globalAlpha;
+      if (app.state('op-fs')) ctx.globalAlpha = a * 0.92;
+      drawFrame(ctx, 'interface/option', 14, 0, dy);
+      ctx.globalAlpha = a;
+      text(ctx, '全螢幕', 30, Y[4] + 3, lab);
+      text(ctx, o.fs ? '開' : '關', 176, Y[4] + 3, { ...lab, align: 'center', color: o.fs ? '#9fe8ff' : '#fff' });
+      app.hit('op-fs', wr(W, frameRect('interface/option', 14, 0, dy)), () => { o.fs = !o.fs; this.applyOpt(); void sfx('option/button'); });
     }
     wbtn(ctx, W, 'op-x', 'interface/option', [1, 2, 3], () => this.closeOptions(false));
     wbtn(ctx, W, 'op-o', 'interface/option', [4, 5, 6], () => this.closeOptions(true));
@@ -833,9 +853,6 @@ export class GameScene implements Scene {
     alive.slice(0, 4).forEach((p, k) => {
       const nm = 'interface/face0' + p.char;
       drawFrame(ctx, nm, p.seat === this.detailSeat ? 0 : 1, 53, TABY[k]);
-      // player colour pip: left of the face sprite (face left edge ≈ 53-17=36), height matches the 49px face
-      ctx.fillStyle = PLAYER_COLORS[p.seat];
-      ctx.fillRect(30, TABY[k] - 24, 4, 48);
       app.hit('di-tab' + k, wr(W, frameRect(nm, 0, 53, TABY[k])), () => { this.detailSeat = p.seat; void sfx('interface/click'); });
     });
     wbtn(ctx, W, 'di-x', 'interface/detailinfo', [1, 2, 3], () => { this.overlay = 'none'; });
@@ -888,20 +905,28 @@ export class GameScene implements Scene {
     const cur = list[d.sel]; const card = D.words[cur.id - 1];
     const im = image('images/cards/' + card.jpg);
     if (im) ctx.drawImage(im, 24, 18, 248, 248);
-    // description: largest size ≤14 that fits the panel below the list
-    let size = 14, lines: string[] = [];
-    for (; size >= 10; size -= 0.5) { lines = wrap(ctx, card.text, 181, size, 'normal'); if (lines.length * size * 1.3 <= 118) break; }
-    lines.forEach((l, i) => text(ctx, l, 293, 155 + i * size * 1.3, { size, color: '#000', baseline: 'top', weight: 'normal' }));
-    // Exe band at y=30+20i h=20; ruled lines at 35+20i. Bitmap font sat with top≈30 so glyphs rest on the rule —
-    // vector font needs a 1–2 px nudge (baseline middle on the rule) to look the same.
+    // Description panel (sprite y≥155 → window y = 8+155 = 163; red margins sprite 302..453 → window 309..460).
+    // Keep text inset so it never paints over the white/cream frame line art.
+    const descX = 312, descW = 145, descY = 165;
+    let size = 13, lines: string[] = [];
+    for (; size >= 9; size -= 0.5) { lines = wrap(ctx, card.text, descW, size, 'normal'); if (lines.length * size * 1.3 <= 100) break; }
+    lines.forEach((l, i) => text(ctx, l, descX, descY + i * size * 1.3, { size, color: '#000', baseline: 'top', weight: 'normal' }));
+    // List: frame drawn at anchor+(7,8), so sprite rules y=35+20i land at window y=43+20i.
+    // Sit text + selection mask in the gaps BETWEEN rules (centers 53+20i); mask inset inside red margins 309..460.
     const sc = d.scroll ?? 0;
     for (let i = 0; i < 5; i++) {
       const idx = sc + i; const e = list[idx]; if (!e) break;
-      const y0 = 30 + 20 * i; const sel = idx === d.sel;
-      if (sel) { ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(309, y0, 150, 20); }
+      const rule = 43 + 20 * i;           // this row's top rule
+      const mid = rule + 10;              // centre of gap before next rule
+      const sel = idx === d.sel;
+      if (sel) {
+        // dark mask strictly inside the panel — 1px clear of the ruled lines and the red verticals
+        ctx.fillStyle = 'rgba(80,10,0,0.45)';
+        ctx.fillRect(311, rule + 1, 147, 18);
+      }
       const label = D.words[e.id - 1].title + (e.n > 1 ? ` ×${e.n}` : '');
-      text(ctx, label, 383, y0 + 11, { size: 14, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
-      app.hit('cs-row' + i, wr(W, { x: 309, y: y0, w: 150, h: 20 }), () => {
+      text(ctx, label, 384, mid, { size: 13, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
+      app.hit('cs-row' + i, wr(W, { x: 311, y: rule + 1, w: 147, h: 18 }), () => {
         if (d.sel === idx && !e.disabled) { d.resolve(e.id); return; }
         d.sel = idx; void sfx('interface/sfx042');
       });

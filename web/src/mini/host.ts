@@ -6,7 +6,7 @@ import { makeGame } from './games';
 import { RankResult, WordCardResult, resultSheets } from './result';
 import { charName } from '../game/data';
 
-export interface MiniSeat { slot: number; char: number; human: boolean }
+export interface MiniSeat { slot: number; char: number; human: boolean; /** 0..2 = KEYBOARD01..03; undefined = default by human index */ kb?: number }
 export function snapshotCanvas(): HTMLCanvasElement | null {
   try { const c = app.canvas; if (!c || !c.width) return null; const k = document.createElement('canvas'); k.width = c.width; k.height = c.height; k.getContext('2d')!.drawImage(c, 0, 0); return k; }
   catch { return null; }
@@ -16,7 +16,7 @@ export function startMiniGame(game: number, seats: MiniSeat[], standalone: boole
   if (g.resultKind === 'card') void loadSheets(seats.flatMap(s => resultSheets(s.slot, s.char)));
   const R = new Runner({
     game: g, standalone, snapshot: snapshotCanvas(),
-    parts: seats.map(s => ({ slot: s.slot, char: s.char, human: s.human, name: charName(s.char) })),
+    parts: seats.map(s => ({ slot: s.slot, char: s.char, human: s.human, name: charName(s.char), k: s.kb ?? 0 })),
     makeResult: R => {
       if (g.resultKind === 'rank') return new RankResult(R, g.scores(R));
       if (R.winner !== null && !R.standalone) return new WordCardResult(R, R.winner, R.part(R.winner)!.char);
