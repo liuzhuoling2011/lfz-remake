@@ -68,6 +68,11 @@ export class GameScene implements Scene {
   winnerInfo: { seat: number; rank: number[]; t: number; res: () => void } | null = null;
   downPos: { x: number; y: number } | null = null;
   hideHud = false;
+  /** Testing-only translucent Debug panel (BR, left of 全螢幕). */
+  debugOn = false;
+  debugPanel = false;
+  dbgD1 = 6; dbgD2 = 0; // 0 = one die
+  dbgTile = 0;
   /** original console command ShowDetailInfo: extra lines under each HUD panel (key I) */
   showDetail = false;
   private optRaw: { quality: 0 | 1 | 2; speed: 0 | 1 | 2; sfx: number; music: number; voice: number; fullscreen: boolean } | null = null;
@@ -113,6 +118,7 @@ export class GameScene implements Scene {
       this.engine = new Engine(g, this.board, this.view, this.ui);
       (window as any).__lfz = { scene: this, g, engine: this.engine };
       this.ready = true;
+      if (new URLSearchParams(location.search).has('debug')) { this.debugOn = true; this.debugPanel = true; }
       void this.engine.run().then(() => {
         if (this.engine.stopped) return;
         (window as any).__lfz.finished = true;
@@ -259,8 +265,11 @@ export class GameScene implements Scene {
     const top = this.dlgs[this.dlgs.length - 1];
     if (top) this.renderDialog(ctx, w, h, top);
     this.renderOverlay(ctx, w, h);
-    // 全螢幕 floating control — drawn last so it sits above the 設定 modal block
-    if (!this.winnerInfo) this.drawFullscreenToggle(ctx, w, h, this.uis);
+    // 全螢幕 + Debug floating controls — drawn last so they sit above the 設定 modal block
+    if (!this.winnerInfo) {
+      this.drawFullscreenToggle(ctx, w, h, this.uis);
+      this.drawDebugControls(ctx, w, h, this.uis);
+    }
     if (this.winnerInfo) this.renderWinner(ctx, w, h);
   }
 
@@ -802,6 +811,117 @@ export class GameScene implements Scene {
       void toggleFullscreen(next);
       void sfx('option/button');
     });
+  }
+
+
+  /** Translucent Debug toggle left of 全螢幕; panel stacks above both when open. */
+  drawDebugControls(ctx: CanvasRenderingContext2D, w: number, h: number, u = 1) {
+    if (!this.ready || !this.g) return;
+    const bw = Math.round(92 * u), bh = Math.round(28 * u);
+    const fsX = w - bw - 10;
+    const iy = h - Math.round(52 * u) - 8 - bh - 8;
+    const ix = fsX - bw - 8;
+    const st = app.state('dbg-toggle');
+    ctx.save();
+    ctx.globalAlpha = st ? 0.95 : 0.68;
+    ctx.fillStyle = this.debugOn ? 'rgba(120,60,10,0.78)' : 'rgba(10,20,40,0.5)';
+    roundRect(ctx, ix, iy, bw, bh, 8); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,210,140,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+    text(ctx, '🛠 Debug', ix + bw / 2, iy + bh / 2, {
+      size: Math.round(13 * u), align: 'center', baseline: 'middle', color: this.debugOn ? '#ffe36a' : '#e8f0ff',
+      stroke: 'rgba(40,20,0,0.7)', strokeWidth: 3,
+    });
+    app.hit('dbg-toggle', { x: ix, y: iy, w: bw, h: bh }, () => {
+      this.debugOn = !this.debugOn;
+      this.debugPanel = this.debugOn;
+      if (this.debugOn) {
+        const hp = this.g.players.find(pp => pp.alive && !pp.ai) ?? this.g.players[this.g.current];
+        this.dbgTile = hp?.tile ?? 0;
+      }
+      void sfx('option/button');
+    });
+    if (this.debugOn && this.debugPanel) this.drawDebugPanel(ctx, w, h, u, ix, iy);
+  }
+
+  private humanPlayer() {
+    return this.g.players.find(pp => pp.alive && !pp.ai) ?? null;
+  }
+
+  drawDebugPanel(ctx: CanvasRenderingContext2D, w: number, h: number, u: number, anchorX: number, anchorY: number) {
+    const pw = Math.round(268 * u), ph = Math.round(168 * u);
+    const px = Math.min(anchorX, w - pw - 10);
+    const py = anchorY - ph - 8;
+    const hp = this.humanPlayer();
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = 'rgba(12,18,36,0.88)';
+    roundRect(ctx, px, py, pw, ph, 10); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,200,100,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+    const lab = { size: Math.round(12 * u), color: '#ffe8a0', stroke: 'rgba(0,0,0,0.6)', strokeWidth: 2.5 };
+    text(ctx, 'DEBUG（測試用）', px + 10 * u, py + 16 * u, { ...lab, size: Math.round(13 * u), weight: 'bold' });
+    text(ctx, hp ? `${charName(hp.char)} 現金 $${Math.round(hp.cash)}` : '無人類玩家', px + 10 * u, py + 34 * u, lab);
+
+    const btn = (id: string, x: number, y: number, bw: number, bh: number, label: string, fn: () => void, dis = false) => {
+      const st = app.state(id);
+      ctx.save();
+      ctx.globalAlpha = dis ? 0.35 : st ? 0.95 : 0.75;
+      ctx.fillStyle = 'rgba(40,70,120,0.85)';
+      roundRect(ctx, x, y, bw, bh, 6); ctx.fill();
+      ctx.strokeStyle = 'rgba(180,210,255,0.4)'; ctx.stroke();
+      ctx.restore();
+      text(ctx, label, x + bw / 2, y + bh / 2, { size: Math.round(11 * u), align: 'center', baseline: 'middle', color: '#fff', stroke: 'rgba(0,0,0,0.5)', strokeWidth: 2 });
+      if (!dis) app.hit(id, { x, y, w: bw, h: bh }, () => { fn(); void sfx('interface/click'); });
+    };
+
+    const rowY = py + 48 * u;
+    btn('dbg-c-1k', px + 10 * u, rowY, 58 * u, 24 * u, '現金-1k', () => this.debugCash(-1000), !hp);
+    btn('dbg-c-5', px + 72 * u, rowY, 50 * u, 24 * u, '-500', () => this.debugCash(-500), !hp);
+    btn('dbg-c+5', px + 126 * u, rowY, 50 * u, 24 * u, '+500', () => this.debugCash(500), !hp);
+    btn('dbg-c+1k', px + 180 * u, rowY, 58 * u, 24 * u, '+1k', () => this.debugCash(1000), !hp);
+
+    text(ctx, `骰子  d1=${this.dbgD1}  d2=${this.dbgD2 || '—'}（0=一顆）`, px + 10 * u, py + 90 * u, lab);
+    const dy = py + 100 * u;
+    btn('dbg-d1-', px + 10 * u, dy, 36 * u, 22 * u, 'd1−', () => { this.dbgD1 = this.dbgD1 <= 1 ? 6 : this.dbgD1 - 1; });
+    btn('dbg-d1+', px + 50 * u, dy, 36 * u, 22 * u, 'd1+', () => { this.dbgD1 = this.dbgD1 >= 6 ? 1 : this.dbgD1 + 1; });
+    btn('dbg-d2-', px + 94 * u, dy, 36 * u, 22 * u, 'd2−', () => { this.dbgD2 = this.dbgD2 <= 0 ? 6 : this.dbgD2 - 1; });
+    btn('dbg-d2+', px + 134 * u, dy, 36 * u, 22 * u, 'd2+', () => { this.dbgD2 = this.dbgD2 >= 6 ? 0 : this.dbgD2 + 1; });
+    btn('dbg-dice', px + 178 * u, dy, 70 * u, 22 * u, '下次用此', () => {
+      if (!this.engine) return;
+      this.engine.forceDice = { d1: this.dbgD1, d2: this.dbgD2 };
+      this.ui.toast(this.dbgD2 ? `下次擲骰：${this.dbgD1}+${this.dbgD2}` : `下次擲骰：${this.dbgD1}（一顆）`, { color: '#ffe36a' });
+    }, !hp);
+
+    const nTiles = this.board.tiles.length;
+    text(ctx, `傳送 tile ${this.dbgTile}/${nTiles - 1}`, px + 10 * u, py + 138 * u, lab);
+    const ty = py + 140 * u;
+    btn('dbg-t-', px + 130 * u, ty, 28 * u, 22 * u, '−', () => { this.dbgTile = (this.dbgTile - 1 + nTiles) % nTiles; this.focusDbgTile(); });
+    btn('dbg-t+', px + 162 * u, ty, 28 * u, 22 * u, '+', () => { this.dbgTile = (this.dbgTile + 1) % nTiles; this.focusDbgTile(); });
+    btn('dbg-tp', px + 196 * u, ty, 52 * u, 22 * u, '傳送', () => { void this.debugTeleport(); }, !hp);
+  }
+
+  private focusDbgTile() {
+    const tt = this.board.tiles[this.dbgTile]; if (!tt) return;
+    this.view.focusOn(tt.x, tt.y);
+  }
+
+  debugCash(delta: number) {
+    const pp = this.humanPlayer(); if (!pp) return;
+    pp.cash = Math.max(0, Math.round(pp.cash + delta));
+    this.view.money(pp.seat, delta);
+    this.engine?.onChange();
+    this.ui.toast(`${charName(pp.char)} 現金 ${delta >= 0 ? '+' : ''}${delta} → $${pp.cash}`, { seat: pp.seat, color: '#ffe36a' });
+  }
+
+  async debugTeleport() {
+    const pp = this.humanPlayer(); if (!pp || !this.engine) return;
+    if (this.diceAnim) { this.ui.toast('擲骰中，稍後再傳送', { color: '#ff8a6a' }); return; }
+    const tile = Math.max(0, Math.min(this.board.tiles.length - 1, this.dbgTile | 0));
+    await this.engine.teleportTo(pp, tile);
+    await this.engine.land(pp, { skipTransport: true });
+    this.engine.onChange();
+    this.ui.toast(`${charName(pp.char)} → tile ${tile}`, { seat: pp.seat, color: '#9fe8ff' });
   }
 
   renderOptionWin(ctx: CanvasRenderingContext2D, w: number, h: number, S: number, ay: number) {

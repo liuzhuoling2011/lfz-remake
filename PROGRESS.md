@@ -10,6 +10,7 @@
 - Upgrade still max level 3 when owner lands.
 - Ferry/tram/cart: `land(p, { skipTransport: true })` after teleport so 九龍渡海 / 古代馬車 pairs cannot A↔B loop. HK single tram unchanged.
 - Tests: `tests/property_rules.mjs`, `tests/ferry_loop.mjs`, `tests/property_shot.mjs`; autoplay 26w map0 winner, 0 errors. Shots: `screenshots/property_markers_*.png`.
+- Debug: translucent **Debug** button left of 全螢幕; panel for ±cash, force next dice (1–2), teleport tile. `?debug` opens it. Testing only.
 
 # 老夫子大富翁 Web Remake — Progress
 

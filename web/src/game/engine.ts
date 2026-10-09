@@ -51,6 +51,8 @@ const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
 export class Engine {
   stopped = false;
+  /** Next human roll override: d2=0 → one die. Cleared after use. */
+  forceDice: { d1: number; d2: number } | null = null;
   private extraRoll = false;
   private depth = 0;
   onChange: () => void = () => {};
@@ -216,8 +218,17 @@ export class Engine {
         else steps = await this.ui.pickSteps();
       } else {
         // VERIFIED (@0x410d00): button 0 = one die (rand%6+1), button 1 = two dice; steps = d1 + d2; no doubles rule.
-        const d1 = 1 + Math.floor(Math.random() * 6);
-        const d2 = nDice === 2 ? 1 + Math.floor(Math.random() * 6) : 0;
+        // Debug override (testing): forceDice set from the translucent Debug panel.
+        let d1: number, d2: number;
+        if (!p.ai && this.forceDice) {
+          d1 = Math.max(1, Math.min(6, this.forceDice.d1 | 0));
+          d2 = this.forceDice.d2 > 0 ? Math.max(1, Math.min(6, this.forceDice.d2 | 0)) : 0;
+          this.forceDice = null;
+          nDice = d2 > 0 ? 2 : 1;
+        } else {
+          d1 = 1 + Math.floor(Math.random() * 6);
+          d2 = nDice === 2 ? 1 + Math.floor(Math.random() * 6) : 0;
+        }
         steps = d1 + d2;
         await this.ui.dice(d1, d2);
       }
