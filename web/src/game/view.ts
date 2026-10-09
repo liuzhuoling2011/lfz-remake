@@ -2,6 +2,7 @@
 // Everything animates from the rAF delta time (no setTimeout stepping); the render path avoids per-frame allocations.
 import { app, ease, TURBO, speedMul } from '../core/app';
 import { fetchJSON, loadSheets, sheet, drawFrame, groupInfo, type Sheet } from '../core/assets';
+import * as Assets from '../core/assets';
 import { text, fmtMoney } from '../core/text';
 import type { Board } from './board';
 import { dirGroup } from './board';
@@ -55,6 +56,8 @@ export class MapView {
   floaters: Floater[] = [];
   constructs: Construct[] = [];
   game: GameState | null = null;
+  /** characters in this game (set before load → only their sprite sheets are fetched) */
+  chars: number[] = [];
   season = 0;
   current = -1;
   private drag: { x: number; y: number; cx: number; cy: number; moved: boolean; id: number } | null = null;
@@ -69,13 +72,27 @@ export class MapView {
     this.ancient = board.key === 'ancient';
     this.data = await fetchJSON(`maps/${board.key}.json`);
     const pre = this.ancient ? 'a_' : '';
+    // lazy per map: only this map's building style and the characters actually in the game are fetched
+    const P = 'map/' + pre;
     const extra = ['map/shadow', 'map/getmoney', 'map/lostmoney', 'map/cardhit', 'map/usecard', 'map/havemoney', 'map/nomoney', 'map/godin', 'map/godout', 'map/money',
-      'map/playermark01', 'map/playermark02', 'map/playermark03', 'map/playermark04', 'map/downhouse', 'map/buildhouse1', 'map/buildhouse2', 'map/buildhouse3',
-      'map/a_buildhouse1', 'map/a_buildhouse2', 'map/a_buildhouse3', 'map/a_downhouse', 'map/a_money', 'map/a_getmoney'];
+      'map/playermark01', 'map/playermark02', 'map/playermark03', 'map/playermark04', P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3', P + 'money', P + 'getmoney'];
     for (const k of ['house', 'commcal', 'eating', 'home']) for (const l of [1, 2, 3]) extra.push(`map/${pre}${k}${l}`);
-    for (let c = 1; c <= 6; c++) for (const s of ['01', '02', '04', '05']) extra.push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
-    extra.push('map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02');
+    // stand/walk sheets block the start; use/hit poses, the NPC walkers and the construction fx stream in afterwards
+    const later: string[] = [P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3',
+      'map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02'];
+    for (const c of (this.chars.length ? this.chars : [1, 2, 3, 4, 5, 6])) for (const s of ['01', '02', '04', '05']) (s < '04' ? extra : later).push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
+    for (const n of later) { const i = extra.indexOf(n); if (i >= 0) extra.splice(i, 1); }
+    if (Assets.hdFull()) {
+      // ground-only sheets are replaced by the HD ground tiles → fetch them in SD only
+      const man = await fetchJSON<{ skip: string[] }>(`hd/ground/${board.key}.json`).catch(() => null);
+      if (man) {
+        const used = new Set<string>();
+        for (const L of this.data.layers) for (const o of L.o) { const nm = this.data.sprites[o[0]]; if (L.flag === 1 || LIVE_GROUND.has(L.name) || ANIM.has(nm) || SEASONAL.has(nm)) used.add('map/' + nm); }
+        for (const n of man.skip) if (!used.has(n)) Assets.preferSD.add(n);
+      }
+    }
     await loadSheets([...this.data.sprites.map(s => 'map/' + s), ...extra], onProgress);
+    void loadSheets(later);
     this.sheets = this.data.sprites.map(s => sheet('map/' + s));
     await this.bake();
     this.bounds = this.computeBounds();
@@ -135,27 +152,54 @@ export class MapView {
     this.iconOcc = this.icons.map(o => occ(o.x0, o.y0, o.x1, o.y1, o.y, o.x));
     await this.bakeChunks(this.season);
   }
+  private bakedEpoch = -1;
+  /** chunk cache resolution: 2 device px per art px with the HD set (crisp at board zoom ≈ 1.4–2.4 × DPR), else 1 */
+  private bakeK = 1;
+  /** HD ground: the static ground layer upscaled *in context* (seamless) by tools/upscale.py, as 2x chunk tiles */
+  private ground: Map<string, CanvasImageSource> | null = null;
+  private groundKey = '';
+  private async loadGround() {
+    const key = this.board.key;
+    if (this.groundKey === key) return;
+    this.groundKey = key;
+    try {
+      const man = await fetchJSON<{ tiles: string[] }>(`hd/ground/${key}.json`);
+      const m = new Map<string, CanvasImageSource>();
+      await Promise.all(man.tiles.map(async t => { m.set(t, await Assets.toBitmap(await Assets.loadImage(Assets.BASE + `hd/ground/${key}/${t}.webp`))); }));
+      this.ground = m;
+    } catch { this.ground = null; }
+  }
   private async bakeChunks(season: number) {
     this.baking = true;
+    const epoch = Assets.assetEpoch;
+    const K = Assets.hdFull() ? 2 : 1;
+    if (K === 2) await this.loadGround();
+    const ground = K === 2 ? this.ground : null;
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    const list: MapObj[] = [...this.baked, ...this.objects.filter(o => !o.anim)];
-    for (const o of list) { x0 = Math.min(x0, o.x0); y0 = Math.min(y0, o.y0); x1 = Math.max(x1, o.x1); y1 = Math.max(y1, o.y1); }
+    for (const o of this.baked) { x0 = Math.min(x0, o.x0); y0 = Math.min(y0, o.y0); x1 = Math.max(x1, o.x1); y1 = Math.max(y1, o.y1); }
+    const statics = this.objects.filter(o => !o.anim);
+    for (const o of statics) { x0 = Math.min(x0, o.x0); y0 = Math.min(y0, o.y0); x1 = Math.max(x1, o.x1); y1 = Math.max(y1, o.y1); }
+    // with HD ground tiles only the seasonal ground pieces are still drawn per sprite
+    const list: MapObj[] = [...(ground ? this.baked.filter(o => o.seasonal) : this.baked), ...statics];
     const canv: { x: number; y: number; c: HTMLCanvasElement; g: CanvasRenderingContext2D }[] = [];
     const cx0 = Math.floor(x0 / CHUNK), cy0 = Math.floor(y0 / CHUNK), cx1 = Math.floor(x1 / CHUNK), cy1 = Math.floor(y1 / CHUNK);
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
-      const c = document.createElement('canvas'); c.width = CHUNK; c.height = CHUNK;
-      canv.push({ x: cx * CHUNK, y: cy * CHUNK, c, g: c.getContext('2d')! });
+      const c = document.createElement('canvas'); c.width = CHUNK * K; c.height = CHUNK * K;
+      const g = c.getContext('2d')!; g.imageSmoothingQuality = 'high'; g.scale(K, K);
+      const gt = ground?.get(cx + '_' + cy);
+      if (gt) g.drawImage(gt, 0, 0, CHUNK, CHUNK);
+      canv.push({ x: cx * CHUNK, y: cy * CHUNK, c, g });
     }
     const grid = (cx: number, cy: number) => canv[(cy - cy0) * (cx1 - cx0 + 1) + (cx - cx0)];
     for (const o of list) {
       const sh = this.sheets[o.s]; if (!sh?.img) continue;
       const fi = o.seasonal ? season % sh.f.length : Math.min(o.f, sh.f.length - 1);
-      const fr = sh.f[fi];
+      const fr = sh.f[fi], sr = sh.sf[fi];
       const ox = o.x - fr[4], oy = o.y - fr[5];
       for (let cy = Math.floor(oy / CHUNK); cy <= Math.floor((oy + fr[3]) / CHUNK); cy++)
         for (let cx = Math.floor(ox / CHUNK); cx <= Math.floor((ox + fr[2]) / CHUNK); cx++) {
           const ch = grid(cx, cy); if (!ch) continue;
-          ch.g.drawImage(sh.img, fr[0], fr[1], fr[2], fr[3], ox - ch.x, oy - ch.y, fr[2], fr[3]);
+          ch.g.drawImage(sh.img, sr[0], sr[1], sr[2], sr[3], ox - ch.x, oy - ch.y, fr[2], fr[3]);
         }
     }
     const chunks = await Promise.all(canv.map(async ch => {
@@ -164,7 +208,7 @@ export class MapView {
       return { x: ch.x, y: ch.y, c: img };
     }));
     for (const old of this.chunks) (old.c as ImageBitmap).close?.();
-    this.chunks = chunks; this.bakedSeason = season; this.baking = false;
+    this.chunks = chunks; this.bakedSeason = season; this.bakedEpoch = epoch; this.bakeK = K; this.baking = false;
   }
 
   // ---------------- camera ----------------
@@ -186,7 +230,7 @@ export class MapView {
 
   update(dt: number) {
     this.zoom = this.baseZoom(app.w, app.h) * this.userZoom;
-    if (this.bakedSeason >= 0 && this.season !== this.bakedSeason && !this.baking) void this.bakeChunks(this.season);
+    if (this.bakedSeason >= 0 && (this.season !== this.bakedSeason || Assets.assetEpoch !== this.bakedEpoch) && !this.baking) void this.bakeChunks(this.season);
     if (this.follow && app.time - this.lastManualPan > 2500) {
       // critically-damped smooth-damp (no overshoot, no jitter at low/high frame rates)
       const smooth = 0.28, s = dt / 1000, om = 2 / smooth, x = om * s, e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
@@ -342,8 +386,14 @@ export class MapView {
     // snap the camera to device pixels so baked chunks don't shimmer while scrolling
     const ox = Math.round(dpr * (w / 2 - this.cx * z)) , oy = Math.round(dpr * (h / 2 - this.cy * z));
     ctx.setTransform(dpr * z, 0, 0, dpr * z, ox, oy);
-    ctx.imageSmoothingEnabled = dpr * z < 1.5;
-    ctx.imageSmoothingQuality = dpr * z >= 1 ? 'low' : 'medium'; // bilinear when magnifying (bicubic is very costly on CPU canvases)
+    if (Assets.hdActive()) {
+      // HD sources are sampled at ≤ 2 source px per device px → always filter (mipmapped when minifying)
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = dpr * z >= 1.9 ? 'low' : 'medium';
+    } else {
+      ctx.imageSmoothingEnabled = dpr * z < 1.5;
+      ctx.imageSmoothingQuality = dpr * z >= 1 ? 'low' : 'medium'; // bilinear when magnifying (bicubic is very costly on CPU canvases)
+    }
     const vx0 = this.cx - w / 2 / z - 260, vx1 = this.cx + w / 2 / z + 260, vy0 = this.cy - h / 2 / z - 260, vy1 = this.cy + h / 2 / z + 260;
     const tick = Math.floor(app.time / 140);
     for (const o of this.liveGround) {
@@ -352,7 +402,7 @@ export class MapView {
     }
     for (const c of this.chunks) {
       if (c.x > vx1 || c.x + CHUNK < vx0 || c.y > vy1 || c.y + CHUNK < vy0) continue;
-      ctx.drawImage(c.c, c.x, c.y);
+      ctx.drawImage(c.c, c.x, c.y, CHUNK, CHUNK);
     }
     // plot ownership overlays
     const g = this.game;

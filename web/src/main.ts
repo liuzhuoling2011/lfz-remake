@@ -42,7 +42,7 @@ async function boot() {
   unlockAudio(); // succeeds immediately where autoplay is permitted
   setSpeedIndex(settings.speed);
   try {
-    await Promise.all([initSprites(), loadData()]);
+    await Promise.all([initSprites(settings.quality), loadData()]);
     const ui = ['logo/bg', 'logo/button', 'mainmenu/bg', 'mainmenu/menu', 'mainmenu/money01', 'mainmenu/money02', 'misc/pattern', 'misc/loading',
       'selectyear/bg', 'selectyear/buttons', 'selectyear/fg', 'selectmap/bg', 'selectmap/buttons', 'selectmap/fg', 'selectmap/map',
       'selectactor/player01', 'selectactor/player02', 'selectactor/player03', 'selectactor/player04', 'selectactor/actor', 'selectactor/button', 'selectactor/device', 'selectactor/frame',

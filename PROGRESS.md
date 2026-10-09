@@ -14,3 +14,10 @@
 - 07:50 UI: card.spr cast popup + chance.spr alignment measured from the sprites, ring menu + walk.spr dice panel (keys 1/2), two-dice animation with bounce, toasts; audio preloaded + unlocked on first gesture, verified via window.__lfzAudio.log.
 - 07:53 Tests: 12 turbo games (26/52 weeks, all maps) + real-speed games → winner, 0 console errors. Screenshots via tests/screens2.mjs.
 - 07:56 Built and redeployed to NAS (/lfz/index.html → 200).
+
+## Phase 3 — HD graphics (2026-10-09, Asia/Shanghai)
+- 08:35 Box has no GPU/Vulkan → PyTorch CPU venv (/workspace/hdtools/venv, spandrel). Candidates: realesr-animevideov3, RealESRGAN_x4plus_anime_6B, RealESRGAN_x4plus; comparisons in screenshots/hd_compare_*.png.
+- 08:45 Chosen: animevideov3 for map/* (keeps dither/texture, 4x faster), anime_6B for UI/cards/chance (clean lines, removes JPEG artefacts); x4plus rejected (smears ornaments, 12x slower). Bitmap fonts not AI-upscaled (vector CJK text used).
+- 08:50 tools/upscale.py batch (nohup, spawn pool 4×2 threads, resumable): sprites 691 s, images 72 s, in-context ground layer 127 s. Scales: map 2x (4x net → Lanczos), interface 4x, menus/misc 2x, cards 4x. Edge-padded RGB, separate alpha, frame rects ×S exact. Output webp q85 in web/public/assets/hd (62.4 MB vs SD 22 MB).
+- 09:00 Renderer: HD sheets drawn at 1/scale, 2x baked chunk cache with HD ground tiles, auto SD/HD by DPR×viewport and deviceMemory, 'lite' tier on touch, ?q= override, 選項 畫質 自動/標準/高清; per-map lazy load + deferred non-essential sheets.
+- 09:07 Autoplay on dist for q=hd/lite/sd → winners, 0 console errors; screenshots hd_board/closeup/card_* and hd_before_after_*.

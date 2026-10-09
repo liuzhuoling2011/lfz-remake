@@ -20,8 +20,8 @@ export function patternBg(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const sh = sheet('misc/pattern');
   if (sh?.img) {
     if (!patternCache) {
-      const f = sh.f[0]; const c = document.createElement('canvas'); c.width = f[2]; c.height = f[3];
-      c.getContext('2d')!.drawImage(sh.img, f[0], f[1], f[2], f[3], 0, 0, f[2], f[3]);
+      const f = sh.f[0], s = sh.sf[0]; const c = document.createElement('canvas'); c.width = f[2]; c.height = f[3];
+      c.getContext('2d')!.drawImage(sh.img, s[0], s[1], s[2], s[3], 0, 0, f[2], f[3]);
       patternCache = ctx.createPattern(c, 'repeat');
     }
     if (patternCache) { ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = patternCache; ctx.translate((app.time / 40) % 91, (app.time / 60) % 93); ctx.fillRect(-100, -100, w + 200, h + 200); ctx.restore(); }

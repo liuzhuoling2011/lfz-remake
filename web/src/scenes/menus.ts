@@ -1,5 +1,5 @@
 import { app, type Scene, wait, AUTO } from '../core/app';
-import { drawFrame, sheet, frameRect, BASE } from '../core/assets';
+import { drawFrame, sheet, frameRect, BASE, setQuality, hdActive, hdAvailable } from '../core/assets';
 import { music, sfx, unlockAudio, settings, saveSettings, applyVolumes, voice } from '../core/audio';
 import { text, FONT } from '../core/text';
 import { stage, applyStage, resetT, patternBg, sbtn, button, panel, sr, dim, slider, type Stage } from '../ui/widgets';
@@ -218,7 +218,7 @@ export class SelectActorScene implements Scene {
 
 // ---------------------------------------------------------------- Options (also used in-game as overlay)
 export function drawOptions(ctx: CanvasRenderingContext2D, w: number, h: number, onClose: () => void) {
-  const pw = Math.min(520, w - 20), ph = Math.min(400, h - 20);
+  const pw = Math.min(520, w - 20), ph = Math.min(470, h - 20);
   const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
   dim(ctx, w, h, 0.5); app.block();
   panel(ctx, r, { title: '系統設定' });
@@ -235,6 +235,11 @@ export function drawOptions(ctx: CanvasRenderingContext2D, w: number, h: number,
   const sp = D.main['Option-Speed'] ?? { 0: '慢速', 1: '正常速度', 2: '快速' };
   const bw = (sw - 16) / 3;
   for (let i = 0; i < 3; i++) button(ctx, 'spd' + i, { x: sx + i * (bw + 8), y, w: bw, h: 40 }, sp[i], () => { settings.speed = i as 0 | 1 | 2; setSpeedIndex(i); saveSettings(); }, { selected: settings.speed === i, size: 15 });
+  // 畫質: 自動 picks 高清 on HiDPI / large screens (and 標準 on low-memory devices)
+  y += 56; lab('畫質', y + 26);
+  const ql = ['自動', '標準', '高清'];
+  for (let i = 0; i < 3; i++) button(ctx, 'q' + i, { x: sx + i * (bw + 8), y, w: bw, h: 40 }, ql[i] + (i === 0 ? (hdActive() ? '·高清' : '·標準') : ''),
+    () => { settings.quality = i as 0 | 1 | 2; saveSettings(); void setQuality(i); }, { selected: settings.quality === i, size: 15, disabled: i === 2 && !hdAvailable() });
   button(ctx, 'optclose', { x: r.x + pw / 2 - 70, y: r.y + ph - 68, w: 140, h: 48 }, '確定', onClose, { primary: true });
 }
 export class OptionsScene implements Scene {

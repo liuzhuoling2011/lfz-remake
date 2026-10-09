@@ -58,11 +58,12 @@ export class GameScene implements Scene {
       if (this.arg.load) g = this.arg.load;
       else g = newGame(this.board, setup.map, Number(new URLSearchParams(location.search).get('weeks')) || RULES.yearOptionsWeeks[setup.weeksIdx], setup.seats.filter(s => s.on).map(s => ({ char: s.char, ai: s.ai })));
       this.g = g;
+      this.view.chars = g.players.map(p => p.char);
       await Promise.all([
         this.view.load(this.board, (d, t) => { this.progress = d / t; }),
         loadSheets(['interface/chance', 'interface/card', 'interface/step', 'interface/messagebox', 'interface/gameover', 'interface/luckydraw', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06',
-          ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'season/season01', 'season/season02', 'season/season03', 'season/season04', 'season/leaf', 'winner/winner',
-          ...[1, 2, 3, 4, 5, 6].map(i => `winner/character0${i}`), 'misc/balloon']),
+          ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'misc/balloon']),
+        // season / winner art is big and rarely shown → fetched on demand (seasonChange / winner) instead of up front
       ]);
       // pre-decode card art; pre-load the sounds used every turn + each player's voice lines (no first-play latency)
       void Promise.all(D.words.map(c => preloadImage('images/cards/' + c.jpg).catch(() => null)));
@@ -121,7 +122,7 @@ export class GameScene implements Scene {
     seasonChange: s => {
       if (TURBO) return Promise.resolve();
       void sfx('season/paper');
-      return new Promise(res => { this.seasonAnim = { s, t: 0, res: () => { this.seasonAnim = null; res(); } }; });
+      return loadSheets([`season/season0${s + 1}`]).then(() => new Promise<void>(res => { this.seasonAnim = { s, t: 0, res: () => { this.seasonAnim = null; res(); } }; }));
     },
     banner: (t, c) => { this.bannerText = t; this.bannerT = 0; this.bannerColor = c ?? '#ffe36a'; },
     toast: (t, o = {}) => {
@@ -131,11 +132,11 @@ export class GameScene implements Scene {
       if (o.cardId) void preloadImage('images/cards/' + D.words[o.cardId - 1].jpg).catch(() => null);
     },
     say: (seat, t) => { if (TURBO) return; this.bubbles = this.bubbles.filter(b => b.seat !== seat); this.bubbles.push({ seat, text: t, t: 0 }); void sfx(SFX[22], 0.6); },
-    winner: (seat, rank) => new Promise(res => {
+    winner: (seat, rank) => loadSheets(['winner/winner', `winner/character0${this.g.players[seat].char}`]).then(() => new Promise<void>(res => {
       music('winner.mp3', false);
       (window as any).__lfz.winner = { seat, char: this.g.players[seat].char, name: charName(this.g.players[seat].char), week: this.g.week, rank };
       this.winnerInfo = { seat, rank, t: 0, res: () => { this.winnerInfo = null; res(); } };
-    }),
+    })),
   };
 
   // ------------------------------------------------------------ update

@@ -3,6 +3,7 @@ import { BASE } from './assets';
 
 export const settings = {
   music: 0.6, sfx: 0.8, voice: 0.9, speed: 1 as 0 | 1 | 2,
+  /** 畫質: 0 自動, 1 標準 (SD), 2 高清 (HD) */ quality: 0 as 0 | 1 | 2,
 };
 const SETTINGS_KEY = 'lfz.settings';
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* ignore */ }
