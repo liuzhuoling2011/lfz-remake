@@ -50,6 +50,28 @@ interface Bubble { seat: number; text: string; t: number }
 
 const DICE_LAND = 900, DICE_HOLD = 1500, DICE_END = 1850;
 
+
+/** 9-slice grow of interface/option frame 0 so a fifth settings row + X/O fit inside the blue panel. */
+function drawOptionPanelGrown(ctx: CanvasRenderingContext2D, extra: number) {
+  const sh = sheet('interface/option');
+  if (!sh?.img) return;
+  const f = sh.f[0], src = sh.sf[0];
+  if (!f) return;
+  const dx = -f[4], dy = -f[5]; // hotspot → top-left (11,11)
+  const W = f[2], H = f[3];
+  // Keep top content + bottom chrome; stretch a mid band of the blue fill
+  const top = 160, bot = 40, mid = H - top - bot;
+  const midD = mid + extra;
+  const k = sh.hs || (src[2] / f[2]);
+  const sx = src[0], sy = src[1], sw = src[2];
+  // underlay so any seam still reads as panel (matches the blue fill)
+  ctx.fillStyle = '#3a5a8c';
+  ctx.fillRect(dx + 6, dy + 6, W - 12, H + extra - 12);
+  ctx.drawImage(sh.img, sx, sy, sw, top * k, dx, dy, W, top);
+  ctx.drawImage(sh.img, sx, sy + top * k, sw, Math.max(1, mid * k), dx, dy + top, W, midD);
+  ctx.drawImage(sh.img, sx, sy + (top + mid) * k, sw, bot * k, dx, dy + top + midD, W, bot);
+}
+
 export class GameScene implements Scene {
   board!: Board; view = new MapView(); engine!: Engine; g!: GameState;
   ready = false; progress = 0; loadingText = '載入地圖中…';
@@ -776,16 +798,15 @@ export class GameScene implements Scene {
     const k = ease.outCubic(Math.min(1, this.ovT / 320));
     const W: Win = { sc: S, ax: (-251 + (140 + 251) * k) * S, ay };
     winBegin(ctx, W);
-    drawFrame(ctx, 'interface/option', 0, 0, 0);
+    // Grow the blue panel by one row (40px) so 畫質…全螢幕 + X/O all sit inside it.
+    const EXTRA = 48;
+    drawOptionPanelGrown(ctx, EXTRA);
     const T = D.main['Option-Title'] ?? {};
     const sp = D.main['Option-Speed'] ?? { 0: '慢速', 1: '正常速度', 2: '快速' };
     const ql = ['自動', '標準', '高清'];
-    const lab = { size: 13, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
-    // Five evenly-spaced rows above the X/O chrome (hotspots put X/O at y≈182). Original 4 rows sat at
-    // y≈30/70/110/150; compress to 28/58/88/118 + 全螢幕 at 148 so the new row matches 畫質/速度 style
-    // (label left, value box right) and never collides with the bottom border or X/O.
-    const Y = [28, 58, 88, 118, 148];
-    const origY = [30, 70, 110, 150]; // baked hotspot row tops for frames 14/16/18/20
+    const lab = { size: 14, color: '#fff', baseline: 'top' as CanvasTextBaseline, stroke: 'rgba(0,40,90,0.55)', strokeWidth: 3 };
+    // Original 40px pitch for the four exe rows; 全螢幕 takes the new fifth slot; X/O shift down by EXTRA.
+    const Y = [30, 70, 110, 150, 190];
     const rowFr: [number, number, number][] = [[14, 13, 13], [16, 15, 15], [18, 17, 17], [20, 19, 19]];
     const cycle = [
       () => { o.q = (o.q + 1) % 3; if (o.q === 2 && !hdAvailable()) o.q = 0; this.applyOpt(); },
@@ -794,15 +815,13 @@ export class GameScene implements Scene {
       () => { o.mus = (o.mus + 1) % 4; this.applyOpt(); },
     ];
     for (let i = 0; i < 4; i++) {
-      const dy = Y[i] - origY[i];
       const id = ['op-q', 'op-spd', 'op-sfx', 'op-mus'][i];
       const fr = rowFr[i];
-      // always the small value-box frame — tall hover frames (13/15/17/19) spill into neighbours at 30px pitch
       const a = ctx.globalAlpha;
       if (app.state(id)) ctx.globalAlpha = a * 0.9;
-      drawFrame(ctx, 'interface/option', fr[0], 0, dy);
+      drawFrame(ctx, 'interface/option', fr[0], 0, 0);
       ctx.globalAlpha = a;
-      app.hit(id, wr(W, frameRect('interface/option', fr[0], 0, dy)), () => { void sfx('option/button'); cycle[i](); });
+      app.hit(id, wr(W, frameRect('interface/option', fr[0], 0, 0)), () => { void sfx('option/button'); cycle[i](); });
       if (i === 0) {
         text(ctx, '畫質', 30, Y[i] + 3, lab);
         text(ctx, ql[o.q] + (o.q === 0 ? (hdActive() ? '·高清' : '·標準') : ''), 176, Y[i] + 3, { ...lab, align: 'center' });
@@ -811,16 +830,15 @@ export class GameScene implements Scene {
         text(ctx, sp[o.spd], 176, Y[i] + 3, { ...lab, align: 'center' });
       } else if (i === 2) {
         text(ctx, T['2'] ?? '音效', 70, Y[i] + 3, lab);
-        if (o.sfx > 0) drawFrame(ctx, 'interface/option', 6 + o.sfx, 0, dy);
+        if (o.sfx > 0) drawFrame(ctx, 'interface/option', 6 + o.sfx, 0, 0);
       } else {
         text(ctx, T['3'] ?? '音樂', 70, Y[i] + 3, lab);
-        if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, dy);
+        if (o.mus > 0) drawFrame(ctx, 'interface/option', 9 + o.mus, 0, 0);
       }
     }
-    // 全螢幕 — fifth row, same value-box chrome as 畫質 (frame 14), label left / 開·關 right
+    // 全螢幕 — fifth row at original pitch, value box = frame 14 shifted down
     {
-      const dy = Y[4] - origY[0]; // place frame 14's box at Y[4]
-      // always the small value box (frame 14) — frame 13 is too tall and would cover X/O
+      const dy = Y[4] - 30; // frame 14's native top is y=30
       const a = ctx.globalAlpha;
       if (app.state('op-fs')) ctx.globalAlpha = a * 0.92;
       drawFrame(ctx, 'interface/option', 14, 0, dy);
@@ -829,8 +847,14 @@ export class GameScene implements Scene {
       text(ctx, o.fs ? '開' : '關', 176, Y[4] + 3, { ...lab, align: 'center', color: o.fs ? '#9fe8ff' : '#fff' });
       app.hit('op-fs', wr(W, frameRect('interface/option', 14, 0, dy)), () => { o.fs = !o.fs; this.applyOpt(); void sfx('option/button'); });
     }
-    wbtn(ctx, W, 'op-x', 'interface/option', [1, 2, 3], () => this.closeOptions(false));
-    wbtn(ctx, W, 'op-o', 'interface/option', [4, 5, 6], () => this.closeOptions(true));
+    // X/O sit on the grown panel's bottom chrome (native hotspots + EXTRA)
+    {
+      const stX = app.state('op-x'), stO = app.state('op-o');
+      drawFrame(ctx, 'interface/option', 1 + stX, 0, EXTRA);
+      drawFrame(ctx, 'interface/option', 4 + stO, 0, EXTRA);
+      app.hit('op-x', wr(W, frameRect('interface/option', 1, 0, EXTRA)), () => { void sfx('interface/click'); this.closeOptions(false); });
+      app.hit('op-o', wr(W, frameRect('interface/option', 4, 0, EXTRA)), () => { void sfx('interface/click'); this.closeOptions(true); });
+    }
     winEnd(ctx);
   }
 
@@ -911,22 +935,22 @@ export class GameScene implements Scene {
     let size = 13, lines: string[] = [];
     for (; size >= 9; size -= 0.5) { lines = wrap(ctx, card.text, descW, size, 'normal'); if (lines.length * size * 1.3 <= 100) break; }
     lines.forEach((l, i) => text(ctx, l, descX, descY + i * size * 1.3, { size, color: '#000', baseline: 'top', weight: 'normal' }));
-    // List: frame drawn at anchor+(7,8), so sprite rules y=35+20i land at window y=43+20i.
-    // Sit text + selection mask in the gaps BETWEEN rules (centers 53+20i); mask inset inside red margins 309..460.
+    // List: exe rows at y = 30+20i (centred x=383). Sprite rules land at window y=43+20i, so each
+    // name sits in the upper half of its row (mid = 40+20i), just above the rule — first card on the
+    // first row (no blank gap). Mask inset inside red margins 309..460 and clear of the rule line.
     const sc = d.scroll ?? 0;
     for (let i = 0; i < 5; i++) {
       const idx = sc + i; const e = list[idx]; if (!e) break;
-      const rule = 43 + 20 * i;           // this row's top rule
-      const mid = rule + 10;              // centre of gap before next rule
+      const y0 = 30 + 20 * i;             // exe row top
+      const mid = y0 + 10;                // 40+20i — between row top and rule at 43+20i
       const sel = idx === d.sel;
       if (sel) {
-        // dark mask strictly inside the panel — 1px clear of the ruled lines and the red verticals
         ctx.fillStyle = 'rgba(80,10,0,0.45)';
-        ctx.fillRect(311, rule + 1, 147, 18);
+        ctx.fillRect(311, y0 + 1, 147, 11); // y0+1 .. y0+12, clear of rule at y0+13 (=43+20i)
       }
       const label = D.words[e.id - 1].title + (e.n > 1 ? ` ×${e.n}` : '');
-      text(ctx, label, 384, mid, { size: 13, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
-      app.hit('cs-row' + i, wr(W, { x: 311, y: rule + 1, w: 147, h: 18 }), () => {
+      text(ctx, label, 383, mid, { size: 13, align: 'center', baseline: 'middle', color: e.disabled ? '#808080' : sel ? '#fff' : '#000' });
+      app.hit('cs-row' + i, wr(W, { x: 311, y: y0 + 1, w: 147, h: 12 }), () => {
         if (d.sel === idx && !e.disabled) { d.resolve(e.id); return; }
         d.sel = idx; void sfx('interface/sfx042');
       });
