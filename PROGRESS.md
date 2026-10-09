@@ -1,4 +1,10 @@
 
+## Round 12 — home calculator digit alignment (2026-10-10 Asia/Shanghai)
+
+- Fixed 屋企 存/取 LCD: digits now right-align onto the 9 baked shadow-8 slots in `calculater.spr` (centers 74+20·i).
+- Account for panel SPR hx/hy (−12,−11) via panel-local origin; use `calcnumber2` at full scale (draw at scx−10, y=53).
+- Screenshot: `screenshots/r12_home_calculater_aligned.png`, `screenshots/r12_panel_exact_2x.png`.
+
 ## Round 11 — marker flash, home calculater, debug map-teleport (2026-10-10 Asia/Shanghai)
 
 - Owner markers: animate (`flashPlots`) only while a plot is being visited this turn; `clearFlash()` at turn end → static frame 0 afterwards.

@@ -988,7 +988,7 @@ export class GameScene implements Scene {
 
   /**
    * Original 屋企 calculator (interface/calculater.spr + calcnumber2 digits).
-   * Left icons = 存錢/取錢 mode; LCD amount; O/X/C + arrows from calculater sheet.
+   * Digits right-aligned on the 9 baked shadow-8 slots (centers 74+20·i; draw at scx-10, y=53 in panel space).
    */
   renderHomeBank(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const d = this.homeBankDlg!; const u = Math.max(0.85, this.uis);
@@ -998,25 +998,28 @@ export class GameScene implements Scene {
     const ax = Math.round((w - (panelW + 56) * u) / 2);
     const ay = Math.round((h - (panelH + 40) * u) / 2);
     drawFrame(ctx, 'interface/calculater', 0, ax, ay, u);
+    // Panel frame hx/hy (-12,-11): sprite pixel (0,0) lands at (ox,oy)
+    const pf = sheet('interface/calculater')!.f[0];
+    const ox = ax - pf[4] * u, oy = ay - pf[5] * u;
 
-    // Mode hit zones over left cash / house icons on the panel
+    // Mode hit zones over left cash / house icons (panel-local)
     const modeIn = d.mode === 'in';
     ctx.save();
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = modeIn ? '#3aa0ff' : '#000';
-    ctx.fillRect(ax + 10 * u, ay + 16 * u, 52 * u, 44 * u);
+    ctx.fillRect(ox + 10 * u, oy + 16 * u, 52 * u, 44 * u);
     ctx.fillStyle = !modeIn ? '#3aa0ff' : '#000';
-    ctx.fillRect(ax + 10 * u, ay + 86 * u, 52 * u, 44 * u);
+    ctx.fillRect(ox + 10 * u, oy + 86 * u, 52 * u, 44 * u);
     ctx.restore();
-    text(ctx, '存', ax + 36 * u, ay + 38 * u, { size: 14 * u, align: 'center', baseline: 'middle', color: '#fff', stroke: '#024', strokeWidth: 3 });
-    text(ctx, '取', ax + 36 * u, ay + 108 * u, { size: 14 * u, align: 'center', baseline: 'middle', color: '#fff', stroke: '#024', strokeWidth: 3 });
-    app.hit('hb-in', { x: ax + 10 * u, y: ay + 16 * u, w: 52 * u, h: 44 * u }, () => {
+    text(ctx, '存', ox + 36 * u, oy + 38 * u, { size: 14 * u, align: 'center', baseline: 'middle', color: '#fff', stroke: '#024', strokeWidth: 3 });
+    text(ctx, '取', ox + 36 * u, oy + 108 * u, { size: 14 * u, align: 'center', baseline: 'middle', color: '#fff', stroke: '#024', strokeWidth: 3 });
+    app.hit('hb-in', { x: ox + 10 * u, y: oy + 16 * u, w: 52 * u, h: 44 * u }, () => {
       if (d.cash <= 0) return;
       d.mode = 'in';
       d.amount = Math.min(d.cash, Math.max(0, Math.floor(d.cash * RULES.homeDepositPct / 100)) || d.cash);
       void sfx('interface/click');
     });
-    app.hit('hb-out', { x: ax + 10 * u, y: ay + 86 * u, w: 52 * u, h: 44 * u }, () => {
+    app.hit('hb-out', { x: ox + 10 * u, y: oy + 86 * u, w: 52 * u, h: 44 * u }, () => {
       if (d.home <= 0) return;
       d.mode = 'out';
       d.amount = Math.min(d.home, Math.max(0, Math.floor(d.home / 2)) || d.home);
@@ -1025,16 +1028,20 @@ export class GameScene implements Scene {
 
     const maxAmt = d.mode === 'in' ? d.cash : d.home;
     d.amount = Math.max(0, Math.min(maxAmt, Math.floor(d.amount)));
-    const digits = String(Math.floor(d.amount));
-    const step = 18 * u;
-    const slotCX = ax + 178 * u, slotCY = ay + 74 * u;
-    const startX = slotCX - (digits.length * step) / 2;
+    // 9 LCD slots baked into calculater.spr (shadow 8s); pitch 20, first center x=74. VERIFIED by pixel match.
+    const SLOT_CX = [74, 94, 114, 134, 154, 174, 194, 214, 234];
+    const SLOT_AY = 53; // draw-anchor y so calcnumber2 ink sits on shadow 8s (pixel-correlated)
+    const digits = String(Math.floor(d.amount)).slice(-9);
+    const start = SLOT_CX.length - digits.length;
     for (let i = 0; i < digits.length; i++) {
       const di = digits.charCodeAt(i) - 48;
-      if (di >= 0 && di <= 9) drawFrame(ctx, 'interface/calcnumber2', di, startX + i * step + step / 2, slotCY, u * 0.8);
+      if (di < 0 || di > 9) continue;
+      const scx = SLOT_CX[start + i];
+      // draw anchor: ax = slotCenterX - 10 (ink centroid of calcnumber2 at origin ≈ (+10,+19.5))
+      drawFrame(ctx, 'interface/calcnumber2', di, ox + (scx - 10) * u, oy + SLOT_AY * u, u);
     }
-    text(ctx, modeIn ? '存入屋企' : '從屋企取出', ax + 178 * u, ay + 30 * u, { size: 12 * u, align: 'center', color: '#4a2a00', weight: 'bold' });
-    text(ctx, `手上 $${d.cash}　屋企 $${d.home}`, ax + 178 * u, ay + 122 * u, { size: 11 * u, align: 'center', color: '#4a2a00' });
+    text(ctx, modeIn ? '存入屋企' : '從屋企取出', ox + 154 * u, oy + 30 * u, { size: 12 * u, align: 'center', color: '#4a2a00', weight: 'bold' });
+    text(ctx, `手上 $${d.cash}　屋企 $${d.home}`, ox + 154 * u, oy + 122 * u, { size: 11 * u, align: 'center', color: '#4a2a00' });
 
     // Widget frames share the panel anchor (SPR hx/hy place O/X/C/arrows)
     const calcBtn = (id: string, frames: number[], fn: () => void) => {
@@ -1049,7 +1056,7 @@ export class GameScene implements Scene {
     calcBtn('hb-dn', [10, 10, 10], () => { d.amount = Math.max(0, d.amount - 100); });
     calcBtn('hb-up', [11, 11, 11], () => { d.amount = Math.min(maxAmt, d.amount + 100); });
 
-    const chipY = ay + (panelH + 12) * u;
+    const chipY = oy + (panelH + 8) * u;
     const chips: [string, string, () => void][] = [
       ['hb-half', '一半', () => { d.amount = Math.floor(maxAmt / 2); }],
       ['hb-all', '全部', () => { d.amount = maxAmt; }],
@@ -1058,7 +1065,7 @@ export class GameScene implements Scene {
     ];
     chips.forEach(([id, lab, fn], i) => {
       const cw = 64 * u, ch = 26 * u;
-      const cx = ax + i * (cw + 8 * u);
+      const cx = ox + i * (cw + 8 * u);
       const st = app.state(id);
       ctx.save(); ctx.globalAlpha = st ? 0.95 : 0.8;
       ctx.fillStyle = 'rgba(20,60,120,0.88)'; roundRect(ctx, cx, chipY, cw, ch, 6); ctx.fill();
