@@ -11,13 +11,24 @@ import { RULES, MAPS, PLAYER_COLORS, PLAYER_COLORS_DARK, SEASONS, SFX } from '..
 import { D, charName, msg } from '../game/data';
 import { netWorth, ownedPlots, season, yearOf, plotValue } from '../game/rules';
 import { setup } from './setup';
-import { drawSlots } from './menus';
+import { LoadSaveWin, drawMsgBox } from '../ui/origdlg';
 import { winBegin, winEnd, wbtn, wr, centredWin, sysScale, type Win } from '../ui/origwin';
 import { settings, saveSettings, applyVolumes } from '../core/audio';
 import { setQuality, hdActive, hdAvailable } from '../core/assets';
 import { setSpeedIndex } from '../core/app';
 
 let go: (name: string, arg?: any) => void = () => {};
+
+/** interface sheets the game scene needs before its first frame */
+export const GAME_UI_SHEETS = ['interface/chance', 'interface/card', 'interface/step', 'interface/messagebox', 'interface/smessagebox', 'interface/gameover', 'interface/luckydraw',
+  'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06',
+  ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'misc/balloon',
+  'interface/detailinfo', 'interface/system', 'interface/option', 'interface/info', 'interface/round', 'interface/loadsave'];
+/** Warm the caches while the player is still on the select screens so 開始遊戲 is (near) instant. */
+export function prewarmGame(mapIdx: number, chars: number[]) {
+  void loadSheets(GAME_UI_SHEETS);
+  void MapView.prefetch(MAPS[mapIdx].key, chars);
+}
 export function bindGameNav(fn: typeof go) { go = fn; }
 
 interface DlgBtn { label: string; sub?: string; disabled?: boolean; value: any; primary?: boolean; danger?: boolean }
@@ -54,12 +65,23 @@ export class GameScene implements Scene {
   winnerInfo: { seat: number; rank: number[]; t: number; res: () => void } | null = null;
   downPos: { x: number; y: number } | null = null;
   hideHud = false;
+  /** original console command ShowDetailInfo: extra lines under each HUD panel (key I) */
+  showDetail = false;
+  private optRaw: { quality: 0 | 1 | 2; speed: 0 | 1 | 2; sfx: number; music: number; voice: number } | null = null;
+  /** original save/load carousel while overlay is 'save' / 'load' */
+  lsWin: LoadSaveWin | null = null;
   /** time since the overlay last changed (window fade / slide-in like the original's alpha += 0x20 per tick) */
   ovT = 0; private ovPrev = 'none';
   /** original option window: values being edited + snapshot for X (cancel) */
   opt: { q: number; spd: number; sfx: number; mus: number; voice: number; orig: { q: number; spd: number; sfx: number; mus: number; voice: number } } | null = null;
 
-  constructor(private arg: { new?: boolean; load?: GameState }) {}
+  /** last frame of the previous screen (the original loading dialog @0x401d10 darkens what was on screen) */
+  private snap: HTMLCanvasElement | null = null;
+  constructor(private arg: { new?: boolean; load?: GameState }) {
+    try {
+      const c = app.canvas; if (c && c.width > 0) { const k = document.createElement('canvas'); k.width = c.width; k.height = c.height; k.getContext('2d')!.drawImage(c, 0, 0); this.snap = k; }
+    } catch { this.snap = null; }
+  }
 
   async enter() {
     try {
@@ -72,9 +94,7 @@ export class GameScene implements Scene {
       this.view.chars = g.players.map(p => p.char);
       await Promise.all([
         this.view.load(this.board, (d, t) => { this.progress = d / t; }),
-        loadSheets(['interface/chance', 'interface/card', 'interface/step', 'interface/messagebox', 'interface/gameover', 'interface/luckydraw', 'interface/face01', 'interface/face02', 'interface/face03', 'interface/face04', 'interface/face05', 'interface/face06',
-          ...[1, 2, 3, 4, 5, 6].flatMap(i => [`dice/dice_${i}`, `dice/dice_${i}a`]), 'interface/walk', 'interface/game_menu', 'misc/balloon',
-          'interface/detailinfo', 'interface/system', 'interface/option']),
+        loadSheets(GAME_UI_SHEETS),
         // season / winner art is big and rarely shown → fetched on demand (seasonChange / winner) instead of up front
       ]);
       // pre-decode card art; pre-load the sounds used every turn + each player's voice lines (no first-play latency)
@@ -155,7 +175,8 @@ export class GameScene implements Scene {
   update(dt: number) {
     if (!this.ready) return;
     this.view.update(dt);
-    if (this.overlay !== this.ovPrev) { this.ovPrev = this.overlay; this.ovT = 0; }
+    if (this.overlay !== this.ovPrev) { this.ovPrev = this.overlay; this.ovT = 0; if (this.overlay !== 'save' && this.overlay !== 'load') this.lsWin = null; }
+    this.lsWin?.update(dt);
     this.ovT += dt;
     for (const d of this.dlgs) d.t += dt;
     for (const d of this.dlgs) if (d.auto && d.t >= d.auto.ms * speedMul.v) { d.resolve(d.auto.value); break; }
@@ -187,6 +208,8 @@ export class GameScene implements Scene {
   }
   onWheel(dx: number, dy: number) { this.view.onWheel(dy); this.view.lastManualPan = app.time; }
   onKey(k: string) {
+    if (this.lsWin && (this.overlay === 'save' || this.overlay === 'load')) { this.lsWin.key(k); return; }
+    if (this.overlay === 'quitConfirm') { if (k === 'Enter' || k === ' ') { this.engine.stopped = true; go('mainmenu'); } else if (k === 'Escape') this.overlay = 'none'; return; }
     const top = this.dlgs[this.dlgs.length - 1];
     if (top && !top.passive && top.kind === 'cards') {
       const n = this.cardEntries(top).length; const sel = top.sel ?? 0;
@@ -201,6 +224,7 @@ export class GameScene implements Scene {
       else if (k === 'c' || k === 'C') { if (this.g.players[this.g.current].cards.length) this.turnMenuRes('card'); }
     }
     if (k === 'Escape') { if (this.overlay === 'options') this.closeOptions(false); else this.overlay = this.overlay === 'none' ? 'system' : 'none'; }
+    if (k === 'i' || k === 'I') this.showDetail = !this.showDetail;
     if (k === '+' || k === '=') this.view.userZoom = Math.min(3, this.view.userZoom * 1.15);
     if (k === '-') this.view.userZoom = Math.max(0.4, this.view.userZoom / 1.15);
   }
@@ -223,14 +247,19 @@ export class GameScene implements Scene {
     if (this.winnerInfo) this.renderWinner(ctx, w, h);
   }
 
+  /**
+   * Original loading dialog (create @0x401d10 / paint @0x402260): the previous screen is kept and darkened with 50% black
+   * (one 0x80-alpha black line per row), then misc/loading.spr frame <phase> ('LOADING', 'LOADING .', '..', '...') is
+   * drawn at (50, H-70); the phase steps every 20 ticks while the loader runs its stages.
+   */
   renderLoading(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    ctx.fillStyle = '#0f1a33'; ctx.fillRect(0, 0, w, h);
-    const fr = Math.floor(app.time / 200) % 4;
-    drawFrame(ctx, 'misc/loading', fr, w / 2, h / 2 - 20);
-    const bw = Math.min(360, w - 60);
-    ctx.fillStyle = '#333'; roundRect(ctx, w / 2 - bw / 2, h / 2 + 20, bw, 14, 7); ctx.fill();
-    ctx.fillStyle = '#ff9a1a'; roundRect(ctx, w / 2 - bw / 2, h / 2 + 20, Math.max(14, bw * this.progress), 14, 7); ctx.fill();
-    text(ctx, this.loadingText, w / 2, h / 2 + 64, { size: 16, align: 'center', color: '#ffe8a0' });
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+    if (this.snap) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(this.snap, 0, 0); ctx.restore(); }
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, w, h);
+    const S = sysScale(w, h);
+    const phase = Math.floor(app.time / 333) % 4; // 20 ticks @ 60 fps
+    drawFrame(ctx, 'misc/loading', phase, 50 * S, h - 70 * S, S);
+    if (this.loadingText.startsWith('載入失敗')) text(ctx, this.loadingText, w / 2, h / 2, { size: 16, align: 'center', color: '#ffe8a0', stroke: '#000', strokeWidth: 3 });
   }
 
   renderBubbles(ctx: CanvasRenderingContext2D) {
@@ -251,42 +280,71 @@ export class GameScene implements Scene {
     }
   }
 
+  /**
+   * Original HUD layout (exe HUD dialog @0x4027f0, paint @0x402860 → round @0x402880 + players @0x402940), in 640x480 space:
+   * player i panel = info.spr frame 2i (current player, bright) / 2i+1 at (20+130i, 12); face = faceNN frame expr*2(+1) at
+   * (17+130i, 25); name (14px font) at (43+130i, 8); cash (8px font) right-aligned to x 108+130i, y 24; status icon =
+   * info frame status+7 at (98+130i, 12) with its remaining weeks at (108+130i, 8); ROUND plate (round.spr frame 10) at
+   * (W-65, 30) with week+1 in round digits 0–9 (step 14). Narrow (portrait) screens use a 2×2 arrangement so the
+   * panels stay at ≥1× original size.
+   */
+  hudLayout(w: number, h: number) {
+    const cols = w / 660 >= 1 ? 4 : 2;
+    const sc = cols === 4 ? Math.max(1, Math.min(2.2, w / 660, h / 300)) : Math.max(1, Math.min(1.8, (w - 4) / 266));
+    const rows = cols === 4 ? 1 : Math.ceil(this.g.players.length / 2);
+    const rowH = 54 + (this.showDetail ? 62 : 0);
+    // round counter: top-right like the original; below the 2×2 grid on narrow screens
+    const round = cols === 4 ? { x: w / sc - 65, y: 30, k: 1 } : { x: w / sc - 60, y: 12 + rows * rowH + 6, k: 0.8 };
+    const bottom = (cols === 4 ? Math.max(12 + rowH, 52) : round.y + 26) * sc;
+    return { sc, cols, rowH, round, bottom, pos: (i: number) => ({ x: 130 * (i % cols), y: rowH * Math.floor(i / cols) }) };
+  }
+  /** player status → info.spr icon frame (exe: frame = status + 7; status ids from the word-card handlers @0x442e34:
+   *  1 hospital, 2 jail, 3 金鋼護體, 4 催吉避凶, 5 一曝十寒, 6 神智不清, 7 得而復失, 8 魔高一丈; 9–12 god/other states = best guess) */
+  statusIcons(p: Player): { f: number; n: number }[] {
+    const s = p.status; const out: { f: number; n: number }[] = [];
+    const add = (v: number, f: number) => { if (v > 0) out.push({ f, n: v }); };
+    add(s.hospital, 8); add(s.jail, 9); add(s.badGod, 16); add(s.wealthGod, 17); add(s.frozen, 12); add(s.confused, 13); add(s.dropMoney, 14);
+    add(s.skip, 18); add(s.stay, 18); add(s.cardImmune, 10); add(s.badGodImmune, 11); add(s.smallmanImmune, 15); add(p.locks, 19);
+    return out;
+  }
   renderHUD(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const u = this.uis, g = this.g;
-    const n = g.players.length;
-    const cw = Math.min(230 * u, (w - 16) / Math.min(n, w > 700 ? 4 : 2) - 8), ch = 66 * u;
-    const perRow = w > 700 ? 4 : 2;
+    const L = this.hudLayout(w, h); const W: Win = { sc: L.sc, ax: 0, ay: 0 };
+    winBegin(ctx, W);
     g.players.forEach((p, i) => {
-      const col = i % perRow, row = Math.floor(i / perRow);
-      const x = 8 + col * (cw + 8), y = 8 + row * (ch + 6);
-      const cur = i === g.current;
-      ctx.save();
-      if (!p.alive) ctx.globalAlpha = 0.5;
-      const gr = ctx.createLinearGradient(x, y, x, y + ch);
-      gr.addColorStop(0, PLAYER_COLORS[i]); gr.addColorStop(1, PLAYER_COLORS_DARK[i]);
-      ctx.fillStyle = 'rgba(0,0,0,0.35)'; roundRect(ctx, x + 2, y + 3, cw, ch, 12 * u); ctx.fill();
-      ctx.fillStyle = gr; roundRect(ctx, x, y, cw, ch, 12 * u); ctx.fill();
-      ctx.lineWidth = cur ? 3.5 : 1.5; ctx.strokeStyle = cur ? '#ffe36a' : 'rgba(0,0,0,0.6)'; ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath(); ctx.arc(x + 32 * u, y + ch / 2, 26 * u, 0, Math.PI * 2); ctx.fill();
-      drawFrameFit(ctx, 'interface/face0' + p.char, p.alive ? 0 : 1, x + 8 * u, y + ch / 2 - 25 * u, 48 * u, 50 * u);
-      const tx = x + 64 * u;
-      text(ctx, charName(p.char) + (p.ai ? ' 🖥' : ''), tx, y + 20 * u, { size: 14 * u, color: '#fff', stroke: 'rgba(0,0,0,0.6)', strokeWidth: 3, maxWidth: cw - 70 * u });
-      if (p.alive) {
-        text(ctx, '現金 ' + fmtMoney(p.cash), tx, y + 39 * u, { size: 13 * u, color: '#ffef9a', stroke: 'rgba(0,0,0,0.6)', strokeWidth: 3, maxWidth: cw - 70 * u });
-        text(ctx, '屋企 ' + fmtMoney(p.home) + '  🂠' + p.cards.length, tx, y + 57 * u, { size: 12 * u, color: '#d9f1ff', stroke: 'rgba(0,0,0,0.6)', strokeWidth: 3, maxWidth: cw - 70 * u });
-        const st = p.status; const tags: string[] = [];
-        if (st.hospital) tags.push('院'); if (st.jail) tags.push('獄'); if (st.frozen) tags.push('冰'); if (st.confused) tags.push('迷'); if (st.dropMoney) tags.push('漏');
-        if (st.badGod) tags.push('衰'); if (st.wealthGod) tags.push('財'); if (st.cardImmune) tags.push('護'); if (p.locks) tags.push('鎖');
-        tags.forEach((t, k) => {
-          const bx = x + cw - (14 + k * 20) * u, by = y + 14 * u;
-          ctx.fillStyle = t === '財' ? '#ffd23a' : t === '護' || t === '鎖' ? '#5fd3ff' : '#ff5a5a';
-          ctx.beginPath(); ctx.arc(bx, by, 9 * u, 0, Math.PI * 2); ctx.fill();
-          text(ctx, t, bx, by + 4.5 * u, { size: 11 * u, align: 'center', color: '#222', weight: 'bold' });
-        });
-      } else drawFrame(ctx, 'interface/gameover', 0, x + cw - 50 * u, y + ch / 2, 0.28 * u);
-      ctx.restore();
-      app.hit('pl' + i, { x, y, w: cw, h: ch }, () => { this.detailSeat = i; this.overlay = 'detail'; });
+      if (!p.alive) return; // exe skips eliminated players (status == -1) but keeps the slot positions
+      const o = L.pos(i); const cur = i === g.current;
+      const px = 20 + o.x, py = 12 + o.y;
+      drawFrame(ctx, 'interface/info', cur ? 2 * i : 2 * i + 1, px, py);
+      // face expression (player+0x14): 0 normal, 1 laughing, 2 crying
+      const st = p.status;
+      const expr = st.hospital || st.jail || st.badGod || p.cash < 0 ? 2 : st.wealthGod ? 1 : 0;
+      drawFrame(ctx, 'interface/face0' + p.char, expr * 2 + (cur ? 0 : 1), 17 + o.x, 25 + o.y);
+      text(ctx, charName(p.char), 43 + o.x, 8 + o.y, { size: 13, baseline: 'top', color: '#fff', stroke: '#000', strokeWidth: 3, maxWidth: 52 });
+      text(ctx, String(p.cash), 108 + o.x, 25 + o.y, { size: 11, baseline: 'top', align: 'right', color: cur ? '#ffef7a' : '#e8e0b0', stroke: '#000', strokeWidth: 2.5, maxWidth: 62 });
+      if (p.ai) text(ctx, 'AI', 44 + o.x, 37 + o.y, { size: 8, baseline: 'top', color: '#9fd8ff', weight: 'normal' });
+      const icons = this.statusIcons(p);
+      if (icons.length) {
+        // the original shows the single status; the remake can stack several → cycle through them
+        const ic = icons[Math.floor(app.time / 1400) % icons.length];
+        drawFrame(ctx, 'interface/info', ic.f, 98 + o.x, 12 + o.y);
+        text(ctx, String(ic.n), 108 + o.x, 8 + o.y, { size: 9, baseline: 'top', color: '#fff', stroke: '#000', strokeWidth: 2.5 });
+      }
+      if (this.showDetail) { // console command ShowDetailInfo (@0x403470 toggles 0x4480de): four lines under the panel
+        const lines: [string, number][] = [['屋企 ', p.home], ['總資產 ', netWorth(g, this.board, p)], ['卡數 ', p.cards.length], ['樓宇 ', ownedPlots(g, p).length]];
+        lines.forEach(([k, v], r) => text(ctx, k + v, 10 + o.x, 52 + 15 * r + o.y, { size: 12, baseline: 'top', color: '#fff', stroke: '#000', strokeWidth: 3 }));
+      }
+      app.hit('pl' + i, wr(W, { x: o.x, y: 4 + o.y, w: 112, h: 48 }), () => { this.detailSeat = i; this.overlay = 'detail'; });
     });
+    // ROUND plate + week number (round.spr digits, centred, step 14)
+    {
+      const R = L.round; ctx.save(); ctx.translate(R.x, R.y); ctx.scale(R.k, R.k);
+      drawFrame(ctx, 'interface/round', 10, 0, 0);
+      const ds = String(g.week + 1); let x = -(ds.length * 14 - 14) / 2;
+      for (const c of ds) { drawFrame(ctx, 'interface/round', Number(c), x, 0); x += 14; }
+      ctx.restore();
+    }
+    winEnd(ctx);
     // info box (bottom-left)
     const iw = 190 * u, ih = 64 * u, ix = 8, iy = h - ih - 8;
     ctx.fillStyle = 'rgba(10,20,45,0.72)'; roundRect(ctx, ix, iy, iw, ih, 10 * u); ctx.fill();
@@ -300,7 +358,7 @@ export class GameScene implements Scene {
     // banner
     if (this.bannerT < 1600 && this.bannerText) {
       const k = this.bannerT < 250 ? this.bannerT / 250 : this.bannerT > 1300 ? (1600 - this.bannerT) / 300 : 1;
-      const by = (perRow === 2 && n > 2 ? 2 : 1) * (ch + 6) + 40 * u;
+      const by = L.bottom + 40 * u;
       ctx.save(); ctx.globalAlpha = k;
       const bw = Math.min(w - 20, 420 * u);
       const gr = ctx.createLinearGradient(w / 2 - bw / 2, 0, w / 2 + bw / 2, 0);
@@ -314,8 +372,8 @@ export class GameScene implements Scene {
   /** Non-blocking notifications (AI decisions etc.): slide in under the HUD, fade out, never take input. */
   renderToasts(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.toasts.length) return;
-    const u = this.uis; const n = this.g.players.length; const perRow = w > 700 ? 4 : 2;
-    let y = 8 + Math.ceil(n / perRow) * (66 * u + 6) + 8 * u;
+    const u = this.uis;
+    let y = this.hudLayout(w, h).bottom + 8 * u;
     const tw = Math.min(w - 16, 470 * u);
     for (const t of this.toasts) {
       const inK = Math.min(1, t.t / 220), outK = Math.min(1, (t.ms - t.t) / 320);
@@ -611,16 +669,14 @@ export class GameScene implements Scene {
     const close = () => { this.overlay = 'none'; };
     const u = Math.max(0.8, Math.min(1.2, Math.min(w / 700, h / 560)));
     if (this.overlay === 'system' || this.overlay === 'options') this.renderSystemWin(ctx, w, h);
-    else if (this.overlay === 'save') drawSlots(ctx, w, h, 'save', slot => { saveSlot(slot, this.g); this.overlay = 'none'; this.ui.banner('已儲存至記錄 ' + slot, '#9fe8ff'); }, close);
-    else if (this.overlay === 'load') drawSlots(ctx, w, h, 'load', slot => { const d = loadSlot(slot); if (d) { this.engine.stopped = true; go('game', { load: d.g }); } }, close);
-    else if (this.overlay === 'quitConfirm') {
-      dim(ctx, w, h, 0.5); app.block({ x: 0, y: 0, w, h });
-      const pw = Math.min(420, w - 20), ph = 200; const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
-      panel(ctx, r, { title: '返回主選單' });
-      text(ctx, D.main.Misc?.ExitGame ?? '你真的想結束遊戲嗎？', w / 2, r.y + 80, { size: 19, align: 'center', color: '#4a2a00' });
-      text(ctx, '（每回合開始時會自動存檔）', w / 2, r.y + 106, { size: 13, align: 'center', color: '#7a5a20', weight: 'normal' });
-      button(ctx, 'q-y', { x: w / 2 - 130, y: r.y + 125, w: 120, h: 48 }, '是', () => { this.engine.stopped = true; go('mainmenu'); }, { primary: true });
-      button(ctx, 'q-n', { x: w / 2 + 10, y: r.y + 125, w: 120, h: 48 }, '否', close);
+    else if (this.overlay === 'save' || this.overlay === 'load') {
+      if (!this.lsWin || this.lsWin.mode !== this.overlay) this.lsWin = this.overlay === 'save'
+        ? new LoadSaveWin('save', slot => { saveSlot(slot, this.g); this.overlay = 'none'; this.ui.banner('已儲存至記錄 ' + slot, '#9fe8ff'); }, close)
+        : new LoadSaveWin('load', slot => { const d = loadSlot(slot); if (d) { this.engine.stopped = true; go('game', { load: d.g }); } }, close);
+      this.lsWin.render(ctx, w, h);
+    } else if (this.overlay === 'quitConfirm') {
+      // system window 結束遊戲 → message box Misc/ExitGame with O + X (flags 3, call @0x403830)
+      drawMsgBox(ctx, w, h, { text: msg('Misc', 'ExitGame'), t: this.ovT, yes: () => { this.engine.stopped = true; go('mainmenu'); }, no: close }, 'q');
     } else if (this.overlay === 'detail') this.renderDetailWin(ctx, w, h);
     void u;
   }
@@ -666,6 +722,7 @@ export class GameScene implements Scene {
   openOptions() {
     const cur = { q: settings.quality, spd: settings.speed, sfx: Math.round(settings.sfx * 3), mus: Math.round(settings.music * 3), voice: settings.voice };
     this.opt = { ...cur, orig: { ...cur } };
+    this.optRaw = { quality: settings.quality, speed: settings.speed, sfx: settings.sfx, music: settings.music, voice: settings.voice };
     this.overlay = 'options';
   }
   /** apply the edited values live (so volume / speed / 畫質 can be heard and seen); X restores the snapshot */
@@ -679,7 +736,11 @@ export class GameScene implements Scene {
     if (settings.quality !== o.q) { settings.quality = o.q as 0 | 1 | 2; void setQuality(o.q); }
   }
   closeOptions(ok: boolean) {
-    if (this.opt && !ok) { const keep = this.opt.orig; this.opt = { ...keep, orig: keep }; this.applyOpt(); }
+    if (this.opt && !ok) {
+      const r = this.optRaw!; const qChanged = settings.quality !== r.quality;
+      Object.assign(settings, r); setSpeedIndex(r.speed); applyVolumes();
+      if (qChanged) void setQuality(r.quality);
+    }
     saveSettings();
     this.opt = null; this.overlay = 'system';
   }

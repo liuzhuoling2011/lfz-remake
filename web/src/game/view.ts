@@ -39,6 +39,9 @@ const WALK_SPEED = 128;
 /** distance (px) covered by one 15-frame walk cycle → feet stay in sync with the ground at any speed */
 const STRIDE = 64;
 
+const jsonCache = new Map<string, Promise<any>>();
+const groundCache = new Map<string, Promise<Map<string, CanvasImageSource> | null>>();
+
 export class MapView {
   board!: Board;
   data!: MapData;
@@ -68,11 +71,14 @@ export class MapView {
   private dyn: DynItem[] = [];      // reusable y-sort buffer for buildings + actors
   private dynN = 0;
 
-  async load(board: Board, onProgress?: (d: number, t: number) => void) {
-    this.board = board;
-    this.ancient = board.key === 'ancient';
-    this.data = await fetchJSON(`maps/${board.key}.json`);
-    const pre = this.ancient ? 'a_' : '';
+  /**
+   * Sheet plan for a map: the blocking set (map sprites + fx + stand/walk poses of `chars`) and the streamed-later set.
+   * Shared by load() and prefetch() so the select screens can warm the cache (near-instant game start).
+   */
+  static async plan(key: string, chars: number[]) {
+    const data: MapData = await (jsonCache.get(key) ?? (jsonCache.set(key, fetchJSON(`maps/${key}.json`)), jsonCache.get(key)!)).catch((e: any) => { jsonCache.delete(key); throw e; });
+    const ancient = key === 'ancient';
+    const pre = ancient ? 'a_' : '';
     // lazy per map: only this map's building style and the characters actually in the game are fetched
     const P = 'map/' + pre;
     const extra = ['map/shadow', 'map/getmoney', 'map/lostmoney', 'map/cardhit', 'map/usecard', 'map/havemoney', 'map/nomoney', 'map/godin', 'map/godout', 'map/money',
@@ -81,18 +87,31 @@ export class MapView {
     // stand/walk sheets block the start; use/hit poses, the NPC walkers and the construction fx stream in afterwards
     const later: string[] = [P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3',
       'map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02'];
-    for (const c of (this.chars.length ? this.chars : [1, 2, 3, 4, 5, 6])) for (const s of ['01', '02', '04', '05']) (s < '04' ? extra : later).push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
+    for (const c of chars) for (const s of ['01', '02', '04', '05']) (s < '04' ? extra : later).push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
     for (const n of later) { const i = extra.indexOf(n); if (i >= 0) extra.splice(i, 1); }
     if (Assets.hdFull()) {
       // ground-only sheets are replaced by the HD ground tiles → fetch them in SD only
-      const man = await fetchJSON<{ skip: string[] }>(`hd/ground/${board.key}.json`).catch(() => null);
+      const man = await fetchJSON<{ skip: string[] }>(`hd/ground/${key}.json`).catch(() => null);
       if (man) {
         const used = new Set<string>();
-        for (const L of this.data.layers) for (const o of L.o) { const nm = this.data.sprites[o[0]]; if (L.flag === 1 || LIVE_GROUND.has(L.name) || isAnimSheet(nm) || SEASONAL.has(nm)) used.add('map/' + nm); }
+        for (const L of data.layers) for (const o of L.o) { const nm = data.sprites[o[0]]; if (L.flag === 1 || LIVE_GROUND.has(L.name) || isAnimSheet(nm) || SEASONAL.has(nm)) used.add('map/' + nm); }
         for (const n of man.skip) if (!used.has(n)) Assets.preferSD.add(n);
       }
     }
-    await loadSheets([...this.data.sprites.map(s => 'map/' + s), ...extra], onProgress);
+    return { data, main: [...data.sprites.map(s => 'map/' + s), ...extra], later };
+  }
+  /** warm the sheet cache for a map before the game scene starts (select-map / select-actor screens) */
+  static prefetch(key: string, chars: number[] = []) {
+    if (Assets.hdFull()) void MapView.groundTiles(key);
+    return MapView.plan(key, chars).then(pl => loadSheets(pl.main)).catch(e => console.warn('prefetch', e));
+  }
+
+  async load(board: Board, onProgress?: (d: number, t: number) => void) {
+    this.board = board;
+    this.ancient = board.key === 'ancient';
+    const { data, main, later } = await MapView.plan(board.key, this.chars.length ? this.chars : [1, 2, 3, 4, 5, 6]);
+    this.data = data;
+    await loadSheets(main, onProgress);
     void loadSheets(later);
     this.sheets = this.data.sprites.map(s => sheet('map/' + s));
     await this.bake();
@@ -159,17 +178,27 @@ export class MapView {
   /** HD ground: the static ground layer upscaled *in context* (seamless) by tools/upscale.py, as 2x chunk tiles */
   private ground: Map<string, CanvasImageSource> | null = null;
   private groundKey = '';
+  /** HD ground tiles of a map, decoded once per session (shared by prefetch and the bake) */
+  static groundTiles(key: string): Promise<Map<string, CanvasImageSource> | null> {
+    let p = groundCache.get(key);
+    if (!p) {
+      p = (async () => {
+        const man = await fetchJSON<{ tiles: string[] }>(`hd/ground/${key}.json`);
+        const m = new Map<string, CanvasImageSource>();
+        await Promise.all(man.tiles.map(async t => { m.set(t, await Assets.toBitmap(await Assets.loadImage(Assets.BASE + `hd/ground/${key}/${t}.webp`))); }));
+        return m;
+      })().catch(() => { groundCache.delete(key); return null; });
+      groundCache.set(key, p);
+    }
+    return p;
+  }
   private async loadGround() {
     const key = this.board.key;
     if (this.groundKey === key) return;
     this.groundKey = key;
-    try {
-      const man = await fetchJSON<{ tiles: string[] }>(`hd/ground/${key}.json`);
-      const m = new Map<string, CanvasImageSource>();
-      await Promise.all(man.tiles.map(async t => { m.set(t, await Assets.toBitmap(await Assets.loadImage(Assets.BASE + `hd/ground/${key}/${t}.webp`))); }));
-      this.ground = m;
-    } catch { this.ground = null; }
+    this.ground = await MapView.groundTiles(key);
   }
+
   private async bakeChunks(season: number) {
     this.baking = true;
     const epoch = Assets.assetEpoch;

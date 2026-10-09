@@ -48,4 +48,5 @@ export function saveSlot(slot: number, g: GameState) {
 export function loadSlot(slot: number): { t: number; g: GameState } | null {
   try { const s = localStorage.getItem(SAVE_PREFIX + slot); return s ? JSON.parse(s) : null; } catch { return null; }
 }
-export function listSlots() { return [0, 1, 2, 3, 4].map(i => ({ slot: i, data: loadSlot(i) })); }
+export const SLOT_COUNT = 10;
+export function listSlots() { return Array.from({ length: SLOT_COUNT }, (_, i) => i).map(i => ({ slot: i, data: loadSlot(i) })); }

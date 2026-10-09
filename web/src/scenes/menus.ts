@@ -8,6 +8,9 @@ import { charName, D } from '../game/data';
 import { listSlots, loadSlot } from '../game/state';
 import { setup } from './setup';
 import { setSpeedIndex } from '../core/app';
+import { prewarmGame } from './game';
+import { LoadSaveWin, drawMsgBox, drawMenuOptions, OptEdit } from '../ui/origdlg';
+import { msg } from '../game/data';
 
 let go: (name: string, arg?: any) => void = () => {};
 export function bindNav(fn: typeof go) { go = fn; }
@@ -56,7 +59,7 @@ export class TitleScene implements Scene {
 interface Coin { x: number; y: number; vy: number; vx: number; t: number; k: number; rot: number }
 export class MainMenuScene implements Scene {
   coins: Coin[] = [];
-  confirmExit = false;
+  confirmExit = false; exitT = -1;
   enter() { music('audiotrack03.mp3'); if (AUTO) setTimeout(() => go('selectyear'), 50); }
   update(dt: number) {
     if (Math.random() < dt / 260) this.coins.push({ x: Math.random() * 800, y: -60, vy: 40 + Math.random() * 60, vx: (Math.random() - 0.5) * 30, t: Math.random() * 1000, k: Math.random() < 0.5 ? 1 : 2, rot: 0 });
@@ -90,14 +93,9 @@ export class MainMenuScene implements Scene {
     text(ctx, 'Ver 1.05H · Web', 790, 592, { size: 11, align: 'right', color: 'rgba(255,255,255,0.6)', weight: 'normal' });
     resetT(ctx);
     if (this.confirmExit) {
-      dim(ctx, w, h);
-      const pw = Math.min(420, w - 30), ph = 190; const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
-      panel(ctx, r, { title: '離開遊戲' });
-      text(ctx, D.main.Misc?.ExitGame ?? '你真的想結束遊戲嗎？', w / 2, r.y + 80, { size: 20, align: 'center', color: '#4a2a00' });
-      app.block();
-      button(ctx, 'ex-y', { x: w / 2 - 130, y: r.y + 115, w: 120, h: 48 }, '是', () => { this.confirmExit = false; go('title'); }, { primary: true });
-      button(ctx, 'ex-n', { x: w / 2 + 10, y: r.y + 115, w: 120, h: 48 }, '否', () => { this.confirmExit = false; });
-    }
+      if (this.exitT < 0) this.exitT = app.time;
+      drawMsgBox(ctx, w, h, { text: msg('Misc', 'ExitGame'), t: app.time - this.exitT, yes: () => { this.confirmExit = false; go('title'); }, no: () => { this.confirmExit = false; } }, 'ex');
+    } else this.exitT = -1;
   }
 }
 
@@ -154,12 +152,13 @@ export class SelectMapScene implements Scene {
 
 // ---------------------------------------------------------------- Select actor
 export class SelectActorScene implements Scene {
-  enter() { if (AUTO) { setup.seats.forEach(s => (s.ai = true)); setTimeout(() => this.start(), 50); } }
+  enter() { prewarmGame(setup.map, setup.seats.filter(s => s.on).map(s => s.char)); if (AUTO) { setup.seats.forEach(s => (s.ai = true)); setTimeout(() => this.start(), 50); } }
   cycleChar(i: number, d = 1) {
     const used = new Set(setup.seats.filter((s, j) => j !== i && s.on).map(s => s.char));
     let c = setup.seats[i].char;
     for (let k = 0; k < 6; k++) { c = ((c - 1 + d + 6) % 6) + 1; if (!used.has(c)) break; }
     setup.seats[i].char = c;
+    prewarmGame(setup.map, [c]);
     const pre = CHAR_VOICE_PREFIX[c];
     void voice(pre + '28.mp3');
   }
@@ -217,67 +216,30 @@ export class SelectActorScene implements Scene {
 }
 
 // ---------------------------------------------------------------- Options (also used in-game as overlay)
-export function drawOptions(ctx: CanvasRenderingContext2D, w: number, h: number, onClose: () => void) {
-  const pw = Math.min(520, w - 20), ph = Math.min(470, h - 20);
-  const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
-  dim(ctx, w, h, 0.5); app.block();
-  panel(ctx, r, { title: '系統設定' });
-  const lab = (s: string, y: number) => text(ctx, s, r.x + 30, y, { size: 18, color: '#4a2a00' });
-  const sx = r.x + 150, sw = pw - 190;
-  let y = r.y + 60;
-  lab(D.main['Option-Title']?.['3'] ?? '音樂', y + 22);
-  slider(ctx, 'sl-mus', { x: sx, y, w: sw, h: 34 }, settings.music, v => { settings.music = v; applyVolumes(); saveSettings(); });
-  y += 56; lab(D.main['Option-Title']?.['2'] ?? '音效', y + 22);
-  slider(ctx, 'sl-sfx', { x: sx, y, w: sw, h: 34 }, settings.sfx, v => { settings.sfx = v; applyVolumes(); saveSettings(); void sfx('option/button'); });
-  y += 56; lab('語音', y + 22);
-  slider(ctx, 'sl-voi', { x: sx, y, w: sw, h: 34 }, settings.voice, v => { settings.voice = v; applyVolumes(); saveSettings(); });
-  y += 60; lab(D.main['Option-Title']?.['1'] ?? '遊戲速度', y + 26);
-  const sp = D.main['Option-Speed'] ?? { 0: '慢速', 1: '正常速度', 2: '快速' };
-  const bw = (sw - 16) / 3;
-  for (let i = 0; i < 3; i++) button(ctx, 'spd' + i, { x: sx + i * (bw + 8), y, w: bw, h: 40 }, sp[i], () => { settings.speed = i as 0 | 1 | 2; setSpeedIndex(i); saveSettings(); }, { selected: settings.speed === i, size: 15 });
-  // 畫質: 自動 picks 高清 on HiDPI / large screens (and 標準 on low-memory devices)
-  y += 56; lab('畫質', y + 26);
-  const ql = ['自動', '標準', '高清'];
-  for (let i = 0; i < 3; i++) button(ctx, 'q' + i, { x: sx + i * (bw + 8), y, w: bw, h: 40 }, ql[i] + (i === 0 ? (hdActive() ? '·高清' : '·標準') : ''),
-    () => { settings.quality = i as 0 | 1 | 2; saveSettings(); void setQuality(i); }, { selected: settings.quality === i, size: 15, disabled: i === 2 && !hdAvailable() });
-  button(ctx, 'optclose', { x: r.x + pw / 2 - 70, y: r.y + ph - 68, w: 140, h: 48 }, '確定', onClose, { primary: true });
-}
 export class OptionsScene implements Scene {
+  ed = new OptEdit();
+  close(ok: boolean) { this.ed.finish(ok); go('mainmenu'); }
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     patternBg(ctx, w, h);
-    const st = stage(w, h); applyStage(ctx, st); drawFrame(ctx, 'option/bg', 0, 400, 300, 1.2); resetT(ctx);
-    drawOptions(ctx, w, h, () => go('mainmenu'));
+    drawMenuOptions(ctx, w, h, this.ed, ok => this.close(ok));
   }
-  onKey(k: string) { if (k === 'Escape') go('mainmenu'); }
+  onKey(k: string) { if (k === 'Escape') this.close(false); if (k === 'Enter') this.close(true); }
 }
 
 // ---------------------------------------------------------------- Load
-export function drawSlots(ctx: CanvasRenderingContext2D, w: number, h: number, mode: 'load' | 'save', onPick: (slot: number) => void, onClose: () => void) {
-  const pw = Math.min(560, w - 20), ph = Math.min(430, h - 20);
-  const r = { x: (w - pw) / 2, y: (h - ph) / 2, w: pw, h: ph };
-  dim(ctx, w, h, 0.5); app.block();
-  panel(ctx, r, { title: mode === 'load' ? '載入進度' : '儲存進度' });
-  const slots = listSlots();
-  const rowH = Math.min(56, (ph - 130) / slots.length);
-  slots.forEach(({ slot, data }, i) => {
-    const y = r.y + 40 + i * (rowH + 6);
-    const label = slot === 0 ? '自動存檔' : `記錄 ${slot}`;
-    let info = '（空）';
-    if (data) {
-      const g = data.g; const d = new Date(data.t);
-      const wk = g.weeksLimit < 0 ? '∞' : g.weeksLimit / 52 + '年';
-      info = `${MAPS[g.map].name} · 第${Math.floor(g.week / 52) + 1}年第${(g.week % 52) + 1}週 · 年期${wk} · ${d.toLocaleDateString()} ${d.toLocaleTimeString().slice(0, 5)}`;
-    }
-    const dis = (mode === 'load' && !data) || (mode === 'save' && slot === 0);
-    button(ctx, 'slot' + slot, { x: r.x + 24, y, w: pw - 48, h: rowH }, `${label}　${info}`, () => onPick(slot), { size: 14, disabled: dis });
-  });
-  button(ctx, 'slotclose', { x: r.x + pw / 2 - 70, y: r.y + ph - 64, w: 140, h: 46 }, '返回', onClose, { primary: true });
-}
+/** main menu 讀取進度: the original loadsave carousel (origdlg.ts) over the main-menu backdrop */
 export class LoadScene implements Scene {
+  win = new LoadSaveWin('load', slot => { const d = loadSlot(slot); if (d) go('game', { load: d.g }); }, () => go('mainmenu'));
+  update(dt: number) { this.win.update(dt); }
   render(ctx: CanvasRenderingContext2D, w: number, h: number) {
     patternBg(ctx, w, h);
-    drawSlots(ctx, w, h, 'load', slot => { const d = loadSlot(slot); if (d) go('game', { load: d.g }); }, () => go('mainmenu'));
+    const st = stage(w, h); applyStage(ctx, st);
+    drawFrame(ctx, 'mainmenu/bg', 2, 400, 560, 0.8);
+    drawFrame(ctx, 'mainmenu/bg', 0, 255, 300, 0.92);
+    drawFrame(ctx, 'mainmenu/bg', 1, 560, 180, 0.82);
+    resetT(ctx);
+    this.win.render(ctx, w, h);
   }
-  onKey(k: string) { if (k === 'Escape') go('mainmenu'); }
+  onKey(k: string) { this.win.key(k); }
 }
 void wait; void FONT;
