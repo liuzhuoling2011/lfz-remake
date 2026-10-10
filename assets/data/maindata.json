@@ -1,0 +1,153 @@
+{
+ "ActorName": {
+  "character01": "老夫子",
+  "character02": "大番薯",
+  "character03": "秦先生",
+  "character04": "趙先生",
+  "character05": "陳小姐",
+  "character06": "小明",
+  "character07": "小偷",
+  "character08": "惡人",
+  "character09": "機械人",
+  "character10": "財神",
+  "character11": "工程女神",
+  "character12": "卡神"
+ },
+ "CD-ROM": {
+  "Msg1": "找不到CD-ROM drive！",
+  "Msg2": "在所有CD-ROM drive 也沒有<老夫子大富翁 Disc 2>，請放入<老夫子大富翁 Disc 2>！謝謝 ^.^",
+  "Msg3": "請放入<老夫子大富翁 Disc 2>！否則無法啟動遊戲！！！"
+ },
+ "Option-Speed": {
+  "0": "慢速",
+  "1": "正常速度",
+  "2": "快速"
+ },
+ "Option-Title": {
+  "0": "螢幕區域",
+  "1": "遊戲速度",
+  "2": "音效",
+  "3": "音樂"
+ },
+ "SAVE_LOAD_MESSAGE": {
+  "year": "年期",
+  "map": "地區",
+  "MapName0": "香港島",
+  "MapName1": "九龍區",
+  "MapName2": "古代",
+  "-1": "∞",
+  "SaveMsg": "你要覆蓋原來的記錄進度嗎？",
+  "LoadErr": "沒有已存記錄！"
+ },
+ "Misc": {
+  "ExitGame": "你真的想結束遊戲嗎？",
+  "SelectCardTager": "請選擇使用卡牌的對象",
+  "SelectCardError": "沒有對手可以選擇了！",
+  "SelectSmallMan": "打小人每次收費%d元！",
+  "Jclub": "今期的累積獎金已達：\\n%d元\\n要購買嗎？",
+  "GiveMoney0": "財神附體，所有消費免費！",
+  "GiveMoney4": "%s住院中，所有消費免費！",
+  "GiveMoney5": "%s坐牢中，所有消費免費！",
+  "GiveMoney1": "進入%s的食肆消費%d元！",
+  "GiveMoney2": "進入%s的商店消費%d元！",
+  "GiveMoney3": "探訪%s送禮%d元！",
+  "type1_1": "商業投資獲利%d元！",
+  "type1_2": "商業投資損失%d元！",
+  "NoneCard": "沒有四字真言！",
+  "income": "派發薪酬%d元！",
+  "LockMsg": "出門前請鎖好門窗！每把鎖只需%d元，你要購買嗎？",
+  "TeMsg1": "你想添香油錢嗎？每次%d元！",
+  "TeMsg2": "你得到一張「%s」四字真言！",
+  "CantAttack1": "「%s」四字真言生效，攻擊失效！",
+  "CantAttack2": "防止四字真言攻擊生效中，攻擊失效！",
+  "CardGodMsg": "%s贈送四字真言「%s」給%s！",
+  "winnerMsg": "%s得到一張「%s」四字真言！"
+ },
+ "detailInfo": {
+  "homeMoney": "HomeMoney :",
+  "total": "total\u0000\u0000\u0000\u0000\u0000:",
+  "cardCount": "CardCount :",
+  "houseCount": "HouseCount:"
+ },
+ "NPC": {
+  "PK1": "%s被惡人打傷入院三周！",
+  "PK1JPG": "character08_attack.jpg",
+  "PK2": "%s被惡人打傷入院三周！",
+  "PK2JPG": "character08_attack.jpg",
+  "PK3": "%s被猛虎咬傷入院三周！",
+  "PK3JPG": "tiger_attack.jpg",
+  "ThiefMsg": "%s的家遭小偷光顧損失%d元！"
+ },
+ "SpBuilding": {
+  "c1": "繳交%d元維修費！",
+  "c2": "到香港大學進修停留兩回合！",
+  "c3": "到戲院欣賞<水滸傳>，停留一回合並付款%d元購買戲票！",
+  "c4": "繳付%d元參觀費，並停留一回合參觀！",
+  "c5": "繳付%d元機場稅，並停留兩回合！",
+  "c6": "繳付%d元車資！",
+  "c7": "繳付%d元住宿費，並入住一星期！",
+  "c8": "到私塾讀書停留兩回合！",
+  "c9": "繳付%d元香油錢！"
+ },
+ "SelectBuilding": {
+  "title": "你要興建什麼房子呢？",
+  "building1": "興建住宅需要%d元！",
+  "building2": "興建商業中心需要%d元！",
+  "building3": "興建食肆需要%d元！",
+  "exit": "還是遲些再建吧！",
+  "homeTitle": "還是先建房子吧！",
+  "homeText": "興建房子需要%d元！",
+  "uplevelBuilding": "提升等級需%d元，好嗎？"
+ },
+ "Map": {
+  "0": "dat\\map\\hongkong.mab",
+  "1": "dat\\map\\kowloon.mab",
+  "2": "dat\\map\\ancient.mab"
+ },
+ "SFX": {
+  "00": "dat\\sfx\\SFX004.wav",
+  "01": "dat\\sfx\\SFX010.wav",
+  "02": "dat\\sfx\\SFX080.wav",
+  "03": "dat\\sfx\\SFX030.wav",
+  "04": "dat\\sfx\\SFX031.wav",
+  "05": "dat\\sfx\\SFX032.wav",
+  "06": "dat\\sfx\\SFX033.wav",
+  "07": "dat\\sfx\\SFX034.wav",
+  "08": "dat\\sfx\\SFX035.wav",
+  "09": "dat\\sfx\\SFX036.wav",
+  "10": "dat\\sfx\\SFX037.wav",
+  "11": "dat\\sfx\\SFX047.wav",
+  "12": "dat\\sfx\\SFX049.wav",
+  "13": "dat\\sfx\\SFX058.wav",
+  "14": "dat\\sfx\\SFX067.wav",
+  "15": "dat\\sfx\\SFX068.wav",
+  "16": "dat\\sfx\\SFX070.wav",
+  "17": "dat\\sfx\\SFX071.wav",
+  "18": "dat\\sfx\\SFX074.wav",
+  "19": "dat\\sfx\\SFX075.wav",
+  "20": "dat\\sfx\\SFX078.wav",
+  "21": "dat\\sfx\\SFX079.wav",
+  "22": "dat\\sfx\\SFX064.wav"
+ },
+ "Music": {
+  "Map01_0": "mus\\AudioTrack04.mp3",
+  "Map01_1": "mus\\AudioTrack05.mp3",
+  "Map01_2": "mus\\AudioTrack06.mp3",
+  "Map01_3": "mus\\AudioTrack04.mp3",
+  "Map02_0": "mus\\AudioTrack04.mp3",
+  "Map02_1": "mus\\AudioTrack05.mp3",
+  "Map02_2": "mus\\AudioTrack06.mp3",
+  "Map02_3": "mus\\AudioTrack04.mp3",
+  "Map03_0": "mus\\Ancient_Spring.mp3",
+  "Map03_1": "mus\\Ancient_Summer.mp3",
+  "Map03_2": "mus\\Ancient_Autumn.mp3",
+  "Map03_3": "mus\\Ancient_Winter.mp3",
+  "MainMenu": "mus\\AudioTrack03.mp3",
+  "MiniGame1": "mus\\minigame03.mp3",
+  "MiniGame2": "mus\\AudioTrack07_1.mp3",
+  "MiniGame3": "mus\\minigame03.mp3",
+  "MiniGame4": "mus\\AudioTrack07_1.mp3",
+  "Winner": "mus\\winner.mp3",
+  "loser": "mus\\loser.mp3"
+ }
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "source": "dat/exttext/character0N.txt [AI] section",
+  "attrack": {
+    "character01": {
+      "name": "老夫子",
+      "order": [
+        3,
+        5,
+        2,
+        1,
+        4
+      ]
+    },
+    "character02": {
+      "name": "大番薯",
+      "order": [
+        5,
+        3,
+        2,
+        4,
+        0
+      ]
+    },
+    "character03": {
+      "name": "秦先生",
+      "order": [
+        4,
+        3,
+        5,
+        0,
+        1
+      ]
+    },
+    "character04": {
+      "name": "趙先生",
+      "order": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ]
+    },
+    "character05": {
+      "name": "陳小姐",
+      "order": [
+        5,
+        1,
+        3,
+        0,
+        2
+      ]
+    },
+    "character06": {
+      "name": "小明",
+      "order": [
+        1,
+        2,
+        4,
+        0,
+        3
+      ],
+      "lucky": 100
+    }
+  },
+  "indexMeaning_INFERRED": {
+    "0": "住宅 / building type 3 path",
+    "1": "商業中心 / type 1",
+    "2": "食肆 / type 2",
+    "3": "offensive card / attack",
+    "4": "special / visit type4",
+    "5": "safe buff / bank-related",
+    "note": "Permutation of 0..5; higher list position = higher preference when choosing among options. Exact enum binding not in exe strings (attrack absent from binary)."
+  },
+  "decisionRules_INFERRED": [
+    "Buy empty lot if cash >= yearScaled(basePrice) and remaining cash buffer; prefer lot building-type matching earliest attrack entry among available build options",
+    "Upgrade own lot if cash >= upgradeCost and level < 3",
+    "Skip buy/upgrade when status confused (word card 6) or status==6",
+    "Use offensive word cards (1,5,6,7,8) when attrack prioritizes attack indices and target has high homeMoney/netWorth",
+    "Use defensive cards (11,12,13,14,15,16) when self has debuff or high threat",
+    "character06 lucky=100: bias toward chance/lottery / risky options when tied",
+    "Never act if status==-1 (eliminated)"
+  ],
+  "confidence": "PARTIAL_VERIFIED_DATA_INFERRED_POLICY",
+  "codeNote": "attrack string not present in omasterq.exe; likely generic ExtText key/value reader. Consumer not located."
+}

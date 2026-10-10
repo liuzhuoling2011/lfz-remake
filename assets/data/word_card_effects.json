@@ -1,0 +1,411 @@
+{
+  "schemaVersion": 1,
+  "count": 16,
+  "notes": "Opcodes structured from ExtText; engine applies via usecard path. Durations in weeks=player turns.",
+  "cards": [
+    {
+      "id": 1,
+      "title": "人棄我取",
+      "text": "會使一位對手為自己「屋企」進行大掃除，然後把「屋企」中一半金錢棄置在門外。",
+      "jpg": "a_003.jpg",
+      "selectPlayer": 1,
+      "target": "opponent",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "force_clean_home",
+          "target": "opponent",
+          "dumpHalfOutside": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "一視同仁",
+      "text": "使用在自己身上便可與其他對手平分手上的現金。",
+      "jpg": "a_005.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "equalize_cash",
+          "with": "all_other_players"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "回頭是岸",
+      "text": "使用在自己或對手身上便可使自己或對手走回頭路。",
+      "jpg": "a_006.jpg",
+      "selectPlayer": 2,
+      "target": "self_or_opponent",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "reverse_direction",
+          "target": "selected"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "步步為營",
+      "text": "使用在自己身上便可以選擇自己的行走步數。",
+      "jpg": "a_008.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "choose_steps",
+          "target": "self"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "隻手遮天",
+      "text": "可偷取對手「屋企」中的金錢。",
+      "jpg": "a_009.jpg",
+      "selectPlayer": 1,
+      "target": "opponent",
+      "rawResult": "20",
+      "effects": [
+        {
+          "op": "steal_home_money",
+          "target": "opponent",
+          "percent": 20
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "神智不清",
+      "text": "對手因神智不清，所以不能購買及增建物業，有效期為三個星期。",
+      "jpg": "a_011.jpg",
+      "selectPlayer": 1,
+      "target": "opponent",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "confused",
+          "weeks": 3,
+          "blocks": [
+            "buy",
+            "upgrade"
+          ],
+          "target": "opponent"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "一曝十寒",
+      "text": "會使一位對手冰封並停留原地三個星期。",
+      "jpg": "a_014.jpg",
+      "selectPlayer": 1,
+      "target": "opponent",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "frozen",
+          "weeks": 3,
+          "target": "opponent"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "得而復失",
+      "text": "會使一位對手在三星期內每次行走也會掉下金錢。",
+      "jpg": "a_015.jpg",
+      "selectPlayer": 1,
+      "target": "opponent",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "drop_money_while_walking",
+          "weeks": 3,
+          "target": "opponent"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "移形換影",
+      "text": "使用在自己身上便可以馬上返回自己「屋企」。",
+      "jpg": "b_003.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "teleport",
+          "target": "home"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 10,
+      "title": "多勞多得",
+      "text": "使用在自己身上便可以馬上到「洋行」提錢。",
+      "jpg": "b_004_rev03.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "teleport",
+          "target": "bank"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 11,
+      "title": "驅鬼捉邪",
+      "text": "當自己被衰神附身時，使用驅鬼捉邪可以把衰神驅除。",
+      "jpg": "b_005.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "remove_status",
+          "status": "bad_god",
+          "target": "self"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 12,
+      "title": "金鋼護體",
+      "text": "使用金鋼護體後，便會受到保護，使自己免受任何「四字真言」侵襲三個星期。",
+      "jpg": "b_007.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "word_card_immune",
+          "weeks": 3,
+          "target": "self"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 13,
+      "title": "催吉避凶",
+      "text": "使用催吉避凶可以化解惡運，三個星期內可防止衰神附身。",
+      "jpg": "b_008.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "bad_god_immune",
+          "weeks": 3,
+          "target": "self"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 14,
+      "title": "魔高一丈",
+      "text": "使用魔高一丈可以防止被對手「打小人」。",
+      "jpg": "b_009.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "smallman_immune",
+          "weeks": null,
+          "note": "prevents 打小人; duration not numeric in text",
+          "target": "self"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 15,
+      "title": "和氣生財",
+      "text": "使用和氣生財可以化解所有恩怨，解除已經生效於自己身上的「四字真言」。",
+      "jpg": "b_011.jpg",
+      "selectPlayer": 0,
+      "target": "self",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "clear_word_card_debuffs",
+          "target": "self"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    },
+    {
+      "id": 16,
+      "title": "化險為夷",
+      "text": "當被對手施用「四字真言」時，如果擁有此四字真言便會自動產生防護作用。",
+      "jpg": "b_012.jpg",
+      "selectPlayer": -1,
+      "target": "passive",
+      "rawResult": "Default",
+      "effects": [
+        {
+          "op": "passive_auto_defend_word_card",
+          "trigger": "when_targeted"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "wordCard.txt",
+        "usecard",
+        "bycard",
+        "CantAttack1",
+        "CantAttack2",
+        "CardGodMsg"
+      ]
+    }
+  ]
+}

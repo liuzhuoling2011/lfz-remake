@@ -1,0 +1,649 @@
+{
+  "schemaVersion": 1,
+  "count": 26,
+  "notes": "Effects derived from chance.txt Big5 text + result field. FUN_00413110: CardRandom→random word card; numeric→year-scaled via FUN_0040e9a0; Default→id-specific side effect. scaledByYear=true means remake should pass amount through year inflation (§4.1).",
+  "cards": [
+    {
+      "id": 1,
+      "kind": "lucky",
+      "title": "大獲全勝",
+      "text": "鬥棋時大獲全勝，獲得現金%d元！",
+      "voice": "tool_01.mp3",
+      "jpg": "lucky_chance_01.jpg",
+      "rawResult": "100",
+      "normalizedResult": "100",
+      "effects": [
+        {
+          "op": "add_cash",
+          "amount": 100,
+          "scaledByYear": true,
+          "fmt": "text_%d"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "lucky",
+      "title": "步步高昇",
+      "text": "意外地找到金礦，手上一間物業等級提升一級！",
+      "voice": "tool_02.mp3",
+      "jpg": "lucky_chance_02.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "upgrade_owned_property",
+          "delta": 1,
+          "pick": "random"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT_INFERRED_PICK",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "lucky",
+      "title": "誠心求拜",
+      "text": "神明顯靈，得到一張「%s」四字真言！",
+      "voice": "tool_03.mp3",
+      "jpg": "lucky_chance_03.jpg",
+      "rawResult": "CardRandom",
+      "normalizedResult": "CardRandom",
+      "effects": [
+        {
+          "op": "gain_word_card",
+          "mode": "random"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "lucky",
+      "title": "鋤強扶弱",
+      "text": "資產最多的對手需要給你現金10％！",
+      "voice": "tool_04.mp3",
+      "jpg": "lucky_chance_04.jpg",
+      "rawResult": "10",
+      "normalizedResult": "10",
+      "effects": [
+        {
+          "op": "take_percent_cash_from",
+          "who": "richest_opponent",
+          "percent": 10
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "lucky",
+      "title": "經營副業",
+      "text": "夜間進行兼職，獲得薪金%d元！",
+      "voice": "tool_05.mp3",
+      "jpg": "lucky_chance_05.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "add_cash",
+          "amount": 500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "lucky",
+      "title": "耐人尋味",
+      "text": "前進一步！",
+      "voice": "tool_06.mp3",
+      "jpg": "lucky_chance_06.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "move_steps",
+          "steps": 1
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "lucky",
+      "title": "仁心仁術",
+      "text": "醫者父母心，得到一張「%s」四字真言！",
+      "voice": "tool_07.mp3",
+      "jpg": "lucky_chance_07.jpg",
+      "rawResult": "CardRandom",
+      "normalizedResult": "CardRandom",
+      "effects": [
+        {
+          "op": "gain_word_card",
+          "mode": "random"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "lucky",
+      "title": "生意興隆",
+      "text": "公司生意順景，獲利%d元！",
+      "voice": "tool_08.mp3",
+      "jpg": "lucky_chance_08.jpg",
+      "rawResult": "1000",
+      "normalizedResult": "1000",
+      "effects": [
+        {
+          "op": "add_cash",
+          "amount": 1000,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "lucky",
+      "title": "梅開二度",
+      "text": "一不離二，再擲骰子一次！",
+      "voice": "tool_09.mp3",
+      "jpg": "lucky_chance_09.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "roll_again"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "lucky",
+      "title": "一帆風順",
+      "text": "乘坐順風車，直接返回「屋企」！",
+      "voice": "tool_10.mp3",
+      "jpg": "lucky_chance_10.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "teleport",
+          "target": "home"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "lucky",
+      "title": "捷足先登",
+      "text": "獲地產商贈送物業一間！",
+      "voice": "tool_11.mp3",
+      "jpg": "lucky_chance_11.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "gain_free_property",
+          "pick": "unowned_random"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT_INFERRED_PICK",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "lucky",
+      "title": "奉公守法",
+      "text": "幫忙捉拿小偷，得好市民獎，獲得獎金%d元！",
+      "voice": "tool_12.mp3",
+      "jpg": "lucky_chance_12.jpg",
+      "rawResult": "1000",
+      "normalizedResult": "1000",
+      "effects": [
+        {
+          "op": "add_cash",
+          "amount": 1000,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 13,
+      "kind": "bad",
+      "title": "意料之外",
+      "text": "不小心從屋頂跌下，往院三個星期及繳付醫藥費%d元！",
+      "voice": "tool_13.mp3",
+      "jpg": "bad_chance_01.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "set_status",
+          "status": "hospital",
+          "weeks": 3
+        },
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 14,
+      "kind": "bad",
+      "title": "雨意雲情",
+      "text": "下雨天著涼，往院一個星期及繳付醫藥費%d元！",
+      "voice": "tool_14.mp3",
+      "jpg": "bad_chance_02.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "set_status",
+          "status": "hospital",
+          "weeks": 1
+        },
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 15,
+      "kind": "bad",
+      "title": "尋幽探勝",
+      "text": "因行為不檢而被警方拘捕，入獄一個星期及罰款%d元！",
+      "voice": "tool_15.mp3",
+      "jpg": "bad_chance_03.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "set_status",
+          "status": "jail",
+          "weeks": 1
+        },
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 16,
+      "kind": "bad",
+      "title": "敢作敢為",
+      "text": "因偷窺而被警方拘捕，入獄兩個星期及罰款%d元！",
+      "voice": "tool_16.mp3",
+      "jpg": "bad_chance_04.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "set_status",
+          "status": "jail",
+          "weeks": 2
+        },
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 17,
+      "kind": "bad",
+      "title": "愛莫能助",
+      "text": "郊遊時被蛇咬傷，往院兩個星期及繳付醫藥費%d元！",
+      "voice": "tool_17.mp3",
+      "jpg": "bad_chance_05.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "set_status",
+          "status": "hospital",
+          "weeks": 2
+        },
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 18,
+      "kind": "bad",
+      "title": "鼠輩橫行",
+      "text": "小偷光顧，「屋企」損失現金10％！",
+      "voice": "tool_18.mp3",
+      "jpg": "bad_chance_06.jpg",
+      "rawResult": "10",
+      "normalizedResult": "10",
+      "effects": [
+        {
+          "op": "lose_home_money_percent",
+          "percent": 10
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 19,
+      "kind": "bad",
+      "title": "劫富濟貧",
+      "text": "捐贈現金10％給資產最小的對手！",
+      "voice": "tool_19.mp3",
+      "jpg": "bad_chance_07.jpg",
+      "rawResult": "10",
+      "normalizedResult": "10",
+      "effects": [
+        {
+          "op": "give_percent_cash_to",
+          "who": "poorest_opponent",
+          "percent": 10
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 20,
+      "kind": "bad",
+      "title": "山泥傾瀉",
+      "text": "因山泥傾瀉，手上一間物業下降一級！",
+      "voice": "tool_20.mp3",
+      "jpg": "bad_chance_08.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "upgrade_owned_property",
+          "delta": -1,
+          "pick": "random"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT_INFERRED_PICK",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 21,
+      "kind": "bad",
+      "title": "無心之失",
+      "text": "不小心遺失一張四字真言！",
+      "voice": "tool_21.mp3",
+      "jpg": "bad_chance_09.jpg",
+      "rawResult": "CardRandom",
+      "normalizedResult": "CardRandom",
+      "effects": [
+        {
+          "op": "lose_word_card",
+          "mode": "random"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 22,
+      "kind": "bad",
+      "title": "前無去路",
+      "text": "因封路不能前進，判罰走回頭路！",
+      "voice": "tool_22.mp3",
+      "jpg": "bad_chance_10.jpg",
+      "rawResult": "Deafult",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "reverse_direction"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 23,
+      "kind": "bad",
+      "title": "裹足不前",
+      "text": "罰原地停留一次！",
+      "voice": "tool_23.mp3",
+      "jpg": "bad_chance_11.jpg",
+      "rawResult": "Default",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "skip_turn",
+          "turns": 1
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 24,
+      "kind": "bad",
+      "title": "因小失大",
+      "text": "輸掉飛刀比賽，損失現金%d元！",
+      "voice": "tool_24.mp3",
+      "jpg": "bad_chance_12.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 25,
+      "kind": "bad",
+      "title": "饑不擇食",
+      "text": "因進食過量而身體不適，往院一星期及繳付醫藥費%d元！",
+      "voice": "tool_25.mp3",
+      "jpg": "bad_chance_13.jpg",
+      "rawResult": "500",
+      "normalizedResult": "500",
+      "effects": [
+        {
+          "op": "set_status",
+          "status": "hospital",
+          "weeks": 1
+        },
+        {
+          "op": "add_cash",
+          "amount": -500,
+          "scaledByYear": true
+        }
+      ],
+      "confidence": "VERIFIED_TEXT",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    },
+    {
+      "id": 26,
+      "kind": "bad",
+      "title": "阿公收地",
+      "text": "政府強迫收地，失去物業一間！",
+      "voice": "tool_26.mp3",
+      "jpg": "bad_chance_14.jpg",
+      "rawResult": "Deafult",
+      "normalizedResult": "Default",
+      "effects": [
+        {
+          "op": "lose_property",
+          "pick": "random_owned"
+        }
+      ],
+      "confidence": "VERIFIED_TEXT_INFERRED_PICK",
+      "codeRefs": [
+        "FUN_00413060",
+        "FUN_00413110",
+        "FUN_00413250",
+        "chance.txt"
+      ]
+    }
+  ]
+}
