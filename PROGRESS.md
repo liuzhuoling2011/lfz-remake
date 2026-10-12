@@ -200,6 +200,8 @@ User: 按原版继续扣 — AI 四字真言 strategy, status field model, sweep
 - Jockey win already VERIFIED; nothing else soft from prior open lists that still needed a code change this round.
 
 tests/round24_status_ai.mjs; screenshots/round24/; autoplay maps 0–2 OK 0 errors.
+Deploy: main `2843953`, Pages `8611aea`, NAS `/volume4/web/lfz/`.
+
 
 ## Round 23 — 四字真言 grey tables, usecard feel, 驅鬼, hand cap (2026-10-12 Asia/Shanghai)
 
