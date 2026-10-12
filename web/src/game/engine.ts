@@ -239,6 +239,8 @@ export class Engine {
             const id = await this.ui.pickCard(p);
             if (id !== null) await this.useCardInteractive(p, id);
             if (!p.alive || this.stopped) return;
+            // VERIFIED @0x410ee0 case 3: 步步為營 opens step.spr immediately (no return to dice menu first)
+            if (p.chooseSteps) break;
           }
         }
       }
