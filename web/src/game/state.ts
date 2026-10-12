@@ -17,6 +17,8 @@ export interface RoadMoney { tile: number; amount: number }
 export interface GameState {
   v: 1; map: number; weeksLimit: number; week: number; current: number;
   players: Player[]; plots: (PlotState | null)[]; jackpot: number; roadMoney: RoadMoney[];
+  /** thief walker (exe NPC slot 4) */
+  thief?: { tile: number; prev: number };
   winner: number | null; rngSeed: number; turnCount: number;
 }
 
@@ -39,7 +41,7 @@ export function newGame(board: Board, map: number, weeksLimit: number, seats: Se
   });
   return {
     v: 1, map, weeksLimit, week: 0, current: 0, players, plots: board.plots.map(() => null),
-    jackpot: RULES.jackpotInit, roadMoney: [], winner: null, rngSeed: (Math.random() * 1e9) | 0, turnCount: 0,
+    jackpot: RULES.jackpotInit, roadMoney: [], thief: (() => { const t = Math.floor(board.tiles.length / 2); return { tile: t, prev: board.defaultPrev(t) }; })(), winner: null, rngSeed: (Math.random() * 1e9) | 0, turnCount: 0,
   };
 }
 

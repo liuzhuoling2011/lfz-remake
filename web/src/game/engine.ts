@@ -145,7 +145,7 @@ export class Engine {
     let i = this.g.current;
     for (let k = 0; k < n; k++) {
       i = (i + 1) % n;
-      if (i === 0) await this.newWeek();
+      if (i === 0) { await this.newWeek(); await this.thiefTurn(); }
       if (this.g.players[i].alive) break;
     }
     this.g.current = i; this.g.turnCount++;
@@ -275,12 +275,35 @@ export class Engine {
   async move(p: Player, steps: number) {
     const v = this.view;
     const path = this.route(p, steps);
-    let office = false;
-    await v.walkPath(p.seat, p.tile, path, (i, tile) => {
-      p.prev = i === 0 ? p.tile : path[i - 1]; p.tile = tile;
+    // The exe resolves 洋行 salary (@0x4169d4) and the thief walker (@0x4168df) inside the per-step routine, i.e. the
+    // moment the token reaches that tile. Walk in segments that end on those tiles, resolve, then keep walking.
+    const stops: number[] = [];
+    path.forEach((t, i) => { if (this.b.tiles[t].landmarks.some(l => l.kind === 'of') || (this.g.thief && this.g.thief.tile === t)) stops.push(i); });
+    let start = 0;
+    for (const end of [...stops.filter(i => i < path.length - 1), path.length - 1]) {
+      const seg = path.slice(start, end + 1); const from = start === 0 ? p.tile : path[start - 1]; const base = start;
+      await this.walkSeg(p, from, seg, base, path);
+      if (!p.alive) return;
+      const tile = path[end];
+      if (this.b.tiles[tile].landmarks.some(l => l.kind === 'of')) await this.salary(p);
+      if (this.g.thief && this.g.thief.tile === tile) await this.thiefPickpocket(p, end === path.length - 1);
+      start = end + 1;
+      if (start >= path.length) break;
+    }
+    p.tile = path[path.length - 1] ?? p.tile; p.prev = path.length > 1 ? path[path.length - 2] : p.prev;
+    v.actor(p.seat).anim = 'stand';
+    // greet another character standing on the same tile (voice 25a–e)
+    const other = this.alive().find(o => o.seat !== p.seat && o.tile === p.tile);
+    if (other && Math.random() < 0.7) this.greet(p, other);
+  }
+
+  private walkSeg(p: Player, from: number, seg: number[], base: number, path: number[]) {
+    const v = this.view;
+    return v.walkPath(p.seat, from, seg, (j, tile) => {
+      const i = base + j;
+      p.prev = i === 0 ? from : path[i - 1]; p.tile = tile;
       if (!TURBO) void sfx('interface/sfx065', 0.35); // footstep
       this.passTile(p);
-      if (this.b.tiles[tile].landmarks.some(l => l.kind === 'of')) office = true;
       // VERIFIED @0x416ae8: 得而復失 — every step 1-in-4 chance to drop (1..2)% of cash on the road
       if (p.status.dropMoney > 0 && Math.floor(Math.random() * 4) === 0) {
         const amt = Math.floor(p.cash * (1 + Math.floor(Math.random() * RULES.dropMoneyPct)) / 100);
@@ -288,12 +311,44 @@ export class Engine {
       }
       this.onChange();
     });
-    p.tile = path[path.length - 1] ?? p.tile; p.prev = path.length > 1 ? path[path.length - 2] : p.prev;
-    v.actor(p.seat).anim = 'stand';
-    if (office && p.alive) await this.salary(p);
-    // greet another character standing on the same tile (voice 25a–e)
-    const other = this.alive().find(o => o.seat !== p.seat && o.tile === p.tile);
-    if (other && Math.random() < 0.7) this.greet(p, other);
+  }
+
+  /**
+   * VERIFIED @0x4168df: a player stepping onto the thief walker's tile (not in hospital/jail) loses
+   * (rand%10+10)·cash/50 = 20–38% when only passing, (rand%10+10)·cash/100 = 10–19% when it is the final step; voice 15.
+   */
+  async thiefPickpocket(p: Player, last: boolean, r = Math.floor(Math.random() * 10)) {
+    if (p.status.hospital > 0 || p.status.jail > 0) return 0;
+    const amt = Math.floor((r + 10) * p.cash / (last ? 100 : 50));
+    if (amt <= 0) return 0;
+    p.cash -= amt; this.view.money(p.seat, -amt); this.speak(p, L.robbed);
+    this.ui.toast(`${this.name(p)}遇上${charName(7)}，被偷去 ${amt} 元！`, { seat: p.seat, color: '#ff8a65' });
+    this.onChange();
+    return amt;
+  }
+
+  /**
+   * Thief walker (exe NPC slot 4, character07). Moves once per week (cadence INFERRED, 1–6 steps).
+   * VERIFIED @0x416357: when it stops beside a 屋企 (type 4) it breaks in with chance 1/(locks+1) and takes
+   * (rand%40+60)% of that owner's home savings (ThiefMsg, voice 15).
+   */
+  async thiefTurn() {
+    const th = this.g.thief; if (!th) return;
+    const steps = 1 + Math.floor(Math.random() * 6);
+    const path: number[] = []; let cur = th.tile, prev = th.prev;
+    for (let i = 0; i < steps; i++) { const o = this.b.options(cur, prev); const nx = o[Math.floor(Math.random() * o.length)]; path.push(nx); prev = cur; cur = nx; }
+    await this.view.walkPath(4, th.tile, path, () => {});
+    this.view.actor(4).anim = 'stand';
+    th.prev = prev; th.tile = cur;
+    for (const pl of this.b.tiles[cur].plots) {
+      const ps = this.g.plots[pl];
+      if (!ps || ps.type !== PLOT.HOME) continue;
+      const o = this.g.players[ps.owner]; if (!o.alive || o.home <= 0) continue;
+      if (Math.floor(Math.random() * (o.locks + 1)) !== 0) { this.speak(o, L.lock); continue; }
+      const amt = Math.floor((Math.floor(Math.random() * 40) + 60) * o.home / 100);
+      o.home -= amt; this.speak(o, L.robbed); this.onChange();
+      await this.info(msg('NPC', 'ThiefMsg', this.name(o), amt), {}, this.cur);
+    }
   }
 
   passTile(p: Player) {
@@ -824,13 +879,8 @@ export class Engine {
     if (Math.random() >= RULES.npcEventChance) return;
     const r = Math.random();
     const a = this.view.actor(p.seat);
-    if (r < 0.3) { // thief
-      if (p.home <= 0) return;
-      if (p.locks > 0) { p.locks--; this.speak(p, L.lock); await this.info('小偷想光顧' + this.name(p) + '的家，但門窗已鎖好！', { title: charName(7) }, p); return; }
-      const amt = Math.floor(p.home * (0.1 + Math.random() * 0.2)); p.home -= amt;
-      this.speak(p, L.robbed); // VERIFIED line 15 next to NPC/ThiefMsg
-      await this.info(msg('NPC', 'ThiefMsg', this.name(p), amt), { title: charName(7), kind: 'npc' }, p);
-    } else if (r < 0.5) { // thug / tiger
+    // the thief is now a real board walker (thiefTurn / thiefPickpocket), no longer a random event
+    if (r < 0.3) { // thug / tiger
       const tiger = this.b.key === 'ancient';
       if (p.status.cardImmune > 0) return;
       await this.info(msg('NPC', tiger ? 'PK3' : 'PK1', this.name(p)), { title: tiger ? '猛虎' : charName(8), image: 'images/cards/' + (tiger ? 'tiger_attack.jpg' : 'character08_attack.jpg'), kind: 'npc' }, p);

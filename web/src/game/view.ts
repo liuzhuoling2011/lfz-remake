@@ -234,7 +234,8 @@ export class MapView {
     return p;
   }
   private async loadGround() {
-    const key = this.board.key;
+    // per-orientation in-context HD ground (tools/upscale.py ground --rots 1,2,3 → hd/ground/<map>_r<rot>)
+    const key = this.rot ? `${this.board.key}_r${this.rot}` : this.board.key;
     if (this.groundKey === key) return;
     this.groundKey = key;
     this.ground = await MapView.groundTiles(key);
@@ -245,7 +246,7 @@ export class MapView {
     const epoch = Assets.assetEpoch;
     const K = Assets.hdFull() ? 2 : 1;
     if (K === 2) await this.loadGround();
-    const ground = K === 2 && this.rot === 0 ? this.ground : null;
+    const ground = K === 2 ? this.ground : null;
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     for (const o of this.baked) { x0 = Math.min(x0, o.x0); y0 = Math.min(y0, o.y0); x1 = Math.max(x1, o.x1); y1 = Math.max(y1, o.y1); }
     const statics = this.objects.filter(o => !o.anim);
@@ -600,14 +601,14 @@ export class MapView {
 
   drawActor(ctx: CanvasRenderingContext2D, a: Actor) {
     const c = a.char < 10 ? '0' + a.char : String(a.char);
-    const suffix = a.anim === 'walk' ? '02' : a.anim === 'use' ? '04' : a.anim === 'hit' ? '05' : '01';
+    const suffix = a.seat >= 4 || a.anim === 'walk' ? '02' : a.anim === 'use' ? '04' : a.anim === 'hit' ? '05' : '01';
     const name = `map/character/character${c}_${suffix}`;
     const gi = groupInfo(name); const g = Math.min(a.dir, gi.g.length - 1);
     const n = gi.g[g];
     // walk cycle is driven by distance travelled (feet never slide); idle/use/hit by time
-    const fi = gi.start[g] + (a.anim === 'walk' ? Math.floor((a.walkDist ?? 0) / STRIDE * n) % n : Math.floor(a.t * 12 / 1000) % n);
-    ctx.globalAlpha = 0.85; ctx.strokeStyle = PLAYER_COLORS[a.seat]; ctx.lineWidth = a.seat === this.current ? 4 : 2.5;
-    ctx.beginPath(); ctx.ellipse(a.x, a.y, 24, 11, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+    const fi = a.seat >= 4 && a.anim !== 'walk' ? gi.start[g] : gi.start[g] + (a.anim === 'walk' ? Math.floor((a.walkDist ?? 0) / STRIDE * n) % n : Math.floor(a.t * 12 / 1000) % n);
+    if (a.seat < 4) { ctx.globalAlpha = 0.85; ctx.strokeStyle = PLAYER_COLORS[a.seat]; ctx.lineWidth = a.seat === this.current ? 4 : 2.5;
+    ctx.beginPath(); ctx.ellipse(a.x, a.y, 24, 11, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
     drawFrame(ctx, 'map/shadow', 0, a.x, a.y, 0.8, 0.6);
     const z = a.z ?? 0;
     if (a.tint) { ctx.save(); ctx.filter = a.tint; drawFrame(ctx, name, fi, a.x, a.y + z); ctx.restore(); }

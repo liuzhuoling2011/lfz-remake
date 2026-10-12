@@ -114,3 +114,9 @@
 - Added translucent ⛶ 全螢幕 toggle at screen bottom-right (above info box / over options modal).
 - 四字真言 list: names at gap centres mid=ruleBot-12 (31+20i), selection mask inset inside rules & red margins; desc further inset. Before/after: screenshots/ui9_*_before/after_*.
 - tests/ui9.mjs.
+
+## Round 15
+- HD ground for rotated views: `tools/upscale.py ground --rots 1,2,3` → `hd/ground/<map>_r1..r3` (all 3 maps); view loads `<map>_r<rot>` (SD fallback). Test: `tests/round15_hd_rotate.mjs`.
+- Thief NPC (exe slot 0x4480b4): walks the board; passing/landing on it steals (r+10)·cash/(50 pass | 100 land) (0x4168df); breaks into a 屋企 with chance 1/(locks+1), taking (rand%40+60)% of savings (0x416357). Weekly move cadence is inferred. The old random 5% thief event was removed.
+- Salary is paid mid-walk when passing 洋行 'of' (0x4169d4). Test: `tests/round15_thief_salary.mjs`.
+- Comparison images (no restyle yet): `screenshots/round15/compare_{bankrupt,npc_panel,choose_player,choose_steps}.png`.

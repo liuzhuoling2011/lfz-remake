@@ -194,7 +194,7 @@ def _ground():
     if _G is None:
         _G = set()
         for m in ['hongkong', 'kowloon', 'ancient']:
-            d = json.load(open(os.path.join(SD, 'maps', m + '.json')))
+            d = rotate_map(json.load(open(os.path.join(SD, 'maps', m0 + '.json'))), sd_index, rot)
             for L in d['layers']:
                 if L['flag'] != 1:
                     for o in L['o']: _G.add('map/' + d['sprites'][o[0]])
@@ -308,18 +308,41 @@ SEASONAL = {'tree_change1', 'tree_change2'}
 LIVE_GROUND = {'big_sea', 'icon'}
 CHUNK = 512
 
-def ground(force=False):
+def rotate_map(d, sd_index, times):
+    """Mirror of MapView.rotate() (web/src/game/view.ts): pivot from the object bounds rounded to the 40x20 lattice,
+    (x,y) -> (Cx-2(y-Cy), Cy+(x-Cx)/2) and 4-group sheets advance one direction group per quarter turn."""
+    if not times: return d
+    d = json.loads(json.dumps(d))
+    xs = [o[2] for L in d['layers'] for o in L['o']]; ys = [o[3] for L in d['layers'] for o in L['o']]
+    def rnd(v): return math.floor(v + 0.5)  # JS Math.round
+    Cx = rnd((min(xs) + max(xs)) / 2 / 40) * 40; Cy = rnd((min(ys) + max(ys)) / 2 / 20) * 20
+    for _ in range(times):
+        for L in d['layers']:
+            for o in L['o']:
+                x, y = o[2], o[3]; o[2] = Cx - 2 * (y - Cy); o[3] = Cy + (x - Cx) / 2
+                m = sd_index.get('map/' + d['sprites'][o[0]])
+                g = m.get('g', [len(m['f'])]) if m else [1]
+                if len(g) == 4:
+                    st = [sum(g[:i]) for i in range(4)]
+                    gi = 0
+                    while gi < 3 and o[1] >= st[gi + 1]: gi += 1
+                    ng = (gi + 1) % 4; o[1] = st[ng] + min(o[1] - st[gi], g[ng] - 1)
+    return d
+
+def ground(force=False, rots=(0,)):
     import torch; torch.set_num_threads(8)
     sd_index = json.load(open(os.path.join(SD, 'sprites', 'index.json')))
     sheets = {}
     def sh(name):
         if name not in sheets: sheets[name] = Image.open(os.path.join(A, 'sprites', name + '.png')).convert('RGBA')
         return sheets[name]
-    for m in ['hongkong', 'kowloon', 'ancient']:
+    for m0 in ['hongkong', 'kowloon', 'ancient']:
+      for rot in rots:
+        m = m0 if rot == 0 else '%s_r%d' % (m0, rot)
         man_p = os.path.join(HD, 'ground', m + '.json')
         if not force and os.path.exists(man_p): print('skip', m); continue
         t0 = time.time()
-        d = json.load(open(os.path.join(SD, 'maps', m + '.json')))
+        d = rotate_map(json.load(open(os.path.join(SD, 'maps', m0 + '.json'))), sd_index, rot)
         items = []
         for L in d['layers']:
             if L['flag'] == 1 or L['name'] in LIVE_GROUND: continue
@@ -329,7 +352,7 @@ def ground(force=False):
                 meta = sd_index.get('map/' + nm)
                 if not meta: continue
                 fr = meta['f'][min(f, len(meta['f']) - 1)]
-                items.append((nm, fr, x - fr[4], y - fr[5]))
+                items.append((nm, fr, int(math.floor(x - fr[4])), int(math.floor(y - fr[5]))))
         x0 = min(i[2] for i in items); y0 = min(i[3] for i in items)
         x1 = max(i[2] + i[1][2] for i in items); y1 = max(i[3] + i[1][3] for i in items)
         cx0, cy0 = x0 // CHUNK, y0 // CHUNK; cx1, cy1 = (x1 - 1) // CHUNK, (y1 - 1) // CHUNK
@@ -354,4 +377,4 @@ def ground(force=False):
         print('ground %s: %dx%d SD → %d chunks, %.0fs' % (m, W, H, len(keys), time.time() - t0), flush=True)
 
 if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'ground':
-    ground('--force' in sys.argv)
+    ground('--force' in sys.argv, tuple(int(r) for r in (sys.argv[sys.argv.index('--rots') + 1].split(',') if '--rots' in sys.argv else ['0'])))
