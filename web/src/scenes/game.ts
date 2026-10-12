@@ -296,6 +296,19 @@ export class GameScene implements Scene {
       if (k === 'ArrowUp' || k === 'ArrowDown') { top.sel = Math.max(0, Math.min(n - 1, sel + (k === 'ArrowUp' ? -1 : 1))); this.fixCardScroll(top, n); return; }
       if (k === 'Enter' || k === ' ') { const e = this.cardEntries(top)[sel]; if (e) top.resolve(e.id); return; }
     }
+    if (top && !top.passive && top.kind === 'players') {
+      const n = this.pickItems(top).length; const sel = top.sel ?? -1;
+      if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Tab') { top.sel = ((sel < 0 ? (k === 'ArrowLeft' ? 0 : -1) : sel) + (k === 'ArrowLeft' ? -1 : 1) + n) % n; return; }
+      if (/^[1-4]$/.test(k) && +k <= n) { top.resolve(this.pickItems(top)[+k - 1].value); return; }
+      if (k === 'Enter' || k === ' ') { if (sel >= 0) top.resolve(this.pickItems(top)[sel].value); return; }
+    }
+    if (top && !top.passive && top.kind === 'steps') {
+      if (/^[1-6]$/.test(k)) { top.resolve(+k); return; }
+      const sel = top.sel ?? -1;
+      if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown') { const dd = k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : k === 'ArrowUp' ? -2 : 2; top.sel = sel < 0 ? 0 : (sel + dd + 6) % 6; return; }
+      if (k === 'Enter' || k === ' ') { if (sel >= 0) top.resolve(sel + 1); return; }
+      if (k === 'Escape') return;
+    }
     if (top && !top.passive && (k === 'Enter' || k === ' ')) { const b = top.buttons.find(b => !b.disabled); if (b && top.kind !== 'cards') top.resolve(b.value); return; }
     if (top && !top.passive && k === 'Escape') { const b = top.buttons[top.buttons.length - 1]; if (top.kind !== 'msg') top.resolve(b.value); return; }
     if (this.turnMenuRes && this.overlay === 'none') {
@@ -620,6 +633,9 @@ export class GameScene implements Scene {
     const k = Math.min(1, d.t / 160);
     if (d.style === 'card' && d.cardId) { this.renderCardCast(ctx, w, h, d); return; }
     if (d.kind === 'cards') { this.renderCardSelect(ctx, w, h, d); return; }
+    if (d.badge === 'gameover') { this.renderBankrupt(ctx, w, h, d); return; }
+    if (d.kind === 'players') { this.renderPickPlayer(ctx, w, h, d); return; }
+    if (d.kind === 'steps') { this.renderPickSteps(ctx, w, h, d); return; }
     // Original message box (smessagebox.spr, @0x40b850): plain messages (tolls, tile events, salary, special buildings)
     // use flags 1 (O) for a human, flags 0 (no buttons, auto-close) for an AI; yes/no questions use flags 3 (O + X).
     if ((d.kind === 'msg' || d.kind === 'confirm') && !d.image && !d.style && d.badge !== 'gameover') {
@@ -630,7 +646,7 @@ export class GameScene implements Scene {
     ctx.save();
     const sc = (d.passive ? 0.82 : 0.9) + 0.1 * k; ctx.globalAlpha = k * (d.passive && d.auto ? Math.min(1, (d.auto.ms * speedMul.v - d.t) / 250) : 1);
     ctx.translate(w / 2, h / 2); ctx.scale(sc, sc); ctx.translate(-w / 2, -h / 2);
-    if (d.style === 'chance' && d.image) { this.renderChance(ctx, w, h, d, u); ctx.restore(); return; }
+    if (d.image && (d.style === 'chance' || d.style === 'npc' || d.kind === 'msg')) { this.renderChance(ctx, w, h, d, u); ctx.restore(); return; }
     const hasImg = !!d.image;
     const pw = Math.min(w - 20, (hasImg ? 600 : 470) * u);
     const imgS = hasImg ? Math.min(180 * u, pw * 0.36) : 0;
@@ -638,9 +654,9 @@ export class GameScene implements Scene {
     const size = 18 * u;
     const lines = d.text ? wrap(ctx, d.text, textW, size) : [];
     let btnRows = 1, bh = 50 * u;
-    const isList = d.kind === 'choose' || d.kind === 'players';
+    const isList = d.kind === 'choose' || (d.kind as string) === 'players';
     if (d.kind === 'choose') { btnRows = d.buttons.length; bh = 50 * u; }
-    if (d.kind === 'players') btnRows = Math.ceil(d.buttons.length / 2);
+    if ((d.kind as string) === 'players') btnRows = Math.ceil(d.buttons.length / 2);
     const textH = Math.max(lines.length * size * 1.45, hasImg ? imgS : 0);
     let ph = 60 * u + textH + 24 * u + btnRows * (bh + 10 * u) + 10 * u;
     ph = Math.min(h - 16, ph);
@@ -664,14 +680,14 @@ export class GameScene implements Scene {
         const label = b.sub ? `${b.label}　${b.sub}` : b.label;
         button(ctx, 'dlg' + i, br, label, () => d.resolve(b.value), { primary: b.primary && b.value !== -1, disabled: b.disabled || !!d.auto, selected: d.auto && aiPick === b.value && d.t > 500, size: 16 * u });
       });
-    } else if (d.kind === 'players') {
+    } else if ((d.kind as string) === 'players') {
       const cols = 2, bw2 = (pw - 70 * u) / cols;
       d.buttons.forEach((b, i) => {
         const br = { x: r.x + 30 * u + (i % cols) * (bw2 + 10 * u), y: y + Math.floor(i / cols) * (bh + 10 * u), w: bw2, h: bh };
         button(ctx, 'dlg' + i, br, b.label, () => d.resolve(b.value), { primary: b.value !== -1, disabled: !!d.auto, selected: d.auto && aiPick === b.value && d.t > 500, size: 17 * u });
         if (b.value >= 0) { const c = PLAYER_COLORS[b.value]; ctx.fillStyle = c; ctx.fillRect(br.x + 8, br.y + 8, 8, br.h - 16); }
       });
-    } else if (d.kind === 'steps') {
+    } else if ((d.kind as string) === 'steps') {
       const n = 6, bw2 = Math.min(64 * u, (pw - 60 * u - 50 * u) / n);
       d.buttons.forEach((b, i) => {
         const br = { x: r.x + pw / 2 - (n * (bw2 + 8 * u)) / 2 + i * (bw2 + 8 * u), y, w: bw2, h: bw2 };
@@ -692,6 +708,65 @@ export class GameScene implements Scene {
     }
     void isList;
     ctx.restore();
+  }
+
+  /** Bankrupt notice: gameOver.spr 破/產 stamp (frames 0+1) at screen centre, 40-tick pop-in (@0x409160). */
+  renderBankrupt(ctx: CanvasRenderingContext2D, w: number, h: number, d: Dlg) {
+    const st = stage(w, h, 640, 480); const k = Math.min(1, d.t / 600);
+    const sc = 2.2 - 1.2 * ease.outBack(k);
+    applyStage(ctx, st); ctx.globalAlpha = Math.min(1, d.t / 200);
+    drawFrame(ctx, 'interface/gameover', 0, 320, 240, sc); drawFrame(ctx, 'interface/gameover', 1, 320, 240, sc);
+    ctx.globalAlpha = 1; resetT(ctx);
+    // remake addition: who went bankrupt (the exe only shows the stamp)
+    if (d.text) text(ctx, d.text, w / 2, st.oy + 380 * st.s, { size: 20 * st.s, align: 'center', color: '#fff', stroke: '#3a0a00', strokeWidth: 5 * st.s, maxWidth: w - 20 });
+    if (!d.passive && !d.auto) app.hit('bankok', { x: 0, y: 0, w, h }, () => { if (d.t > 500) d.resolve(undefined); }, false);
+  }
+
+  /**
+   * Choose-a-target window (exe @0x40d3b0 create / 0x40d7e0 paint / 0x40d780 keys): smessagebox.spr frame 0 at
+   * (W/2, H/2+40) fading in by 32/tick; prompt Misc/SelectCardTager in white at (x-100, y-58) width 200; each eligible
+   * player's face (frame 1) on a row at y = H/2+50, spacing 200/n starting at (W+spacing-200)/2; the X button (frames
+   * 4–6) is the last item and means cancel. Left/Right cycle the highlight, Enter confirms (keys = list control 0x41ee50).
+   */
+  pickItems(d: Dlg) { return d.buttons.filter(b => b.value >= 0); }
+  renderPickPlayer(ctx: CanvasRenderingContext2D, w: number, h: number, d: Dlg) {
+    const st = stage(w, h, 640, 480); const items = this.pickItems(d); const n = items.length;
+    const a = Math.min(1, d.t / 130); applyStage(ctx, st); ctx.globalAlpha = a;
+    const bx = 320, by = 280;
+    drawFrame(ctx, 'interface/smessagebox', 0, bx, by);
+    ctx.globalAlpha = 1; resetT(ctx);
+    textBlock(ctx, d.text ?? '', st.ox + (bx - 100) * st.s, st.oy + (by - 58) * st.s, 200 * st.s, { size: 13 * st.s, color: '#fff', stroke: '#000', strokeWidth: 3 * st.s, align: 'center' } as any);
+    applyStage(ctx, st); ctx.globalAlpha = a;
+    const sp = 200 / Math.max(1, n); const aiPick = d.auto ? d.auto.value : undefined;
+    items.forEach((b, i) => {
+      const x = (640 + sp - 200) / 2 + i * sp, y = 290;
+      const p = this.g.players[b.value]; const hover = app.state('pp' + i) > 0 || d.sel === i || (aiPick === b.value && d.t > 300);
+      if (hover) { ctx.fillStyle = PLAYER_COLORS[b.value]; ctx.globalAlpha = a * 0.55; ctx.beginPath(); ctx.ellipse(x, y, 24, 28, 0, 0, 7); ctx.fill(); ctx.globalAlpha = a; }
+      drawFrame(ctx, 'interface/face0' + p.char, 1, x, y);
+      const r = frameRect('interface/face0' + p.char, 1, x, y);
+      if (!d.auto) app.hit('pp' + i, sr(st, r), () => d.resolve(b.value));
+    });
+    const xs = d.auto ? 0 : app.state('ppx');
+    drawFrame(ctx, 'interface/smessagebox', 4 + xs, bx, by);
+    ctx.globalAlpha = 1; resetT(ctx);
+    if (!d.auto) app.hit('ppx', sr(st, frameRect('interface/smessagebox', 4, bx, by)), () => d.resolve(-1));
+  }
+
+  /**
+   * 步步為營 steps panel (exe @0x40d980/0x40d9c0): step.spr frame 0 plus six dice (frames 1+3i normal / +1 hover /
+   * +2 pressed), all drawn at the anchor (30, H-300) with their own hotspots. Keys 1–6 pick directly.
+   */
+  renderPickSteps(ctx: CanvasRenderingContext2D, w: number, h: number, d: Dlg) {
+    const s = stage(w, h, 640, 480).s; const ax = 30 * s, ay = h - 300 * s;
+    ctx.globalAlpha = Math.min(1, d.t / 130);
+    drawFrame(ctx, 'interface/step', 0, ax, ay, s);
+    const aiPick = d.auto ? d.auto.value : undefined;
+    for (let i = 0; i < 6; i++) {
+      const st2 = d.auto ? (aiPick === i + 1 && d.t > 300 ? 2 : 0) : (d.sel === i ? 1 : app.state('stp' + i));
+      drawFrame(ctx, 'interface/step', 1 + i * 3 + st2, ax, ay, s);
+      if (!d.auto) app.hit('stp' + i, frameRect('interface/step', 1 + i * 3, ax, ay, s), () => d.resolve(i + 1));
+    }
+    ctx.globalAlpha = 1;
   }
 
   /**

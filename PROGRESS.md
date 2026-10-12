@@ -120,3 +120,7 @@
 - Thief NPC (exe slot 0x4480b4): walks the board; passing/landing on it steals (r+10)·cash/(50 pass | 100 land) (0x4168df); breaks into a 屋企 with chance 1/(locks+1), taking (rand%40+60)% of savings (0x416357). Weekly move cadence is inferred. The old random 5% thief event was removed.
 - Salary is paid mid-walk when passing 洋行 'of' (0x4169d4). Test: `tests/round15_thief_salary.mjs`.
 - Comparison images (no restyle yet): `screenshots/round15/compare_{bankrupt,npc_panel,choose_player,choose_steps}.png`.
+
+## Round 16
+- Restyled to the original: bankrupt = gameOver.spr 破/產 stamp centred (@0x409160, remake adds the name line); NPC events with a picture = chance.spr card; choose-target = exe window @0x40d3b0 (smessagebox.spr at W/2,H/2+40, Misc/SelectCardTager prompt, faces (frame 1) in a row at H/2+50 spaced 200/n, X = cancel); steps = step.spr at (30, H-300) with 6 dice (normal/hover/pressed).
+- Keyboard: target ←/→/Tab + Enter, 1–4, Esc; steps 1–6, arrows + Enter. Test: tests/round16_dialogs.mjs.
