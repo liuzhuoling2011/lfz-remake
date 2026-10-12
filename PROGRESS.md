@@ -193,6 +193,8 @@ User: continue restoring mantra flow to original after R22 audit.
 
 tests/round23_mantra_grey.mjs; screenshots/round23/; autoplay maps 0–2.
 
+Deploy: main `804b668`, Pages `c08ef1c`, NAS `/volume4/web/lfz/`.
+
 ## Round 22 — 衰神 CardGodMsg transfer; 財神-only free build/upgrade/invest (2026-10-12 Asia/Shanghai)
 
 User: switch 衰神 from discard to exe `@0x418180` transfer; confirm 財神 free build+upgrade + 士多 gain-only under attach/status≥9.
