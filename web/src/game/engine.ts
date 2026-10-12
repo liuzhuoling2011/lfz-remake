@@ -643,7 +643,11 @@ export class Engine {
     const g = this.g, b = this.b;
     const opp = this.alive().filter(o => o.seat !== p.seat);
     switch (e.op) {
-      case 'add_cash': if (e.amount >= 0) this.gain(p, amount); else await this.pay(p, amount); break;
+      // VERIFIED @0x413620 / @0x4139f0: lucky cash also does jackpot += amount/2
+      case 'add_cash':
+        if (e.amount >= 0) { this.gain(p, amount); this.g.jackpot += Math.floor(amount / 2); }
+        else await this.pay(p, amount);
+        break;
       case 'upgrade_owned_property': case 'upgrade_random_property': {
         const own = ownedPlots(g, p).filter(i => e.delta > 0 ? g.plots[i]!.level < RULES.maxLevel : g.plots[i]!.level > 0);
         if (!own.length) break;
@@ -688,7 +692,11 @@ export class Engine {
         if (amt) this.view.float('-' + amt + '（屋企）', this.view.actor(p.seat).x, this.view.actor(p.seat).y - 120, '#ff6b5b'); break;
       }
       case 'reverse_direction': this.reverse(p); break;
-      case 'skip_turn': p.status.skip += e.turns ?? 1; break;
+      case 'skip_turn':
+        // Exe 裹足不前 (@0x413e00) sets player status field = 5 for 1 week — same status id as 一曝十寒.
+        // Remake maps status 5 → frozen (turn-block + target filter).
+        p.status.frozen = Math.max(p.status.frozen, e.turns ?? e.weeks ?? 1);
+        break;
       case 'lose_property': case 'lose_random_property': {
         const own = ownedPlots(g, p).filter(i => i !== p.homePlot);
         const list = own.length ? own : ownedPlots(g, p);
@@ -813,21 +821,32 @@ export class Engine {
     void p;
   }
 
+  /**
+   * VERIFIED luckydraw create @0x40b4d3–0x40b4ee: sum five (rand()%10); win iff sum == 0
+   * (i.e. all five rolls are 0). P = (1/10)^5 = 1e-5. No character bonus in the exe.
+   */
+  static jockeyRoll(rnd: () => number = Math.random): boolean {
+    let sum = 0;
+    for (let i = 0; i < 5; i++) sum += Math.floor(rnd() * 10) % 10;
+    return sum === 0;
+  }
+
   async jockey(p: Player) {
-    // VERIFIED @0x40b809 (luckydraw confirm): cash -= 2 flat (not week-scaled). Entry requires cash > 1 (@0x4101ba).
+    // VERIFIED @0x40b809: cash -= 2 flat. Entry requires cash > 1 (@0x4101ba).
+    // Ticket does NOT go into the jackpot (lose path @0x4109ac only plays voice).
+    // Win (@0x4109c6): cash += jackpot, jackpot = 0 (not reset to init).
     const ticket = RULES.jockeyTicket;
     if (p.cash <= 1) return;
     this.speak(p, L.jockey); // VERIFIED line 19 (@0x417208)
     const ok = await this.ask(p, msg('Misc', 'Jclub', this.g.jackpot), { title: '馬會' }, AI.wantJockey(this.g, p, ticket), `${this.name(p)}購買馬票`);
     if (!ok) return;
     await this.pay(p, ticket);
-    const win = Math.random() < RULES.jockeyWinChance * (p.char === 6 ? 1.5 : 1);
+    const win = Engine.jockeyRoll();
     if (win) {
-      const amt = this.g.jackpot; this.g.jackpot = RULES.jackpotInit;
-      this.gain(p, amt); this.speak(p, L.jackpotWin, 3); // VERIFIED pair 20/21 (@0x4109ce / 0x4109b4)
+      const amt = this.g.jackpot; this.g.jackpot = 0;
+      this.gain(p, amt); this.speak(p, L.jackpotWin, 3);
       await this.info(`恭喜！${this.name(p)}中了頭獎，獨得 ${amt} 元！`, { title: '馬會', badge: 'luckydraw' }, p);
     } else {
-      this.g.jackpot += ticket;
       this.speak(p, L.jackpotLose);
       await this.info('今期沒有中獎，下次再試吧！', { title: '馬會' }, p);
     }

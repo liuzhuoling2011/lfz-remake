@@ -18,7 +18,8 @@ export const RULES = {
   templeFee: 100,             // VERIFIED case 10 scale(100)
   lockFee: 100,               // VERIFIED case 9 scale(100)
   jockeyTicket: 2,            // VERIFIED @0x40b809: luckydraw confirm does cash -= 2 (flat)
-  jockeyWinChance: 0.12,      // INFERRED
+  /** @deprecated win is deterministic from jockeyRoll(); kept only for AI heuristics */
+  jockeyWinChance: 0.00001, // VERIFIED @0x40b4d3: P((rand%10)==0 five times) = 1e-5
   homeDepositPct: 50,         // INFERRED: default fraction when depositing at 家
   /** Weekly passive income from each 住宅 → homeMoney, as % of that plot's current value. INFERRED. */
   residenceIncomePct: 5,      // VERIFIED @0x40300a: value/20 per week → homeMoney, jackpot += total/2, only if owner has a 屋企 and is not in hospital/jail

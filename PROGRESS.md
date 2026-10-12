@@ -133,3 +133,9 @@
 - AI auto-pick: pickPlayer / pickSteps accept `{ auto }`; AI card/smallman/步步為營 go through the panels (TURBO still skips for speed). Test `round17_fixes.mjs` exercises them without turbo.
 - Jockey ticket: VERIFIED @0x40b809 cash −= 2 flat (was inferred scale(200)); ask text is plain Misc/Jclub (no remake price line). Win chance still INFERRED.
 - Per-map shots: `screenshots/round17/map{0,1,2}/{bankrupt,npc_pictured,npc_no_picture,choose_player,choose_steps,autoplay}.png`.
+
+## Round 18
+- Jockey win VERIFIED @0x40b4d3: five `(rand()%10)`, win iff sum==0 → P=1e-5. No char bonus. Ticket still 2; lose does not feed jackpot; win sets jackpot=0 (not init).
+- Chance apply table @0x442874 mapped for all 26 ids. Lucky `add_cash` now also does jackpot += amount/2 (@0x413620/@0x4139f0). Percents 10 unscaled for cards 4/18/19 (@0x413110). 裹足不前 → frozen=1 (exe status 5 @0x413e00).
+- 四字真言: 隻手遮天 20% and 人棄我取 half dump confirmed; status weeks 3 from texts; 移形換影→屋企, 多勞多得→洋行+salary already matched.
+- Test: `tests/round18_chance_jockey.mjs`. Shots: `screenshots/round18/{jockey,chance_lucky,chance_bad,mantra_01,mantra_05,mantra_07,autoplay_map*}.png`.
