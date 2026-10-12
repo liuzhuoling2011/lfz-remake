@@ -178,6 +178,29 @@ User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人
 
 tests/round20_walkers_gods.mjs; screenshots/round20/.
 
+## Round 24 — single status field + AI card gates (2026-10-13 Asia/Shanghai)
+
+User: 按原版继续扣 — AI 四字真言 strategy, status field model, sweep soft gaps.
+
+| Item | Original (exe) | Remake before | Fixed |
+|------|----------------|---------------|-------|
+| Status storage | single `player+0x34` kind + `+0x30` weeks | multi independent flags | **`kind`/`weeks` source of truth** + mirror flags via `setStatus`/`syncStatusFlags` |
+| Card status write | `@0x418940+` skip if kind>8 (`jg`) | always wrote flag | **`setStatus` without force** (神智/一曝/得而/金鋼/催吉/魔高) |
+| Hospital/jail | overwrite gods (thug `@0x416c54`) | set hospital flag only | **force + detach mapGod + GodOut** |
+| God attach | `@0x410c14` weeks=4 status=type+9 | `wealthGod=4` only | **`setStatus(type+9, 4, force)`** clears prior exclusive |
+| Smallman | `@0x410a66` status=5 weeks=2 | `frozen=max` | **force kind=5** (NPC path) |
+| 否極泰來 | clears kind 6|7 only | cleared mirrors | **clears via kind** |
+| Grey tables | `@0x44224c/5c/6c` from kind | wealthGod/confused mirrors | **`cardUsable` reads kind** |
+| AI card pick | attrack in character txt; **no binary picker** | heuristics ignoring grey | **respect grey tables**; 驅鬼-only under god; clear 6/7 first; skip god targets for status cards; attrack-3 offensive bias |
+| Save migrate | — | — | **`normalizeStatus` on load** |
+
+### Stuck / hard wall
+- **Full AI card-selection algorithm** — `attrack` absent from omasterq.exe (ExtText only); consumer routine not located. Heuristic remains PARTIAL.
+- Optional full drop of mirror flags (call-site migration) — behaviour aligned; mirrors kept for HUD/readers.
+- Jockey win already VERIFIED; nothing else soft from prior open lists that still needed a code change this round.
+
+tests/round24_status_ai.mjs; screenshots/round24/; autoplay maps 0–2 OK 0 errors.
+
 ## Round 23 — 四字真言 grey tables, usecard feel, 驅鬼, hand cap (2026-10-12 Asia/Shanghai)
 
 User: continue restoring mantra flow to original after R22 audit.

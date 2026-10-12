@@ -5,7 +5,7 @@ import { RULES, MAPS, SFX, SFXI, SEASONS, PLOT, plotTypeName, plotSpriteKind, GO
 import { D, msg, fmt, charName, type ChanceCard, type WordCard } from './data';
 import type { Board, Landmark } from './board';
 import type { GameState, Player } from './state';
-import { saveSlot } from './state';
+import { saveSlot, setStatus, tickExclusiveStatus, normalizeStatus } from './state';
 import { scale, value, buildCost, upgradeCost, plotValue, netWorth, ownedPlots, landPrice, season, rentFee, residenceIncome, investDelta, hasOwnerInvest } from './rules';
 import * as AI from './ai';
 import type { MapView } from './view';
@@ -201,15 +201,21 @@ export class Engine {
     this.ui.banner(this.name(p) + (p.ai ? '（電腦）' : '') + ' 的回合', undefined);
     await wait(350);
     const st = p.status;
-    const block = async (key: keyof typeof st, text: string) => {
-      if (st[key] > 0) { st[key]--; this.tickStatuses(p); await this.info(text, {}, p); return true; }
-      return false;
-    };
-    if (await block('hospital', `${this.name(p)}住院中，還要休養 ${st.hospital} 個星期！`)) return;
-    if (await block('jail', `${this.name(p)}坐牢中，還要坐 ${st.jail} 個星期！`)) return;
-    if (await block('frozen', `${this.name(p)}被「一曝十寒」冰封中，停留原地！`)) return;
-    if (await block('stay', `${this.name(p)}停留一回合！`)) return;
-    if (await block('skip', `${this.name(p)}罰原地停留一次！`)) return;
+    // Exclusive status (exe +0x34/+0x30): hospital/jail/frozen share one slot — tick weeks once.
+    if (st.kind === 1 && st.weeks > 0) {
+      const left = st.weeks; tickExclusiveStatus(st); if (st.badGod > 0) st.badGod--;
+      await this.info(`${this.name(p)}住院中，還要休養 ${left} 個星期！`, {}, p); return;
+    }
+    if (st.kind === 2 && st.weeks > 0) {
+      const left = st.weeks; tickExclusiveStatus(st); if (st.badGod > 0) st.badGod--;
+      await this.info(`${this.name(p)}坐牢中，還要坐 ${left} 個星期！`, {}, p); return;
+    }
+    if (st.kind === 5 && st.weeks > 0) {
+      const left = st.weeks; tickExclusiveStatus(st); if (st.badGod > 0) st.badGod--;
+      await this.info(`${this.name(p)}被「一曝十寒」冰封中，停留原地！`, {}, p); return;
+    }
+    if (st.stay > 0) { st.stay--; if (st.badGod > 0) st.badGod--; await this.info(`${this.name(p)}停留一回合！`, {}, p); return; }
+    if (st.skip > 0) { st.skip--; if (st.badGod > 0) st.badGod--; await this.info(`${this.name(p)}罰原地停留一次！`, {}, p); return; }
 
     this.speak(p, L.myTurn, 1); // VERIFIED: line 28 at turn start (@0x417ad0 / 0x417b64)
     let rolls = 1;
@@ -279,10 +285,11 @@ export class Engine {
 
   tickStatuses(p: Player) {
     const s = p.status;
-    const hadGod = s.wealthGod > 0;
-    for (const k of ['confused', 'dropMoney', 'cardImmune', 'badGodImmune', 'smallmanImmune', 'badGod', 'wealthGod'] as const) if (s[k] > 0) s[k]--;
+    const hadGod = s.kind >= 9 && s.kind <= 12;
+    const { godExpired } = tickExclusiveStatus(s);
+    if (s.badGod > 0) s.badGod--;
     // GodOut when attach weeks expire (@0x414530 / status clear)
-    if (hadGod && s.wealthGod <= 0) {
+    if (hadGod && (godExpired || s.kind === 0)) {
       const g = this.g.mapGod;
       if (g && g.attachedTo === p.seat) { g.attachedTo = null; this.sfxi(SFXI.godOut); void this.view.fx('map/godout', this.view.actor(p.seat).x, this.view.actor(p.seat).y, 24); }
       this.syncGodActor();
@@ -730,9 +737,8 @@ export class Engine {
       }
       case 'reverse_direction': this.reverse(p); break;
       case 'skip_turn':
-        // Exe 裹足不前 (@0x413e00) sets player status field = 5 for 1 week — same status id as 一曝十寒.
-        // Remake maps status 5 → frozen (turn-block + target filter).
-        p.status.frozen = Math.max(p.status.frozen, e.turns ?? e.weeks ?? 1);
+        // Exe 裹足不前 (@0x413e00) sets status=5 for 1 week — same id as 一曝十寒; skips if god (kind>8).
+        setStatus(p.status, 5, e.turns ?? e.weeks ?? 1);
         break;
       case 'lose_property': case 'lose_random_property': {
         const own = ownedPlots(g, p).filter(i => i !== p.homePlot);
@@ -755,9 +761,16 @@ export class Engine {
   reverse(p: Player) { const fwd = this.b.options(p.tile, p.prev); p.prev = fwd[0]; this.view.placeActor(p.seat, p.tile, p.prev); }
   async sendTo(p: Player, where: 'hospital' | 'jail', weeks: number) {
     await this.teleportTo(p, where === 'hospital' ? this.b.hospitalTile : this.b.jailTile);
+    // VERIFIED: hospital/jail overwrite +0x34 even over gods (force) — thug @0x416c54 / jail paths
+    const hadGod = p.status.kind >= 9 && p.status.kind <= 12;
+    setStatus(p.status, where === 'hospital' ? 1 : 2, weeks, { force: true });
+    if (hadGod) {
+      const g = this.g.mapGod;
+      if (g && g.attachedTo === p.seat) { g.attachedTo = null; this.sfxi(SFXI.godOut); void this.view.fx('map/godout', this.view.actor(p.seat).x, this.view.actor(p.seat).y, 24); }
+      this.syncGodActor();
+    }
     // VERIFIED: hospital → line 22, jail → line 23 (calls next to 'ho' / 'po')
-    if (where === 'hospital') { p.status.hospital = weeks; this.speak(p, L.hospital); }
-    else { p.status.jail = weeks; this.speak(p, L.jail); }
+    this.speak(p, where === 'hospital' ? L.hospital : L.jail);
     this.view.actor(p.seat).anim = 'hit';
     await wait(600);
     this.view.actor(p.seat).anim = 'stand';
@@ -818,27 +831,33 @@ export class Engine {
       case 3: this.reverse(T); break;
       case 4: p.chooseSteps = true; break;
       case 5: { const amt = Math.floor(T.home * Number(c.rawResult || 20) / 100); T.home -= amt; this.gain(p, amt); break; }
-      case 6: T.status.confused = W; break;
-      case 7: T.status.frozen = W; this.view.actor(T.seat).tint = 'hue-rotate(180deg) saturate(0.6) brightness(1.2)'; setTimeout(() => { this.view.actor(T.seat).tint = undefined; }, 1500); break;
-      case 8: T.status.dropMoney = W; break;
+      // Status cards: exe skips write when target kind>8 (god) — setStatus without force
+      case 6: setStatus(T.status, 6, W); break; // 神智不清
+      case 7:
+        if (setStatus(T.status, 5, W)) { // 一曝十寒
+          this.view.actor(T.seat).tint = 'hue-rotate(180deg) saturate(0.6) brightness(1.2)';
+          setTimeout(() => { this.view.actor(T.seat).tint = undefined; }, 1500);
+        }
+        break;
+      case 8: setStatus(T.status, 7, W); break; // 得而復失
       case 9: if (p.homePlot !== null) await this.teleportTo(p, this.b.plots[p.homePlot].tiles[0]); break;
       case 10: await this.teleportTo(p, this.nearestBank(p)); await this.salary(p); break;
-      case 11: { // 驅鬼捉邪 — VERIFIED @0x410ee0 case 10: clear god weeks + GodOut @0x414530 (table entry @0x4138a0 is nop)
+      case 11: { // 驅鬼捉邪 — VERIFIED @0x410ee0 case 10: clear god weeks + GodOut @0x414530
         const g = this.g.mapGod;
-        if (g && g.attachedTo === p.seat) {
-          g.attachedTo = null; p.status.wealthGod = 0;
+        if (g && g.attachedTo === p.seat && p.status.kind >= 9) {
+          g.attachedTo = null; setStatus(p.status, 0, 0, { force: true });
           this.sfxi(SFXI.godOut); void this.view.fx('map/godout', va.x, va.y, 24);
           this.syncGodActor();
           await this.info(`${this.name(p)}使用「${c.title}」把${this.godName(g.type)}驅除了！`, { title: c.title, kind: 'npc' }, p);
         }
         break;
       }
-      case 12: p.status.cardImmune = W; break;
-      case 13: p.status.badGodImmune = W; p.status.badGod = 0; break;
-      case 14: p.status.smallmanImmune = W; break; // VERIFIED @0x418b30: status=8 weeks=3 (魔高一丈)
-      // VERIFIED @0x418b60: 否極泰來 clears only status 6 (神智不清) or 7 (得而復失) — not frozen/badGod
+      case 12: setStatus(p.status, 3, W); break; // 金鋼護體
+      case 13: if (setStatus(p.status, 4, W)) p.status.badGod = 0; break; // 催吉避凶
+      case 14: setStatus(p.status, 8, W); break; // VERIFIED @0x418b30: status=8 weeks=3 (魔高一丈)
+      // VERIFIED @0x418b60: 否極泰來 clears only status 6 or 7 — not frozen/badGod
       case 15:
-        if (p.status.confused > 0 || p.status.dropMoney > 0) Object.assign(p.status, { confused: 0, dropMoney: 0 });
+        if (p.status.kind === 6 || p.status.kind === 7) setStatus(p.status, 0, 0, { force: true });
         break;
     }
     this.onChange();
@@ -929,9 +948,15 @@ export class Engine {
       this.speak(T, L.defended);
       await this.info(`${this.name(T)}有四字真言護身，打小人失效！`, {}, p); return;
     }
-    // VERIFIED @0x410a66: status=5 (一曝十寒 / frozen), weeks=2 — not a separate badGod
+    // VERIFIED @0x410a66: status=5 weeks=2 — force overwrite (NPC path, not card apply gate)
     const w = RULES.smallmanFreezeWeeks;
-    T.status.frozen = Math.max(T.status.frozen, w);
+    const hadGod = T.status.kind >= 9 && T.status.kind <= 12;
+    setStatus(T.status, 5, w, { force: true });
+    if (hadGod) {
+      const g = this.g.mapGod;
+      if (g && g.attachedTo === T.seat) { g.attachedTo = null; this.sfxi(SFXI.godOut); }
+      this.syncGodActor();
+    }
     this.speak(T, L.eerie); // line 24 (有股陰風吹過…)
     await this.info(`${this.name(T)}被打小人，動彈不得 ${w} 個星期！`, {}, p);
   }
@@ -1009,10 +1034,11 @@ export class Engine {
   /** Whether a hand card (1-based id) is usable now — paint @0x40d171. */
   cardUsable(p: Player, id: number) {
     const i = id - 1; if (i < 0 || i > 15) return false;
+    normalizeStatus(p.status);
     const g = this.g.mapGod;
-    const god = !!g && g.attachedTo === p.seat && p.status.wealthGod > 0;
+    const god = !!g && g.attachedTo === p.seat && p.status.kind >= 9 && p.status.kind <= 12;
     const tab = god ? Engine.CARD_ENABLE_GOD
-      : (p.status.confused > 0 || p.status.dropMoney > 0) ? Engine.CARD_ENABLE_CLEAR
+      : (p.status.kind === 6 || p.status.kind === 7) ? Engine.CARD_ENABLE_CLEAR
       : Engine.CARD_ENABLE_NORMAL;
     return tab[i] === 1;
   }
@@ -1020,7 +1046,7 @@ export class Engine {
   /** VERIFIED: land ctx [+0x14]==1 is god *type* 1 (財神), not merely status≥9. Free build/upgrade/invest-gain-only. */
   isWealthGod(p: Player) {
     const g = this.g.mapGod;
-    return !!g && g.attachedTo === p.seat && g.type === 1 && p.status.wealthGod > 0;
+    return !!g && g.attachedTo === p.seat && g.type === 1 && p.status.kind === 10; // type1 → kind 10
   }
 
   /**
@@ -1066,7 +1092,8 @@ export class Engine {
     this.sfxi(SFXI.godIn);
     void this.view.fx('map/godin', a.x, a.y, 24);
     g.attachedTo = p.seat;
-    p.status.wealthGod = RULES.wealthGodWeeks; // attach duration counter (all types); free-spend gated by isWealthGod (type===1 only)
+    // VERIFIED @0x410c14: weeks=4, status=type+9 (force overwrite prior exclusive status)
+    setStatus(p.status, type + 9, RULES.wealthGodWeeks, { force: true });
     this.speak(p, type === 3 ? BAD : GOOD);
     this.syncGodActor();
     if (type === 1) {

@@ -35,32 +35,63 @@ export function pickRichestOpponent(g: GameState, b: Board, p: Player, cand: num
   return [...cand].sort((a, c) => netWorth(g, b, g.players[c]) - netWorth(g, b, g.players[a]))[0];
 }
 
+/**
+ * AI card pick — VERIFIED gates from exe grey tables @0x44224c/5c/6c + card apply skip when target kind>8.
+ * Full binary card-picker algorithm is a HARD WALL (attrack lives in character txt; no clear pick routine in omasterq).
+ * Heuristic below: respect usable table, clear 6/7 first, 驅鬼 when god, then attrack-biased offense.
+ */
+const CARD_ENABLE_GOD = [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0];
+const CARD_ENABLE_NORMAL = [1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,0];
+const CARD_ENABLE_CLEAR = [1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0];
+
+function cardUsableAI(g: GameState, p: Player, id: number) {
+  const i = id - 1; if (i < 0 || i > 15) return false;
+  const god = !!(g.mapGod && g.mapGod.attachedTo === p.seat && p.status.kind >= 9 && p.status.kind <= 12);
+  const tab = god ? CARD_ENABLE_GOD
+    : (p.status.kind === 6 || p.status.kind === 7) ? CARD_ENABLE_CLEAR
+    : CARD_ENABLE_NORMAL;
+  return tab[i] === 1;
+}
+
 /** Decide whether to use a word card before rolling. Returns {card, target} or null. */
 export function chooseCard(g: GameState, b: Board, p: Player): { card: number; target: number } | null {
   if (!p.cards.length) return null;
   // Match exe @0x40d530: skip hospital / jail / frozen (status 1/2/5) as well as the bankrupt.
   const opp = g.players.filter(o => o.alive && o.seat !== p.seat && o.status.hospital <= 0 && o.status.jail <= 0 && o.status.frozen <= 0);
   const s = p.status;
-  const has = (id: number) => p.cards.includes(id);
-  // card 11 時來運轉 is a no-op in exe (@0x4138a0); do not waste it on badGod
-  if ((s.confused > 0 || s.dropMoney > 0) && has(15)) return { card: 15, target: p.seat }; // clears 6/7 only
+  const hand = [...new Set(p.cards)].filter(id => cardUsableAI(g, p, id));
+  const has = (id: number) => hand.includes(id);
+  // Priority: clear own 神智/得而 with 否極泰來 (only lit in CLEAR table)
+  if ((s.kind === 6 || s.kind === 7) && has(15)) return { card: 15, target: p.seat };
   // VERIFIED table @0x44224c: while god attached only 驅鬼捉邪 (11) is usable
-  const godOn = !!(g.mapGod && g.mapGod.attachedTo === p.seat && s.wealthGod > 0);
-  if (godOn) return has(11) ? { card: 11, target: p.seat } : null;
-  if (!opp.length) return null;
-  const richest = pickRichestOpponent(g, b, p, opp.map(o => o.seat));
-  const R = g.players[richest];
-  const chance = aggressive(p) ? 0.6 : 0.35;
+  if (s.kind >= 9 && s.kind <= 12) return has(11) ? { card: 11, target: p.seat } : null;
+  if (!hand.length) return null;
+  // Status-write cards fail on god targets (exe jg skip) — prefer non-god, non-immune
+  const statusOk = opp.filter(o => o.status.kind <= 8 && o.status.cardImmune <= 0);
+  const targets = statusOk.length ? statusOk : opp;
+  if (!targets.length && !hand.some(id => [2, 4, 9, 10, 12, 13, 14].includes(id))) return null;
+  const richest = targets.length ? pickRichestOpponent(g, b, p, targets.map(o => o.seat)) : p.seat;
+  const R = g.players[richest] ?? p;
+  // attrack index 3 = attack bias → higher play chance + prefer freeze/confuse/drop
+  const atk = aggressive(p);
+  const chance = atk ? 0.72 : 0.38;
   if (Math.random() > chance) return null;
   if (has(5) && R.home > 500) return { card: 5, target: richest };
   if (has(1) && R.home > 800) return { card: 1, target: richest };
-  if (has(2)) { const avg = (opp.reduce((a, o) => a + o.cash, 0) + p.cash) / (opp.length + 1); if (avg > p.cash * 1.4) return { card: 2, target: p.seat }; }
-  for (const c of [7, 6, 8]) if (has(c)) return { card: c, target: richest };
+  if (has(2)) {
+    const pool = targets.length ? targets : opp;
+    const avg = (pool.reduce((a, o) => a + o.cash, 0) + p.cash) / (pool.length + 1);
+    if (avg > p.cash * 1.4) return { card: 2, target: p.seat };
+  }
+  // Offensive status: prefer when attrack ranks attack high; order 7→6→8 matches prior + freeze first
+  const offense = atk ? [7, 6, 8] : [6, 7, 8];
+  for (const c of offense) if (has(c) && targets.length) return { card: c, target: richest };
   if (has(10) && p.cash < reserve(g)) return { card: 10, target: p.seat };
   if (has(12) && opp.some(o => o.cards.length >= 2)) return { card: 12, target: p.seat };
-  if (has(13) && s.badGodImmune === 0 && Math.random() < 0.3) return { card: 13, target: p.seat };
-  if (has(14) && s.smallmanImmune === 0 && Math.random() < 0.2) return { card: 14, target: p.seat };
-  if (has(3) && Math.random() < 0.2) return { card: 3, target: richest };
+  if (has(13) && s.kind !== 4 && Math.random() < 0.3) return { card: 13, target: p.seat };
+  if (has(14) && s.kind !== 8 && Math.random() < 0.2) return { card: 14, target: p.seat };
+  if (has(4)) return { card: 4, target: p.seat }; // 步步為營 — self, often useful
+  if (has(3) && targets.length && Math.random() < 0.25) return { card: 3, target: richest };
   if (has(9) && p.homePlot !== null && Math.random() < 0.15) return { card: 9, target: p.seat };
   return null;
 }

@@ -5,6 +5,7 @@ import { text, textBlock, wrap, fmtMoney, roundRect } from '../core/text';
 import { button, panel, dim, stage, applyStage, resetT, sr } from '../ui/widgets';
 import { Board } from '../game/board';
 import { MapView } from '../game/view';
+import * as AI from '../game/ai';
 import { Engine, type GameUI, type ChoiceOpt, type UIOpts, type TurnAction, type ToastOpts, type BuildDlgSpec } from '../game/engine';
 import { newGame, saveSlot, loadSlot, type GameState, type Player } from '../game/state';
 import { RULES, MAPS, PLAYER_COLORS, PLAYER_COLORS_DARK, SEASONS, SFX, plotTypeName, PLOT } from '../game/config';
@@ -140,7 +141,7 @@ export class GameScene implements Scene {
       const cp = g.players[g.current];
       this.view.focusOn(this.board.tiles[cp.tile].x, this.board.tiles[cp.tile].y, true);
       this.engine = new Engine(g, this.board, this.view, this.ui);
-      (window as any).__lfz = { scene: this, g, engine: this.engine };
+      (window as any).__lfz = { scene: this, g, engine: this.engine, AI };
       this.ready = true;
       if (new URLSearchParams(location.search).has('debug')) { this.debugOn = true; this.debugPanel = true; }
       void this.engine.run().then(() => {
@@ -411,13 +412,19 @@ export class GameScene implements Scene {
     const bottom = (cols === 4 ? Math.max(12 + rowH, 52) : round.y + 26) * sc;
     return { sc, cols, rowH, round, bottom, pos: (i: number) => ({ x: 130 * (i % cols), y: rowH * Math.floor(i / cols) }) };
   }
-  /** player status → info.spr icon frame (exe: frame = status + 7; status ids from the word-card handlers @0x442e34:
-   *  1 hospital, 2 jail, 3 金鋼護體, 4 催吉避凶, 5 一曝十寒, 6 神智不清, 7 得而復失, 8 魔高一丈; 9–12 god/other states = best guess) */
+  /** player status → info.spr icon frame (exe: single status; frame ≈ kind+7 for 1–8; gods → 17).
+   * Mirrors sync from kind/weeks (Round 24); stay/skip/badGod/locks remain separate. */
   statusIcons(p: Player): { f: number; n: number }[] {
     const s = p.status; const out: { f: number; n: number }[] = [];
     const add = (v: number, f: number) => { if (v > 0) out.push({ f, n: v }); };
-    add(s.hospital, 8); add(s.jail, 9); add(s.badGod, 16); add(s.wealthGod, 17); add(s.frozen, 12); add(s.confused, 13); add(s.dropMoney, 14);
-    add(s.skip, 18); add(s.stay, 18); add(s.cardImmune, 10); add(s.badGodImmune, 11); add(s.smallmanImmune, 15); add(p.locks, 19);
+    // Exclusive kind first (matches exe single-status HUD)
+    if (s.kind >= 1 && s.kind <= 8 && s.weeks > 0) add(s.weeks, s.kind + 7);
+    else if (s.kind >= 9 && s.kind <= 12 && s.weeks > 0) add(s.weeks, 17);
+    else {
+      add(s.hospital, 8); add(s.jail, 9); add(s.wealthGod, 17); add(s.frozen, 12); add(s.confused, 13); add(s.dropMoney, 14);
+      add(s.cardImmune, 10); add(s.badGodImmune, 11); add(s.smallmanImmune, 15);
+    }
+    add(s.badGod, 16); add(s.skip, 18); add(s.stay, 18); add(p.locks, 19);
     return out;
   }
   renderHUD(ctx: CanvasRenderingContext2D, w: number, h: number) {

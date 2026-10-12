@@ -1,7 +1,14 @@
 import { RULES } from './config';
 import type { Board } from './board';
 
+/**
+ * Remake keeps per-effect counters for call sites, but exe uses a SINGLE pair:
+ * player+0x34 = status kind, player+0x30 = weeks (VERIFIED card apply @0x418940.. / GodIn @0x410c14).
+ * `kind`/`weeks` are the source of truth; helpers sync the counters.
+ * Kinds: 0 none, 1 hospital, 2 jail, 3 金鋼, 4 催吉, 5 一曝, 6 神智, 7 得而, 8 魔高, 9..12 gods (type+9).
+ */
 export interface Status {
+  kind: number; weeks: number;
   hospital: number; jail: number; frozen: number; confused: number; dropMoney: number;
   cardImmune: number; badGodImmune: number; smallmanImmune: number; skip: number; badGod: number; wealthGod: number; stay: number;
 }
@@ -29,8 +36,62 @@ export interface GameState {
 }
 
 export function emptyStatus(): Status {
-  return { hospital: 0, jail: 0, frozen: 0, confused: 0, dropMoney: 0, cardImmune: 0, badGodImmune: 0, smallmanImmune: 0, skip: 0, badGod: 0, wealthGod: 0, stay: 0 };
+  return { kind: 0, weeks: 0, hospital: 0, jail: 0, frozen: 0, confused: 0, dropMoney: 0, cardImmune: 0, badGodImmune: 0, smallmanImmune: 0, skip: 0, badGod: 0, wealthGod: 0, stay: 0 };
 }
+
+/** Sync convenience counters from kind/weeks (only one exclusive status is non-zero). skip/stay/badGod are separate. */
+export function syncStatusFlags(st: Status) {
+  const w = st.weeks, k = st.kind;
+  st.hospital = k === 1 ? w : 0;
+  st.jail = k === 2 ? w : 0;
+  st.cardImmune = k === 3 ? w : 0;
+  st.badGodImmune = k === 4 ? w : 0;
+  st.frozen = k === 5 ? w : 0;
+  st.confused = k === 6 ? w : 0;
+  st.dropMoney = k === 7 ? w : 0;
+  st.smallmanImmune = k === 8 ? w : 0;
+  st.wealthGod = k >= 9 && k <= 12 ? w : 0;
+}
+
+/**
+ * Apply exe status write. Card applies skip when current kind > 8 (god) — VERIFIED `cmp [+0x34],8; jg skip`.
+ * Hospital/jail/god attach use force=true (overwrite gods). Clears prior exclusive status.
+ */
+export function setStatus(st: Status, kind: number, weeks: number, opts: { force?: boolean } = {}): boolean {
+  if (!opts.force && st.kind > 8 && kind <= 8) return false;
+  st.kind = kind;
+  st.weeks = weeks;
+  syncStatusFlags(st);
+  return true;
+}
+
+/** Tick exclusive status weeks (exe +0x30); clear kind when expired. Returns whether a god just expired. */
+export function tickExclusiveStatus(st: Status): { godExpired: boolean } {
+  const wasGod = st.kind >= 9 && st.kind <= 12;
+  if (st.weeks > 0) st.weeks--;
+  if (st.weeks <= 0 && st.kind !== 0) { st.kind = 0; st.weeks = 0; }
+  syncStatusFlags(st);
+  return { godExpired: wasGod && st.kind === 0 };
+}
+
+/** Migrate multi-flag saves / test fixtures → kind/weeks, then sync mirrors. */
+export function normalizeStatus(st: Status) {
+  if (typeof st.kind !== 'number') (st as Status).kind = 0;
+  if (typeof st.weeks !== 'number') (st as Status).weeks = 0;
+  if (st.kind === 0 && st.weeks === 0) {
+    const order: [keyof Status, number][] = [
+      ['hospital', 1], ['jail', 2], ['cardImmune', 3], ['badGodImmune', 4],
+      ['frozen', 5], ['confused', 6], ['dropMoney', 7], ['smallmanImmune', 8],
+    ];
+    for (const [f, k] of order) {
+      const v = st[f] as number;
+      if (v > 0) { st.kind = k; st.weeks = v; break; }
+    }
+    if (st.kind === 0 && st.wealthGod > 0) { st.kind = 10; st.weeks = st.wealthGod; } // unknown god type → 財神 slot
+  }
+  syncStatusFlags(st);
+}
+
 
 /** VERIFIED @0x40407f: new-game loop pushes card ids 0..15 (16 unique) into player+0x20; remake uses 1..16. */
 export function startHand() { return Array.from({ length: 16 }, (_, i) => i + 1); }
@@ -60,7 +121,12 @@ export function saveSlot(slot: number, g: GameState) {
   localStorage.setItem(SAVE_PREFIX + slot, JSON.stringify({ t: Date.now(), g }));
 }
 export function loadSlot(slot: number): { t: number; g: GameState } | null {
-  try { const s = localStorage.getItem(SAVE_PREFIX + slot); return s ? JSON.parse(s) : null; } catch { return null; }
+  try {
+    const raw = localStorage.getItem(SAVE_PREFIX + slot); if (!raw) return null;
+    const data = JSON.parse(raw) as { t: number; g: GameState };
+    if (data?.g?.players) for (const p of data.g.players) normalizeStatus(p.status);
+    return data;
+  } catch { return null; }
 }
 export const SLOT_COUNT = 10;
 export function listSlots() { return Array.from({ length: SLOT_COUNT }, (_, i) => i).map(i => ({ slot: i, data: loadSlot(i) })); }
