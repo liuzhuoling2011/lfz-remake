@@ -10,19 +10,21 @@ export function scale(base: number, week: number) {
 }
 /** VERIFIED FUN_0040e9f0 value = ((pct[level]*base)/100 * mult[type])/100 ; type 4 → 0 (house mult) */
 export function value(base: number, type: number, level: number) {
+  // remake level 0..2 = exe level 1..3 (exe builds at level 1, @0x4174c1); type 4 (屋企) uses mult[0]
   const t = type === PLOT.HOME ? 0 : type;
-  return Math.floor(Math.floor(RULES.levelPct[level] * base / 100) * RULES.typeMult[t] / 100);
+  const L = Math.min(RULES.levelPct.length - 1, level + 1);
+  return Math.floor(Math.floor(RULES.levelPct[L] * base / 100) * RULES.typeMult[t] / 100);
 }
 export function landPrice(g: GameState, b: Board, plot: number) { return scale(b.plots[plot].base, g.week); }
-/** Cost to build type at level 0 on an empty plot (INFERRED: pay the building's value). Home costs the land price. */
+/** VERIFIED @0x40c33e / @0x4128d2: build cost = value(land, type, exe level 1). 屋企 = land price (= value(land,0,1)). */
 export function buildCost(g: GameState, b: Board, plot: number, type: number) {
   const base = landPrice(g, b, plot);
   return type === PLOT.HOME ? base : value(base, type, 0);
 }
-/** Upgrade cost from level L to L+1 = value difference (INFERRED). */
+/** VERIFIED @0x417c92 / @0x410909: upgrade cost = the building's current value(land, type, level). */
 export function upgradeCost(g: GameState, b: Board, plot: number) {
   const ps = g.plots[plot]!; const base = landPrice(g, b, plot);
-  return value(base, ps.type, ps.level + 1) - value(base, ps.type, ps.level);
+  return value(base, ps.type, ps.level);
 }
 export function plotValue(g: GameState, b: Board, plot: number) {
   const ps = g.plots[plot]; if (!ps) return 0;

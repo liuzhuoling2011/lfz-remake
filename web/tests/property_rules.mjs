@@ -5,15 +5,15 @@ const RULES = {
   levelPct: [41, 100, 200, 400],
   typeMult: [100, 300, 200, 100],
   visitPctMin: 5, visitPctMax: 10,
-  residenceIncomePct: 4,
+  residenceIncomePct: 5,
   investPctMin: -8, investPctMax: 14,
-  maxLevel: 3,
+  maxLevel: 2,
 };
 const PLOT = { SHOP: 1, RESTAURANT: 2, RESIDENCE: 3, HOME: 4 };
 
 function value(base, type, level) {
-  const t = type === PLOT.HOME ? 0 : type;
-  return Math.floor(Math.floor(RULES.levelPct[level] * base / 100) * RULES.typeMult[t] / 100);
+  const t = type === PLOT.HOME ? 0 : type; const L = Math.min(3, level + 1); // remake 0..2 = exe 1..3
+  return Math.floor(Math.floor(RULES.levelPct[L] * base / 100) * RULES.typeMult[t] / 100);
 }
 function rentFee(ps, plotVal, landerCash, visitPct) {
   if (ps.type === PLOT.RESIDENCE) return 0;
@@ -46,12 +46,20 @@ assert.equal(rentFee({ type: PLOT.RESTAURANT, owner: 0, level: 2 }, restVal, 500
 assert.equal(rentFee({ type: PLOT.HOME, owner: 0, level: 0 }, 0, 2000, 10), 200);
 assert.equal(rentFee({ type: PLOT.HOME, owner: 0, level: 0 }, 0, 2000, 5), 100);
 
-assert.ok(RULES.maxLevel === 3);
+assert.ok(RULES.maxLevel === 2);
 for (let L = 0; L < RULES.maxLevel; L++) {
   assert.ok(value(base, PLOT.SHOP, L + 1) > value(base, PLOT.SHOP, L), 'upgrade raises value');
 }
 
-assert.equal(residenceIncome(1000), 40);
+assert.equal(residenceIncome(1000), 50); // exe value/20
+// Round 14 exe-verified economy
+assert.equal(value(500, PLOT.SHOP, 0), 1500, 'build 士多 = land×300% (exe level 1)');
+assert.equal(value(500, PLOT.RESIDENCE, 0), 500);
+assert.equal(value(500, PLOT.RESTAURANT, 0), 1000);
+const upg = (t, l) => value(500, t, l); // upgrade cost = current value
+assert.equal(upg(PLOT.SHOP, 0), 1500); assert.equal(value(500, PLOT.SHOP, 2), 6000);
+function scale(b, w) { let v = b; for (let i = 0; i < Math.floor(w / 13); i++) v = Math.floor(v * 110 / 100); return v; }
+assert.equal(scale(50, 0), 50); assert.equal(scale(50, 26), 60); assert.equal(scale(20, 13), 22);
 assert.equal(investDelta(500, 0), -1000);
 assert.equal(investDelta(500, 0.9999999), 999);
 assert.equal(investDelta(500, 0, true), 0);

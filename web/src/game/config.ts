@@ -9,26 +9,26 @@ export const RULES = {
   inflationPct: 110,          // VERIFIED FUN_0040e9a0: ×110/100 per 13 (weeks)
   levelPct: [41, 100, 200, 400], // VERIFIED 0x442408
   typeMult: [100, 300, 200, 100], // VERIFIED 0x442418  (1 shop, 2 restaurant, 3 house)
-  maxLevel: 3,
+  maxLevel: 2,                // VERIFIED: buildings start at exe level 1 (@0x4174c1) and top out at level 3 (house3) → remake levels 0..2 = exe 1..3
   visitPctMin: 5, visitPctMax: 10, // VERIFIED type-4 visit: (rand%6+5)% of lander cash
-  salaryBase: 500,            // INFERRED (decomp case 2 uses scale(0x32); ×10 chosen so 洋行 salary matters)
-  moneyAddBase: 200,          // INFERRED (加錢 tile)
-  moneyDesBase: 200,          // INFERRED (減錢 tile)
-  smallmanFee: 200,           // INFERRED (case 6 scale(20) ×10)
+  salaryBase: 50,             // VERIFIED @0x402f78: every week each player's pending salary += scale(50); paid on stepping on 洋行 'of' (@0x4169d4)
+  moneyAddBase: 50,           // VERIFIED @0x4171a2 case 2: +scale(50) (財神 ×2)
+  moneyDesBase: 50,           // VERIFIED @0x41713d case 3: −scale(50) (財神 exempt)
+  smallmanFee: 20,            // VERIFIED case 6 @0x417279 / @0x410208: scale(20)
   templeFee: 100,             // VERIFIED case 10 scale(100)
   lockFee: 100,               // VERIFIED case 9 scale(100)
   jockeyTicket: 200,          // INFERRED
   jockeyWinChance: 0.12,      // INFERRED
   homeDepositPct: 50,         // INFERRED: default fraction when depositing at 家
   /** Weekly passive income from each 住宅 → homeMoney, as % of that plot's current value. INFERRED. */
-  residenceIncomePct: 4,
+  residenceIncomePct: 5,      // VERIFIED @0x40300a: value/20 per week → homeMoney, jackpot += total/2, only if owner has a 屋企 and is not in hospital/jail
   /** (unused) old inferred invest %; real formula in rules.investDelta (exe @0x412912). */
   investPctMin: -8,
   investPctMax: 14,
   cardMax: 32,                 // INFERRED
   statusWeeks: 3,             // VERIFIED (card texts: 三個星期)
   npcEventChance: 0.05,       // INFERRED per-turn chance of random NPC event (thief/thug/tiger/財神/卡神)
-  dropMoneyPct: 5,            // INFERRED 得而復失: lose 5% cash on each move
+  dropMoneyPct: 2,            // VERIFIED @0x416ae8 status 7: each step, 1-in-4 chance to drop (1..2)% of cash on the road
   wealthGodWeeks: 3,          // INFERRED
   badGodWeeks: 3,             // INFERRED (打小人 → 衰神附身)
   spStay: { 2: 2, 3: 1, 4: 1, 5: 2, 7: 1, 8: 2 } as Record<number, number>, // VERIFIED texts (停留N回合)

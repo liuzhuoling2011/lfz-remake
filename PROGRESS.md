@@ -1,3 +1,10 @@
+## Round 14 — exe economy audit, original message boxes, ring-menu rotate button (2026-10-12 Asia/Shanghai)
+
+- Ring centre button (game_menu 13): exe @0x40ff3f → FUN_00414810 rotates the map 90° (global 0x448704 = (r+1)&3). MapView.rotate(): (x,y)→(−2y, x/2), (gx,gy)→(−gy,gx), 4-group SPR sheets advance one direction group; test tests/round14_rotate.mjs.
+- Economy fixed to exe: build cost value(land,type,exe L1) (@0x40c33e/0x4128d2), new buildings at exe level 1, max exe 3 (remake 0..2); upgrade cost = current value (@0x417c92); 財神 builds/upgrades free (@0x4128c2/0x410900) and 士多 invest gain-only; gain tile +scale(50) (財神 ×2, jackpot +X or X/2); lose tile −scale(50); 打小人 scale(20); salary accrues scale(50)/week, paid stepping on 洋行 'of' (+jackpot half), start tile no effect; 住宅 value/20 weekly to homeMoney only with a 屋企 and not in hospital/jail, jackpot +half; 得而復失 per step 1/4 chance (1–2)%.
+- Plain messages / yes-no prompts now use smessagebox (@0x40b850, flags 0/1/3).
+- tests: property_rules (updated), round13, round14_rotate, round14_popups, autoplay maps 0–2.
+
 ## Round 13 — unified owner marker, 食肆 no invest, original build popups, exe 士多 invest (2026-10-12 Asia/Shanghai)
 
 - Owner marker on houses now uses the head marker sprite `map/playermark0N` at the same scale/bob (was `playermark0N_2`). Flashes only while the plot is visited this turn (`flashPlots`), static frame 0 after `clearFlash()` at turn end.

@@ -112,7 +112,8 @@ export class MapView {
     this.board = board;
     this.ancient = board.key === 'ancient';
     const { data, main, later } = await MapView.plan(board.key, this.chars.length ? this.chars : [1, 2, 3, 4, 5, 6]);
-    this.data = data;
+    this.data = structuredClone(data); // rotation mutates positions → private copy
+    this.rot = 0; this.pivot = null;
     await loadSheets(main, onProgress);
     void loadSheets(later);
     this.sheets = this.data.sprites.map(s => sheet('map/' + s));
@@ -178,6 +179,44 @@ export class MapView {
   /** chunk cache resolution: 2 device px per art px with the HD set (crisp at board zoom ≈ 1.4–2.4 × DPR), else 1 */
   private bakeK = 1;
   /** HD ground: the static ground layer upscaled *in context* (seamless) by tools/upscale.py, as 2x chunk tiles */
+  /** Map orientation 0..3 (exe global 0x448704, advanced by the ring menu centre button @0x414810). */
+  rot = 0;
+  private pivot: { x: number; y: number } | null = null;
+  /**
+   * Rotate the whole map 90° like the original (FUN_00414810 → FUN_0041fe80 re-lays every layer object).
+   * Iso lattice: screen x = 40·gx, y = 20·gy, so a quarter turn is (gx, gy) → (−gy, gx) i.e. (x, y) → (−2y, x/2)
+   * about the map centre; every 4-group SPR sheet (roads, shores, buildings, ships…) switches to the next direction
+   * group, keeping the frame offset inside the group. Players' facing advances by one group too.
+   */
+  async rotate() {
+    if (this.baking) return;
+    this.rot = (this.rot + 1) % 4;
+    if (!this.pivot) { const bb = this.computeBounds(); this.pivot = { x: Math.round((bb.x0 + bb.x1) / 2 / 40) * 40, y: Math.round((bb.y0 + bb.y1) / 2 / 20) * 20 }; }
+    const Cx = this.pivot.x, Cy = this.pivot.y;
+    const R = (x: number, y: number) => ({ x: Cx - 2 * (y - Cy), y: Cy + (x - Cx) / 2 });
+    const RG = (gx: number, gy: number) => ({ gx: Cx / 40 - (gy - Cy / 20), gy: Cy / 20 + (gx - Cx / 40) });
+    for (const L of this.data.layers) for (const o of L.o) {
+      const r = R(o[2], o[3]); o[2] = r.x; o[3] = r.y;
+      const gi = groupInfo('map/' + this.data.sprites[o[0]]);
+      if (gi.g.length === 4) {
+        let g = 0; while (g < 3 && o[1] >= gi.start[g + 1]) g++;
+        const ng = (g + 1) % 4; o[1] = gi.start[ng] + Math.min(o[1] - gi.start[g], gi.g[ng] - 1);
+      }
+    }
+    const b = this.board;
+    for (const t of b.tiles) { Object.assign(t, R(t.x, t.y), RG(t.gx, t.gy)); }
+    for (const l of b.landmarks) Object.assign(l, R(l.x, l.y));
+    for (const p of b.plots) {
+      Object.assign(p, R(p.x, p.y), RG(p.gx, p.gy));
+      const t0 = b.tiles[p.tiles[0]];
+      if (t0) p.dir = dirGroup(Math.sign(t0.gx - p.gx), Math.sign(t0.gy - p.gy));
+    }
+    for (const a of this.actors) { Object.assign(a, R(a.x, a.y)); a.dir = (a.dir + 1) % 4; }
+    if (this.follow) Object.assign(this.follow, R(this.follow.x, this.follow.y));
+    const c = R(this.cx, this.cy); this.cx = c.x; this.cy = c.y;
+    await this.bake();
+    this.bounds = this.computeBounds();
+  }
   private ground: Map<string, CanvasImageSource> | null = null;
   private groundKey = '';
   /** HD ground tiles of a map, decoded once per session (shared by prefetch and the bake) */
@@ -206,7 +245,7 @@ export class MapView {
     const epoch = Assets.assetEpoch;
     const K = Assets.hdFull() ? 2 : 1;
     if (K === 2) await this.loadGround();
-    const ground = K === 2 ? this.ground : null;
+    const ground = K === 2 && this.rot === 0 ? this.ground : null;
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     for (const o of this.baked) { x0 = Math.min(x0, o.x0); y0 = Math.min(y0, o.y0); x1 = Math.max(x1, o.x1); y1 = Math.max(y1, o.y1); }
     const statics = this.objects.filter(o => !o.anim);
@@ -517,7 +556,7 @@ export class MapView {
         ctx.restore();
       } else {
         drawFrame(ctx, name, p.dir, p.x, p.y);
-        if (ps.level >= 3) drawFrame(ctx, 'map/havemoney', Math.floor(app.time / 60) % 32, p.x, p.y - 40, 0.6, 0.8);
+        if (ps.level >= 2) drawFrame(ctx, 'map/havemoney', Math.floor(app.time / 60) % 32, p.x, p.y - 40, 0.6, 0.8);
         // Owner marker above building (same playermark gem that floats over the token)
         this.ownerMark(ctx, name, p.dir, p.x, p.y, ps.owner, i);
       }

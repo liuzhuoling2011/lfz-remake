@@ -100,7 +100,7 @@ function tileScore(g: GameState, b: Board, p: Player, t: number) {
     else if (ps.owner === p.seat) s += ps.level < RULES.maxLevel ? 2 : 0.3;
     else if (ps.type === PLOT.RESIDENCE) s += 0.2; // 住宅不收租
     else { // rent / visit risk relative to cash
-      const v = Math.floor(RULES.levelPct[ps.level] * b.plots[pl].base / 100);
+      const v = Math.floor(RULES.levelPct[ps.level + 1] * b.plots[pl].base / 100);
       s -= 1.5 + 4 * Math.min(1.5, v / Math.max(300, p.cash));
     }
   }

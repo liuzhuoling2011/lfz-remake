@@ -16,7 +16,7 @@ import { D, msg } from '../game/data';
 const WHITE = { color: '#fff', stroke: '#000', strokeWidth: 3, baseline: 'top' as CanvasTextBaseline };
 
 // ------------------------------------------------------------------ message box
-export interface MsgBox { text: string; t: number; yes: () => void; no?: () => void }
+export interface MsgBox { text: string; t: number; yes: () => void; no?: () => void; /** flags 0: no buttons (AI / auto-close) */ noButtons?: boolean }
 /**
  * smessagebox.spr frame 0 at (W/2, H/2+100); text (20x20 font, white + outline) in the box (x-100, y-58, width 200);
  * widgets: flag 2 → X = frames 4-6 (result 2 / 否), flag 1 → O = frames 1-3 (result 1 / 是); alpha fades in += 0x20 per
@@ -30,7 +30,9 @@ export function drawMsgBox(ctx: CanvasRenderingContext2D, w: number, h: number, 
   winBegin(ctx, W, a);
   drawFrame(ctx, 'interface/smessagebox', 0, 0, 0);
   const lines = wrap(ctx, m.text, 200, 18);
-  lines.slice(0, 5).forEach((l, i) => text(ctx, l, -100, -58 + i * 22, { size: 18, ...WHITE }));
+  const fs = lines.length > 5 ? 15 : 18; const ls = lines.length > 5 ? wrap(ctx, m.text, 200, fs) : lines;
+  ls.slice(0, 7).forEach((l, i) => text(ctx, l, -100, -58 + i * (fs + 4), { size: fs, ...WHITE }));
+  if (m.noButtons) { winEnd(ctx); return; }
   if (m.no) wbtn(ctx, W, id + '-x', 'interface/smessagebox', [4, 5, 6], m.no, { sound: 'interface/click' });
   wbtn(ctx, W, id + '-o', 'interface/smessagebox', [1, 2, 3], m.yes, { sound: 'interface/click' });
   winEnd(ctx);

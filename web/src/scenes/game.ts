@@ -529,7 +529,8 @@ export class GameScene implements Scene {
     ringBtn('gm-card', 3, () => this.turnMenuRes?.('card'), !p.cards.length);
     ringBtn('gm-info', 6, () => { this.detailSeat = p.seat; this.overlay = 'detail'; });
     ringBtn('gm-sys', 9, () => { this.overlay = 'system'; });
-    ringBtn('gm-rot', 13, () => { const a = this.view.actor(p.seat); this.view.lastManualPan = -1e9; this.view.focusOn(a.x, a.y); });
+    // centre button: exe @0x40ff3f → FUN_00414810 rotates the map 90° (orientation global 0x448704 = (r+1)&3)
+    ringBtn('gm-rot', 13, () => { void this.view.rotate().then(() => { const a = this.view.actor(p.seat); this.view.focusOn(a.x, a.y, true); }); });
     const cr = frameRect('interface/game_menu', 3, R.x, R.y, s);
     ctx.fillStyle = '#c3121b'; ctx.beginPath(); ctx.arc(cr.x + cr.w - 4 * s, cr.y + 6 * s, 9 * s, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
@@ -617,6 +618,13 @@ export class GameScene implements Scene {
     const k = Math.min(1, d.t / 160);
     if (d.style === 'card' && d.cardId) { this.renderCardCast(ctx, w, h, d); return; }
     if (d.kind === 'cards') { this.renderCardSelect(ctx, w, h, d); return; }
+    // Original message box (smessagebox.spr, @0x40b850): plain messages (tolls, tile events, salary, special buildings)
+    // use flags 1 (O) for a human, flags 0 (no buttons, auto-close) for an AI; yes/no questions use flags 3 (O + X).
+    if ((d.kind === 'msg' || d.kind === 'confirm') && !d.image && !d.style && d.badge !== 'gameover') {
+      drawMsgBox(ctx, w, h, { text: d.text ?? '', t: d.t, noButtons: !!d.auto && d.kind === 'msg',
+        yes: () => d.resolve(d.kind === 'confirm' ? true : undefined), no: d.kind === 'confirm' ? () => d.resolve(false) : undefined }, 'dm');
+      return;
+    }
     ctx.save();
     const sc = (d.passive ? 0.82 : 0.9) + 0.1 * k; ctx.globalAlpha = k * (d.passive && d.auto ? Math.min(1, (d.auto.ms * speedMul.v - d.t) / 250) : 1);
     ctx.translate(w / 2, h / 2); ctx.scale(sc, sc); ctx.translate(-w / 2, -h / 2);

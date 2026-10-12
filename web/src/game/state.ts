@@ -9,6 +9,8 @@ export interface Player {
   seat: number; char: number; ai: boolean; alive: boolean;
   cash: number; home: number; tile: number; prev: number;
   status: Status; cards: number[]; homePlot: number | null; locks: number; chooseSteps: boolean;
+  /** pending 洋行 salary: += scale(50) every week (exe game+0x20+4·seat), paid on stepping on the 'of' tile */
+  salary?: number;
 }
 export interface PlotState { owner: number; type: number; level: number } // type: PLOT.SHOP=1 士多, RESTAURANT=2 食肆, RESIDENCE=3 住宅, HOME=4 家
 export interface RoadMoney { tile: number; amount: number }

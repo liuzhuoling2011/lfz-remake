@@ -154,8 +154,11 @@ export class Engine {
   async newWeek() {
     const s0 = season(this.g);
     this.g.week++;
-    // 住宅 → 屋企存款：每週按物業價值抽成（INFERRED；邏輯按 type id=3，與地圖顯示名無關）
+    // VERIFIED weekly routine @0x402f30: pending salary += scale(50) for every player; then for players that own a
+    // 屋企 and are not in hospital/jail, each 住宅 pays value/20 into homeMoney and the jackpot gets half of the total.
+    for (const p of this.g.players) p.salary = (p.salary ?? 0) + scale(RULES.salaryBase, this.g.week);
     for (const p of this.alive()) {
+      if (p.homePlot === null || p.status.hospital > 0 || p.status.jail > 0) continue;
       let gained = 0;
       for (const i of ownedPlots(this.g, p)) {
         const ps = this.g.plots[i]!;
@@ -164,6 +167,7 @@ export class Engine {
         if (amt > 0) { p.home += amt; gained += amt; }
       }
       if (gained > 0) {
+        this.g.jackpot += Math.floor(gained / 2);
         const a = this.view.actor(p.seat);
         this.view.float(`住宅收租 +${gained}`, a.x, a.y - 120, '#9fe8ff');
         this.onChange();
@@ -271,20 +275,22 @@ export class Engine {
   async move(p: Player, steps: number) {
     const v = this.view;
     const path = this.route(p, steps);
-    let dropped = false;
+    let office = false;
     await v.walkPath(p.seat, p.tile, path, (i, tile) => {
       p.prev = i === 0 ? p.tile : path[i - 1]; p.tile = tile;
       if (!TURBO) void sfx('interface/sfx065', 0.35); // footstep
       this.passTile(p);
-      if (p.status.dropMoney > 0 && !dropped) {
-        dropped = true;
-        const amt = Math.floor(p.cash * RULES.dropMoneyPct / 100);
+      if (this.b.tiles[tile].landmarks.some(l => l.kind === 'of')) office = true;
+      // VERIFIED @0x416ae8: 得而復失 — every step 1-in-4 chance to drop (1..2)% of cash on the road
+      if (p.status.dropMoney > 0 && Math.floor(Math.random() * 4) === 0) {
+        const amt = Math.floor(p.cash * (1 + Math.floor(Math.random() * RULES.dropMoneyPct)) / 100);
         if (amt > 0) { p.cash -= amt; v.money(p.seat, -amt); this.g.roadMoney.push({ tile: p.prev, amount: amt }); }
       }
       this.onChange();
     });
     p.tile = path[path.length - 1] ?? p.tile; p.prev = path.length > 1 ? path[path.length - 2] : p.prev;
     v.actor(p.seat).anim = 'stand';
+    if (office && p.alive) await this.salary(p);
     // greet another character standing on the same tile (voice 25a–e)
     const other = this.alive().find(o => o.seat !== p.seat && o.tile === p.tile);
     if (other && Math.random() < 0.7) this.greet(p, other);
@@ -354,8 +360,11 @@ export class Engine {
       if (!p.alive) return;
       switch (t.event) {
         case 'chance': await this.chance(p); break;
-        case 'bank': await this.salary(p); break;
-        case 'gain': { const amt = scale(RULES.moneyAddBase, this.g.week); this.gain(p, amt); this.speak(p, GOOD); await this.info(`拾到 ${amt} 元！`, {}, p); break; }
+        case 'bank': break; // start tile: no landing effect in the exe dispatcher; salary is paid at 洋行 'of' (@0x4169d4)
+        case 'gain': { // VERIFIED case 2 @0x41715d: +scale(50); 財神 → ×2 and jackpot += X, else jackpot += X/2
+          const x = scale(RULES.moneyAddBase, this.g.week); const god = p.status.wealthGod > 0;
+          const amt = god ? 2 * x : x; this.g.jackpot += god ? x : Math.floor(x / 2);
+          this.gain(p, amt); this.speak(p, GOOD); await this.info(`拾到 ${amt} 元！`, {}, p); break; }
         case 'lose': {
           if (p.status.wealthGod > 0) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); break; }
           const amt = scale(RULES.moneyDesBase, this.g.week); await this.pay(p, amt); this.speak(p, BAD); await this.info(`失去 ${amt} 元！`, {}, p); break;
@@ -371,8 +380,9 @@ export class Engine {
   }
 
   async salary(p: Player) {
-    let amt = scale(RULES.salaryBase, this.g.week);
-    if (p.status.wealthGod > 0) amt *= 2;
+    // VERIFIED @0x4169d4: pay the accrued salary, jackpot += half, reset (no 財神 doubling here)
+    const amt = p.salary ?? 0; p.salary = 0;
+    if (amt <= 0) return;
     this.g.jackpot += Math.floor(amt / 2);
     this.gain(p, amt);
     this.speak(p, L.salary); // VERIFIED: line 18 next to MISC/income
@@ -428,7 +438,7 @@ export class Engine {
       }
       const tname = plotTypeName(type, ancient);
       if (p.ai) this.ui.toast(`${this.name(p)}在 ${plot.lotId}號地 興建${tname}（$${costs[type]}）`, { seat: p.seat });
-      await this.pay(p, costs[type]);
+      if (p.status.wealthGod <= 0) await this.pay(p, costs[type]); // VERIFIED @0x4128c2: 財神 builds for free
       this.sfxi(SFXI.build);
       this.speak(p, L.buy);
       await this.view.construct(pl, false, () => { this.g.plots[pl] = { owner: p.seat, type, level: 0 }; });
@@ -445,7 +455,7 @@ export class Engine {
       const ok = p.ai ? await this.ask(p, '', {}, AI.wantUpgrade(this.g, p, cost), `${this.name(p)}將 ${plot.lotId}號地 升至 ${ps.level + 2} 級（$${cost}）`)
         : await this.ui.buildConfirm('upgrade', msg('SelectBuilding', 'uplevelBuilding', cost));
       if (!ok) return;
-      await this.pay(p, cost);
+      if (p.status.wealthGod <= 0) await this.pay(p, cost); // VERIFIED @0x410900: 財神 upgrades for free
       this.sfxi(SFXI.build);
       this.speak(p, GOOD);
       await this.view.construct(pl, false, () => { ps.level++; });
@@ -517,7 +527,7 @@ export class Engine {
 
   /** 士多：所有者停靠時隨機投資盈虧（ExtText type1_1 / type1_2）. */
   async ownerInvest(p: Player, pl: number) {
-    const delta = investDelta(landPrice(this.g, this.b, pl));
+    const delta = investDelta(landPrice(this.g, this.b, pl), p.status.wealthGod > 0); // 財神 flag [ctx+0x14]
     if (delta === 0) return;
     const amt = Math.abs(delta);
     if (delta > 0) {
