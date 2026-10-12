@@ -65,10 +65,14 @@ export function residenceIncome(plotVal: number) {
  * Random commercial investment delta when owner lands on 士多/食肆.
  * Returns signed amount (positive = gain). Uses investPctMin..investPctMax of plot value.
  */
-export function investDelta(plotVal: number, pct?: number): number {
-  const lo = RULES.investPctMin, hi = RULES.investPctMax;
-  const p = pct ?? (lo + Math.floor(Math.random() * (hi - lo + 1)));
-  return Math.floor(plotVal * p / 100);
+/**
+ * 士多 owner investment — VERIFIED omasterq.exe @0x412912: X = land base price ([ctx+0x44], same base passed to the
+ * value fn @0x40e9f0); delta = rand() % (4X) - 2X  → uniform integer in [-2X, 2X-1], every owner landing.
+ * If the context flag [ctx+0x14] == 1 the -2X is skipped (gain only, [0, 4X-1]); flag meaning unidentified → `gainOnly`.
+ */
+export function investDelta(base: number, gainOnly = false, rnd = Math.random): number {
+  const x = Math.max(1, Math.floor(base));
+  return Math.floor(rnd() * 4 * x) - (gainOnly ? 0 : 2 * x);
 }
 
 /** Does this type charge rent to visitors? */
@@ -78,5 +82,5 @@ export function chargesRent(type: number) {
 
 /** Owner landing triggers random investment (士多 / 食肆). */
 export function hasOwnerInvest(type: number) {
-  return type === PLOT.SHOP || type === PLOT.RESTAURANT;
+  return type === PLOT.SHOP; // 食肆：所有者停靠無投資盈虧（只有士多有）
 }

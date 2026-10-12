@@ -548,15 +548,15 @@ export class MapView {
   clearFlash() { this.flashPlots.clear(); }
   /** Owner marker: animate only while this plot is in flashPlots (landed this turn); otherwise frame 0 static. */
   private ownerMark(ctx: CanvasRenderingContext2D, building: string, dir: number, x: number, y: number, seat: number, plotId: number) {
-    const mk2 = `map/playermark0${seat + 1}_2`;
-    const mk = sheet(mk2) ? mk2 : `map/playermark0${seat + 1}`;
+    // same sprite + scale as the head marker over the current player's token
+    const mk = `map/playermark0${seat + 1}`;
     const sh = sheet(mk); if (!sh) return;
     const b = sheet(building);
     const hy = b?.f[Math.min(dir, (b?.f.length ?? 1) - 1)]?.[5] ?? 70;
     const flash = this.flashPlots.has(plotId);
     const fi = flash ? Math.floor(app.time / 90) % sh.f.length : 0;
-    const bob = flash ? Math.sin(app.time / 220 + seat) * 2.5 : 0;
-    drawFrame(ctx, mk, fi, x, y - hy - 4 + bob, sheet(mk2) ? 0.85 : 1.15);
+    const bob = flash ? Math.sin(app.time / 200) * 3 : 0;
+    drawFrame(ctx, mk, fi, x, y - hy - 4 + bob);
   }
 
   drawActor(ctx: CanvasRenderingContext2D, a: Actor) {

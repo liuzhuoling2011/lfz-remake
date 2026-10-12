@@ -1,7 +1,7 @@
 // Turn engine: async state machine driving rules + view + UI.
 import { wait, TURBO } from '../core/app';
 import { sfx, voice, music } from '../core/audio';
-import { RULES, MAPS, SFX, SFXI, SEASONS, PLOT, plotTypeName } from './config';
+import { RULES, MAPS, SFX, SFXI, SEASONS, PLOT, plotTypeName, plotSpriteKind } from './config';
 import { D, msg, fmt, charName, type ChanceCard, type WordCard } from './data';
 import type { Board, Landmark } from './board';
 import type { GameState, Player } from './state';
@@ -18,6 +18,7 @@ export interface UIOpts {
   cardId?: number; caption?: string;
 }
 export interface ToastOpts { image?: string; color?: string; seat?: number; ms?: number; cardId?: number }
+export interface BuildDlgSpec { title: string; items: { sheet: string; dir: number; label: string; sub: string; disabled: boolean }[] }
 export type TurnAction = 'roll1' | 'roll2' | 'card' | 'quit' | 'load';
 export interface GameUI {
   message(text: string, o?: UIOpts): Promise<void>;
@@ -25,6 +26,10 @@ export interface GameUI {
   choose(title: string, opts: ChoiceOpt[], o?: UIOpts & { cancel?: string }): Promise<number>;
   /** Original calculater-style 屋企存取. null = cancel. */
   homeBank(cash: number, home: number): Promise<{ mode: 'in' | 'out'; amount: number } | null>;
+  /** Original SelectBuilding window (messagebox.spr, @0x40c1a0): level-1 building previews, click one; -1 = X. */
+  buildSelect(dlg: BuildDlgSpec): Promise<number>;
+  /** Original 屋企 build window (messagebox.spr, @0x40c440) or upgrade box (smessagebox.spr @0x40b850 flags 3). */
+  buildConfirm(kind: 'home' | 'upgrade', text: string, preview?: string, dir?: number): Promise<boolean>;
   /** dice animation; d2 = 0 → single die */
   dice(d1: number, d2: number): Promise<void>;
   turnMenu(p: Player): Promise<TurnAction>;
@@ -385,8 +390,8 @@ export class Engine {
         const cost = buildCost(this.g, this.b, pl, PLOT.HOME);
         if (p.cash < cost) return;
         if (!p.ai) this.speak(p, L.choose, 1);
-        const ok = await this.ask(p, msg('SelectBuilding', 'homeTitle') + '\n' + msg('SelectBuilding', 'homeText', cost), { title: `${plot.lotId}號地` },
-          AI.wantHome(this.g, p, cost), `${this.name(p)}購入 ${plot.lotId}號地 興建${plotTypeName(PLOT.HOME, ancient)}（$${cost}）`);
+        const ok = p.ai ? await this.ask(p, '', {}, AI.wantHome(this.g, p, cost), `${this.name(p)}購入 ${plot.lotId}號地 興建${plotTypeName(PLOT.HOME, ancient)}（$${cost}）`)
+          : await this.ui.buildConfirm('home', msg('SelectBuilding', 'homeTitle') + '\n' + msg('SelectBuilding', 'homeText', cost), `${ancient ? 'map/a_' : 'map/'}home1`, plot.dir ?? 0);
         if (!ok) return;
         await this.pay(p, cost);
         this.sfxi(SFXI.build);
@@ -415,7 +420,9 @@ export class Engine {
         if (type < 0) return;
       } else {
         this.speak(p, L.choose, 1); // VERIFIED: line 29 when the building-type selector opens (@0x417c40)
-        const pick = await this.ui.choose(msg('SelectBuilding', 'title'), opts, { title: `${plot.lotId}號地  地價 ${landPrice(this.g, this.b, pl)}`, cancel: msg('SelectBuilding', 'exit') });
+        const pre = ancient ? 'map/a_' : 'map/';
+        const pick = await this.ui.buildSelect({ title: msg('SelectBuilding', 'title'),
+          items: order.map((ty, i) => ({ sheet: `${pre}${plotSpriteKind(ty)}1`, dir: plot.dir ?? 0, label: opts[i].label, sub: opts[i].sub ?? '', disabled: !!opts[i].disabled })) });
         if (pick < 0) return;
         type = order[pick];
       }
@@ -435,8 +442,8 @@ export class Engine {
       if (ps.level >= RULES.maxLevel || p.status.confused > 0) return;
       const cost = upgradeCost(this.g, this.b, pl);
       if (p.cash < cost) return;
-      const ok = await this.ask(p, msg('SelectBuilding', 'uplevelBuilding', cost), { title: `${plot.lotId}號地  等級 ${ps.level + 1} → ${ps.level + 2}` },
-        AI.wantUpgrade(this.g, p, cost), `${this.name(p)}將 ${plot.lotId}號地 升至 ${ps.level + 2} 級（$${cost}）`);
+      const ok = p.ai ? await this.ask(p, '', {}, AI.wantUpgrade(this.g, p, cost), `${this.name(p)}將 ${plot.lotId}號地 升至 ${ps.level + 2} 級（$${cost}）`)
+        : await this.ui.buildConfirm('upgrade', msg('SelectBuilding', 'uplevelBuilding', cost));
       if (!ok) return;
       await this.pay(p, cost);
       this.sfxi(SFXI.build);
@@ -508,10 +515,9 @@ export class Engine {
     this.onChange();
   }
 
-  /** 士多 / 食肆：所有者停靠時隨機投資盈虧（ExtText type1_1 / type1_2）. */
+  /** 士多：所有者停靠時隨機投資盈虧（ExtText type1_1 / type1_2）. */
   async ownerInvest(p: Player, pl: number) {
-    const pv = plotValue(this.g, this.b, pl);
-    const delta = investDelta(pv);
+    const delta = investDelta(landPrice(this.g, this.b, pl));
     if (delta === 0) return;
     const amt = Math.abs(delta);
     if (delta > 0) {

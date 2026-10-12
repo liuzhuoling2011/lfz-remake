@@ -5,7 +5,7 @@ import { text, textBlock, wrap, fmtMoney, roundRect } from '../core/text';
 import { button, panel, dim, stage, applyStage, resetT, sr } from '../ui/widgets';
 import { Board } from '../game/board';
 import { MapView } from '../game/view';
-import { Engine, type GameUI, type ChoiceOpt, type UIOpts, type TurnAction, type ToastOpts } from '../game/engine';
+import { Engine, type GameUI, type ChoiceOpt, type UIOpts, type TurnAction, type ToastOpts, type BuildDlgSpec } from '../game/engine';
 import { newGame, saveSlot, loadSlot, type GameState, type Player } from '../game/state';
 import { RULES, MAPS, PLAYER_COLORS, PLAYER_COLORS_DARK, SEASONS, SFX, plotTypeName, PLOT } from '../game/config';
 import { D, charName, msg } from '../game/data';
@@ -49,6 +49,11 @@ interface Toast { text: string; o: ToastOpts; t: number; ms: number }
 interface DiceAnim { d1: number; d2: number; t: number; res: () => void; landed: boolean }
 interface Bubble { seat: number; text: string; t: number }
 /** Original calculater UI for 屋企存/取 */
+/** Original build windows: SelectBuilding / 屋企 (messagebox.spr) and 升級 (smessagebox.spr). */
+interface BuildDlg {
+  kind: 'select' | 'home' | 'upgrade'; t: number; spec?: BuildDlgSpec; text?: string; preview?: string; dir?: number;
+  resolve: (v: number) => void;
+}
 interface HomeBankDlg {
   mode: 'in' | 'out'; amount: number; cash: number; home: number; t: number;
   resolve: (v: { mode: 'in' | 'out'; amount: number } | null) => void;
@@ -82,6 +87,7 @@ export class GameScene implements Scene {
   /** Armed map-click teleport (Debug 傳送). */
   dbgTpArmed = false;
   homeBankDlg: HomeBankDlg | null = null;
+  buildDlg: BuildDlg | null = null;
   /** original console command ShowDetailInfo: extra lines under each HUD panel (key I) */
   showDetail = false;
   private optRaw: { quality: 0 | 1 | 2; speed: 0 | 1 | 2; sfx: number; music: number; voice: number; fullscreen: boolean } | null = null;
@@ -172,6 +178,14 @@ export class GameScene implements Scene {
           resolve: v => { this.homeBankDlg = null; res(v); } };
       });
     },
+    buildSelect: spec => {
+      if (AUTO || TURBO) return Promise.resolve(spec.items.findIndex(x => !x.disabled));
+      return new Promise(res => { this.buildDlg = { kind: 'select', t: 0, spec, resolve: v => { this.buildDlg = null; res(v); } }; });
+    },
+    buildConfirm: (kind, t, preview, dir) => {
+      if (AUTO || TURBO) return Promise.resolve(true);
+      return new Promise(res => { this.buildDlg = { kind, t: 0, text: t, preview, dir, resolve: v => { this.buildDlg = null; res(v === 1); } }; });
+    },
     dice: (d1, d2) => {
       if (TURBO) return Promise.resolve();
       void sfx('dice/dice1'); // VERIFIED: dice1.wav when the throw starts, dice2.wav on landing
@@ -233,6 +247,7 @@ export class GameScene implements Scene {
     if (this.winnerInfo) this.winnerInfo.t += dt;
     if (this.tooltip) { this.tooltip.t += dt; if (this.tooltip.t > 4000) this.tooltip = null; }
     if (this.homeBankDlg) this.homeBankDlg.t += dt;
+    if (this.buildDlg) this.buildDlg.t += dt;
   }
 
   // ------------------------------------------------------------ input
@@ -243,7 +258,7 @@ export class GameScene implements Scene {
     this.view.onPointer(e);
     if (e.type === 'up' && this.downPos && Math.hypot(e.x - this.downPos.x, e.y - this.downPos.y) < 8) {
       const wpos = this.view.toWorld(e.x, e.y);
-      if (this.dbgTpArmed && !this.homeBankDlg && !this.dlgs.length) {
+      if (this.dbgTpArmed && !this.homeBankDlg && !this.buildDlg && !this.dlgs.length) {
         // Next map click completes armed Debug teleport
         let best = 0, bd = 1e9;
         this.board.tiles.forEach((tt, i) => { const d = Math.hypot(tt.x - wpos.x, (tt.y - wpos.y) * 2); if (d < bd) { bd = d; best = i; } });
@@ -265,6 +280,13 @@ export class GameScene implements Scene {
     if (this.lsWin && (this.overlay === 'save' || this.overlay === 'load')) { this.lsWin.key(k); return; }
     if (this.overlay === 'quitConfirm') { if (k === 'Enter' || k === ' ') { this.engine.stopped = true; go('mainmenu'); } else if (k === 'Escape') this.overlay = 'none'; return; }
     if (this.homeBankDlg && k === 'Escape') { this.homeBankDlg.resolve(null); return; }
+    if (this.buildDlg) {
+      const b = this.buildDlg;
+      if (k === 'Escape') b.resolve(b.kind === 'select' ? -1 : 0);
+      else if ((k === 'Enter' || k === ' ') && b.kind !== 'select') b.resolve(1);
+      else if (b.kind === 'select' && /^[1-3]$/.test(k) && !b.spec!.items[+k - 1].disabled) b.resolve(+k - 1);
+      return;
+    }
     if (this.dbgTpArmed && k === 'Escape') { this.dbgTpArmed = false; this.ui.toast('已取消傳送', { color: '#ffb347' }); return; }
     const top = this.dlgs[this.dlgs.length - 1];
     if (top && !top.passive && top.kind === 'cards') {
@@ -301,6 +323,7 @@ export class GameScene implements Scene {
     const top = this.dlgs[this.dlgs.length - 1];
     if (top) this.renderDialog(ctx, w, h, top);
     if (this.homeBankDlg) this.renderHomeBank(ctx, w, h);
+    if (this.buildDlg) this.renderBuildDlg(ctx, w, h);
     this.renderOverlay(ctx, w, h);
     // 全螢幕 + Debug floating controls — drawn last so they sit above the 設定 modal block
     if (!this.winnerInfo) {
@@ -990,6 +1013,56 @@ export class GameScene implements Scene {
    * Original 屋企 calculator (interface/calculater.spr + calcnumber2 digits).
    * Digits right-aligned on the 9 baked shadow-8 slots (centers 74+20·i; draw at scx-10, y=53 in panel space).
    */
+  /**
+   * Original build windows (static RE of omasterq.exe):
+   *  - SelectBuilding @0x40c1a0: messagebox.spr frame 0 at (W/2, H/2+40); the three level-1 buildings (樓1 / 商業1 / 食市1)
+   *    are the clickable widgets at (W/2-100+100i, H/2+60); ExtText SelectBuilding title / building1-3 / exit; X = frames 4-6.
+   *  - 屋企 @0x40c440: same box with Hometitle / homeText, the 屋企1 preview, O 1-3 / X 4-6.
+   *  - 升級 (FUN @0x410825): smessagebox @0x40b850 flags 3 with SelectBuilding/uplevelBuilding.
+   */
+  renderBuildDlg(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const d = this.buildDlg!;
+    if (d.kind === 'upgrade') {
+      drawMsgBox(ctx, w, h, { text: d.text!, t: d.t, yes: () => d.resolve(1), no: () => d.resolve(0) }, 'up');
+      return;
+    }
+    const S = sysScale(w, h);
+    const W: Win = { sc: S, ax: w / 2, ay: h / 2 + 40 * S };
+    app.block();
+    const WH = { color: '#fff', stroke: '#000', strokeWidth: 3, align: 'center' as CanvasTextAlign, baseline: 'middle' as CanvasTextBaseline };
+    winBegin(ctx, W, Math.min(1, d.t / 130));
+    drawFrame(ctx, 'interface/messagebox', 0, 0, 0);
+    if (d.kind === 'select') {
+      const sp = d.spec!;
+      text(ctx, sp.title, 0, -92, { size: 20, ...WH });
+      sp.items.forEach((it, i) => {
+        const x = -100 + 100 * i, y = -2;
+        const id = 'bs' + i; const st = it.disabled ? 0 : app.state(id);
+        const f = sheet(it.sheet)?.f[Math.min(it.dir, 3)];
+        const sc = st ? 0.95 : 0.85;
+        ctx.save();
+        if (it.disabled) { ctx.globalAlpha *= 0.4; ctx.filter = 'grayscale(1)'; }
+        else if (st) ctx.filter = 'brightness(1.25)';
+        drawFrame(ctx, it.sheet, Math.min(it.dir, 3), x, y, sc);
+        ctx.restore();
+        text(ctx, it.label, x, y + 20, { size: 18, ...WH, color: it.disabled ? '#999' : '#ffe36a' });
+        text(ctx, '$' + (it.sub.match(/\d+/)?.[0] ?? ''), x, y + 42, { size: 16, ...WH });
+        if (st) text(ctx, it.sub, -60, 78, { size: 14, ...WH });
+        if (!it.disabled && f) app.hit(id, wr(W, { x: x - 42, y: y - f[5] * sc - 4, w: 84, h: f[5] * sc + 64 }), () => { void sfx('interface/click'); d.resolve(i); });
+      });
+      wbtn(ctx, W, 'bs-x', 'interface/messagebox', [4, 5, 6], () => d.resolve(-1));
+    } else {
+      const [title, ...rest] = d.text!.split('\n');
+      text(ctx, title, 0, -92, { size: 20, ...WH });
+      if (d.preview) drawFrame(ctx, d.preview, Math.min(d.dir ?? 0, 3), 0, 10, 0.9);
+      const lines = wrap(ctx, rest.join(' '), 300, 16);
+      lines.slice(0, 3).forEach((l, i) => text(ctx, l, 0, 40 + i * 22, { size: 16, ...WH }));
+      wbtn(ctx, W, 'bh-x', 'interface/messagebox', [4, 5, 6], () => d.resolve(0));
+      wbtn(ctx, W, 'bh-o', 'interface/messagebox', [1, 2, 3], () => d.resolve(1));
+    }
+    winEnd(ctx);
+  }
+
   renderHomeBank(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const d = this.homeBankDlg!; const u = Math.max(0.85, this.uis);
     dim(ctx, w, h, 0.4 * Math.min(1, d.t / 200));

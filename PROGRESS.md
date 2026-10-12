@@ -1,3 +1,11 @@
+## Round 13 — unified owner marker, 食肆 no invest, original build popups, exe 士多 invest (2026-10-12 Asia/Shanghai)
+
+- Owner marker on houses now uses the head marker sprite `map/playermark0N` at the same scale/bob (was `playermark0N_2`). Flashes only while the plot is visited this turn (`flashPlots`), static frame 0 after `clearFlash()` at turn end.
+- 食肆 owner landing: no investment. Only 士多 (exe @0x412908 checks plot type == 1).
+- 士多 invest VERIFIED @0x412912: X = land base (scaled land price); delta = rand() % 4X − 2X (uniform [−2X, 2X−1]) on every owner landing; ctx flag [+0x14]==1 skips −2X (gain-only, flag meaning unknown, not wired). Messages ExtText type1_1/type1_2.
+- Empty lot: original SelectBuilding window @0x40c1a0 — messagebox.spr at (W/2, H/2+40), level-1 樓1/商業1/食市1 previews clickable at (−100+100i, +20), X = frames 4-6. First lot: 屋企 window @0x40c440 (Hometitle/homeText, O/X). Own house upgrade: smessagebox @0x40b850 flags 3 with uplevelBuilding (call @0x410877).
+- tests/round13.mjs; screenshots/round13/.
+
 
 ## Round 12 — home calculator digit alignment (2026-10-10 Asia/Shanghai)
 

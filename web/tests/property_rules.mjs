@@ -27,9 +27,9 @@ function rentFee(ps, plotVal, landerCash, visitPct) {
 function residenceIncome(plotVal) {
   return Math.max(0, Math.floor(plotVal * RULES.residenceIncomePct / 100));
 }
-function investDelta(plotVal, pct) {
-  return Math.floor(plotVal * pct / 100);
-}
+// exe @0x412912: rand() % (4X) - 2X, X = land base
+function investDelta(base, r, gainOnly = false) { return Math.floor(r * 4 * base) - (gainOnly ? 0 : 2 * base); }
+const hasOwnerInvest = t => t === PLOT.SHOP; // 食肆 owner: no invest
 function plotTypeName(type, ancient = false) {
   if (ancient) return ['', '商舖', '酒樓', '民宅', '府邸'][type];
   return ['', '士多', '食肆', '住宅', '屋企'][type];
@@ -52,8 +52,10 @@ for (let L = 0; L < RULES.maxLevel; L++) {
 }
 
 assert.equal(residenceIncome(1000), 40);
-assert.equal(investDelta(1000, 10), 100);
-assert.equal(investDelta(1000, -8), -80);
+assert.equal(investDelta(500, 0), -1000);
+assert.equal(investDelta(500, 0.9999999), 999);
+assert.equal(investDelta(500, 0, true), 0);
+assert.ok(hasOwnerInvest(PLOT.SHOP) && !hasOwnerInvest(PLOT.RESTAURANT));
 
 assert.equal(plotTypeName(PLOT.SHOP, false), '士多');
 assert.equal(plotTypeName(PLOT.SHOP, true), '商舖');

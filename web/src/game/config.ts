@@ -22,7 +22,7 @@ export const RULES = {
   homeDepositPct: 50,         // INFERRED: default fraction when depositing at 家
   /** Weekly passive income from each 住宅 → homeMoney, as % of that plot's current value. INFERRED. */
   residenceIncomePct: 4,
-  /** Owner landing on 士多/食肆: random investment swing as % of plot value. INFERRED range. */
+  /** (unused) old inferred invest %; real formula in rules.investDelta (exe @0x412912). */
   investPctMin: -8,
   investPctMax: 14,
   cardMax: 32,                 // INFERRED
