@@ -17,7 +17,7 @@ export const RULES = {
   smallmanFee: 20,            // VERIFIED case 6 @0x417279 / @0x410208: scale(20)
   templeFee: 100,             // VERIFIED case 10 scale(100)
   lockFee: 100,               // VERIFIED case 9 scale(100)
-  jockeyTicket: 200,          // INFERRED
+  jockeyTicket: 2,            // VERIFIED @0x40b809: luckydraw confirm does cash -= 2 (flat)
   jockeyWinChance: 0.12,      // INFERRED
   homeDepositPct: 50,         // INFERRED: default fraction when depositing at 家
   /** Weekly passive income from each 住宅 → homeMoney, as % of that plot's current value. INFERRED. */

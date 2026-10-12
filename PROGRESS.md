@@ -124,3 +124,12 @@
 ## Round 16
 - Restyled to the original: bankrupt = gameOver.spr 破/產 stamp centred (@0x409160, remake adds the name line); NPC events with a picture = chance.spr card; choose-target = exe window @0x40d3b0 (smessagebox.spr at W/2,H/2+40, Misc/SelectCardTager prompt, faces (frame 1) in a row at H/2+50 spaced 200/n, X = cancel); steps = step.spr at (30, H-300) with 6 dice (normal/hover/pressed).
 - Keyboard: target ←/→/Tab + Enter, 1–4, Esc; steps 1–6, arrows + Enter. Test: tests/round16_dialogs.mjs.
+
+## Round 17
+- Bankrupt: stamp only (removed remake name line under 破產).
+- Choose-target: no face glow; exe paints every face at panel alpha and only plays highLight.wav on selection change (@0x40d6aa / paint @0x40d87c).
+- Picture-less NPC (財神 etc.): smessagebox.spr via drawMsgBox (same as plain messages); pictured NPC still chance.spr.
+- Target filter matches exe @0x40d530: exclude out / hospital / jail / **frozen (status 5 一曝十寒)**. Helper `targetCandidates` used by cards + 打小人; AI chooseCard uses the same.
+- AI auto-pick: pickPlayer / pickSteps accept `{ auto }`; AI card/smallman/步步為營 go through the panels (TURBO still skips for speed). Test `round17_fixes.mjs` exercises them without turbo.
+- Jockey ticket: VERIFIED @0x40b809 cash −= 2 flat (was inferred scale(200)); ask text is plain Misc/Jclub (no remake price line). Win chance still INFERRED.
+- Per-map shots: `screenshots/round17/map{0,1,2}/{bankrupt,npc_pictured,npc_no_picture,choose_player,choose_steps,autoplay}.png`.

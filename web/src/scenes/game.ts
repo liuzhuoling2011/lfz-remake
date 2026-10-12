@@ -198,10 +198,10 @@ export class GameScene implements Scene {
       if (!p.cards.length) return this.ui.message(msg('Misc', 'NoneCard')).then(() => null);
       return this.push({ kind: 'cards', title: '四字真言', buttons: [...p.cards.map(c => ({ label: D.words[c - 1].title, value: c, primary: true })), { label: '返回', value: null }] });
     },
-    pickPlayer: (title, cands) => this.push({ kind: 'players', text: title, title: '選擇對象', buttons: [...cands.map(s => ({ label: charName(this.g.players[s].char), value: s, primary: true })), { label: '取消', value: -1 }],
-      auto: AUTO ? { ms: 400, value: cands[0] } : undefined }),
-    pickSteps: () => this.push({ kind: 'steps', title: '步步為營', text: '請選擇行走步數', buttons: [1, 2, 3, 4, 5, 6].map(n => ({ label: String(n), value: n, primary: true })),
-      auto: AUTO ? { ms: 400, value: 3 } : undefined }),
+    pickPlayer: (title, cands, o) => this.push({ kind: 'players', text: title, title: '選擇對象', buttons: [...cands.map(s => ({ label: charName(this.g.players[s].char), value: s, primary: true })), { label: '取消', value: -1 }],
+      auto: o?.auto !== undefined ? { ms: 700, value: o.auto } : AUTO ? { ms: 400, value: cands[0] } : undefined }),
+    pickSteps: (o) => this.push({ kind: 'steps', title: '步步為營', text: '請選擇行走步數', buttons: [1, 2, 3, 4, 5, 6].map(n => ({ label: String(n), value: n, primary: true })),
+      auto: o?.auto !== undefined ? { ms: 700, value: o.auto } : AUTO ? { ms: 400, value: 3 } : undefined }),
     seasonChange: s => {
       if (TURBO) return Promise.resolve();
       void sfx('season/paper');
@@ -638,7 +638,8 @@ export class GameScene implements Scene {
     if (d.kind === 'steps') { this.renderPickSteps(ctx, w, h, d); return; }
     // Original message box (smessagebox.spr, @0x40b850): plain messages (tolls, tile events, salary, special buildings)
     // use flags 1 (O) for a human, flags 0 (no buttons, auto-close) for an AI; yes/no questions use flags 3 (O + X).
-    if ((d.kind === 'msg' || d.kind === 'confirm') && !d.image && !d.style && d.badge !== 'gameover') {
+    // Plain messages AND picture-less NPC/chance notices use smessagebox.spr (exe @0x40b850). Only pictured NPC/chance go to chance.spr.
+    if ((d.kind === 'msg' || d.kind === 'confirm') && !d.image && d.badge !== 'gameover') {
       drawMsgBox(ctx, w, h, { text: d.text ?? '', t: d.t, noButtons: !!d.auto && d.kind === 'msg',
         yes: () => d.resolve(d.kind === 'confirm' ? true : undefined), no: d.kind === 'confirm' ? () => d.resolve(false) : undefined }, 'dm');
       return;
@@ -717,8 +718,6 @@ export class GameScene implements Scene {
     applyStage(ctx, st); ctx.globalAlpha = Math.min(1, d.t / 200);
     drawFrame(ctx, 'interface/gameover', 0, 320, 240, sc); drawFrame(ctx, 'interface/gameover', 1, 320, 240, sc);
     ctx.globalAlpha = 1; resetT(ctx);
-    // remake addition: who went bankrupt (the exe only shows the stamp)
-    if (d.text) text(ctx, d.text, w / 2, st.oy + 380 * st.s, { size: 20 * st.s, align: 'center', color: '#fff', stroke: '#3a0a00', strokeWidth: 5 * st.s, maxWidth: w - 20 });
     if (!d.passive && !d.auto) app.hit('bankok', { x: 0, y: 0, w, h }, () => { if (d.t > 500) d.resolve(undefined); }, false);
   }
 
@@ -740,8 +739,9 @@ export class GameScene implements Scene {
     const sp = 200 / Math.max(1, n); const aiPick = d.auto ? d.auto.value : undefined;
     items.forEach((b, i) => {
       const x = (640 + sp - 200) / 2 + i * sp, y = 290;
-      const p = this.g.players[b.value]; const hover = app.state('pp' + i) > 0 || d.sel === i || (aiPick === b.value && d.t > 300);
-      if (hover) { ctx.fillStyle = PLAYER_COLORS[b.value]; ctx.globalAlpha = a * 0.55; ctx.beginPath(); ctx.ellipse(x, y, 24, 28, 0, 0, 7); ctx.fill(); ctx.globalAlpha = a; }
+      const p = this.g.players[b.value];
+      // no hover tint: exe draws face frame 1 for every candidate at the panel alpha (@0x40d87c); selection change only triggers highLight.wav
+      void (app.state('pp' + i) || d.sel === i || (aiPick === b.value && d.t > 300));
       drawFrame(ctx, 'interface/face0' + p.char, 1, x, y);
       const r = frameRect('interface/face0' + p.char, 1, x, y);
       if (!d.auto) app.hit('pp' + i, sr(st, r), () => d.resolve(b.value));

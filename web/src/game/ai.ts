@@ -38,7 +38,8 @@ export function pickRichestOpponent(g: GameState, b: Board, p: Player, cand: num
 /** Decide whether to use a word card before rolling. Returns {card, target} or null. */
 export function chooseCard(g: GameState, b: Board, p: Player): { card: number; target: number } | null {
   if (!p.cards.length) return null;
-  const opp = g.players.filter(o => o.alive && o.seat !== p.seat);
+  // Match exe @0x40d530: skip hospital / jail / frozen (status 1/2/5) as well as the bankrupt.
+  const opp = g.players.filter(o => o.alive && o.seat !== p.seat && o.status.hospital <= 0 && o.status.jail <= 0 && o.status.frozen <= 0);
   const s = p.status;
   const has = (id: number) => p.cards.includes(id);
   if (s.badGod > 0 && has(11)) return { card: 11, target: p.seat };

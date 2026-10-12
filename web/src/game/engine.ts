@@ -34,8 +34,8 @@ export interface GameUI {
   dice(d1: number, d2: number): Promise<void>;
   turnMenu(p: Player): Promise<TurnAction>;
   pickCard(p: Player): Promise<number | null>;
-  pickPlayer(title: string, cands: number[]): Promise<number>;
-  pickSteps(): Promise<number>;
+  pickPlayer(title: string, cands: number[], o?: { auto?: number }): Promise<number>;
+  pickSteps(o?: { auto?: number }): Promise<number>;
   seasonChange(s: number): Promise<void>;
   banner(text: string, color?: string): void;
   /** non-blocking notification (used for every AI decision) */
@@ -68,6 +68,18 @@ export class Engine {
   get cur() { return this.g.players[this.g.current]; }
   name(p: Player | number) { return charName(typeof p === 'number' ? this.g.players[p].char : p.char); }
   alive() { return this.g.players.filter(p => p.alive); }
+  /**
+   * Exe select-target filter @0x40d530 (player+0x34 status): ineligible when status is
+   * -1 (out), 1 (hospital), 2 (jail) or 5 (一曝十寒 / frozen). Used by every SelectCardTager /
+   * SelectSmallMan window (@0x40d3b0). Remake maps those onto alive / hospital / jail / frozen.
+   */
+  targetable(p: Player) {
+    return p.alive && p.status.hospital <= 0 && p.status.jail <= 0 && p.status.frozen <= 0;
+  }
+  /** Candidates for pickPlayer. `includeSelf` mirrors word-card selectPlayer==2; otherwise opponents only. */
+  targetCandidates(self: Player, includeSelf = false) {
+    return this.g.players.filter(o => this.targetable(o) && (includeSelf ? true : o.seat !== self.seat)).map(o => o.seat);
+  }
 
   // ---------------- voice / sfx ----------------
   /** Character speaks a [word] line: speech bubble + voice (one channel per player, no overlapping spam). */
@@ -207,7 +219,16 @@ export class Engine {
       // pre-roll: cards / menu
       if (p.ai) {
         const c = AI.chooseCard(this.g, this.b, p);
-        if (c) await this.useCard(p, c.card, c.target);
+        if (c) {
+          const wc = D.words[c.card - 1];
+          if (wc && (wc.selectPlayer === 1 || wc.selectPlayer === 2)) {
+            const cands = this.targetCandidates(p, wc.selectPlayer === 2);
+            if (cands.length) {
+              const t = await this.ui.pickPlayer(msg('Misc', 'SelectCardTager'), cands, { auto: cands.includes(c.target) ? c.target : cands[0] });
+              if (t >= 0) await this.useCard(p, c.card, t);
+            }
+          } else await this.useCard(p, c.card, c.target);
+        }
         nDice = AI.pickDice(this.g, this.b, p);
       } else {
         for (;;) {
@@ -225,8 +246,8 @@ export class Engine {
       let steps: number;
       if (p.chooseSteps) {
         p.chooseSteps = false;
-        if (p.ai) { steps = AI.pickSteps(this.g, this.b, p); this.ui.toast(`${this.name(p)}「步步為營」：行 ${steps} 步`, { seat: p.seat, cardId: 4 }); await wait(600); }
-        else steps = await this.ui.pickSteps();
+        const aiSteps = p.ai ? AI.pickSteps(this.g, this.b, p) : undefined;
+        steps = await this.ui.pickSteps(aiSteps !== undefined ? { auto: aiSteps } : undefined);
       } else {
         // VERIFIED (@0x410d00): button 0 = one die (rand%6+1), button 1 = two dice; steps = d1 + d2; no doubles rule.
         // Debug override (testing): forceDice set from the translucent Debug panel.
@@ -402,7 +423,8 @@ export class Engine {
     this.speak(p, L.beg, 3);
     this.view.actor(p.seat).hidden = true;
     music('loser.mp3', false);
-    await this.info(`${this.name(p)}破產了！`, { badge: 'gameover' }, p.ai ? p : this.cur);
+    // Exe only shows the gameOver.spr stamp (@0x409160) — always go through the dialog, even on AI turns.
+    await this.ui.message(`${this.name(p)}破產了！`, { badge: 'gameover', ai: p.ai });
     music(MAPS[this.g.map].music[season(this.g)]);
   }
 
@@ -700,10 +722,9 @@ export class Engine {
   async useCardInteractive(p: Player, id: number) {
     const c = D.words[id - 1];
     let target = p.seat;
-    const opp = this.alive().filter(o => o.seat !== p.seat).map(o => o.seat);
     if (c.selectPlayer === -1) { await this.ui.message(`「${c.title}」會在被攻擊時自動生效。`); return; }
     if (c.selectPlayer === 1 || c.selectPlayer === 2) {
-      const cands = c.selectPlayer === 2 ? [p.seat, ...opp] : opp;
+      const cands = this.targetCandidates(p, c.selectPlayer === 2);
       if (!cands.length) { await this.ui.message(msg('Misc', 'SelectCardError')); return; }
       const t = await this.ui.pickPlayer(msg('Misc', 'SelectCardTager'), cands);
       if (t < 0) return;
@@ -793,10 +814,11 @@ export class Engine {
   }
 
   async jockey(p: Player) {
-    const ticket = scale(RULES.jockeyTicket, this.g.week);
-    if (p.cash < ticket) return;
-    this.speak(p, L.jockey); // VERIFIED line 19 (@0x417210)
-    const ok = await this.ask(p, msg('Misc', 'Jclub', this.g.jackpot) + `\n（馬票每張 ${ticket} 元）`, { title: '馬會' }, AI.wantJockey(this.g, p, ticket), `${this.name(p)}購買馬票（$${ticket}）`);
+    // VERIFIED @0x40b809 (luckydraw confirm): cash -= 2 flat (not week-scaled). Entry requires cash > 1 (@0x4101ba).
+    const ticket = RULES.jockeyTicket;
+    if (p.cash <= 1) return;
+    this.speak(p, L.jockey); // VERIFIED line 19 (@0x417208)
+    const ok = await this.ask(p, msg('Misc', 'Jclub', this.g.jackpot), { title: '馬會' }, AI.wantJockey(this.g, p, ticket), `${this.name(p)}購買馬票`);
     if (!ok) return;
     await this.pay(p, ticket);
     const win = Math.random() < RULES.jockeyWinChance * (p.char === 6 ? 1.5 : 1);
@@ -825,19 +847,15 @@ export class Engine {
 
   async smallman(p: Player) {
     const fee = scale(RULES.smallmanFee, this.g.week);
-    const opp = this.alive().filter(o => o.seat !== p.seat).map(o => o.seat);
+    const opp = this.targetCandidates(p);
     if (!opp.length || p.cash < fee) return;
-    let t: number;
-    if (p.ai) {
-      if (!AI.wantSmallman(this.g, p, fee)) return;
-      t = AI.pickRichestOpponent(this.g, this.b, p, opp);
-      this.ui.toast(`${this.name(p)}打${this.name(t)}的小人（$${fee}）`, { seat: p.seat });
-    } else {
-      const ok = await this.ui.confirm(msg('Misc', 'SelectSmallMan', fee), { title: '打小人' });
-      if (!ok) return;
-      t = await this.ui.pickPlayer('你要打誰的小人？', opp);
-      if (t < 0) return;
-    }
+    if (p.ai && !AI.wantSmallman(this.g, p, fee)) return;
+    const ok = p.ai ? true : await this.ui.confirm(msg('Misc', 'SelectSmallMan', fee), { title: '打小人' });
+    if (!ok) return;
+    // AI goes through the same pickPlayer window with auto = richest opponent (exercises the panel)
+    const t = await this.ui.pickPlayer('你要打誰的小人？', opp,
+      p.ai ? { auto: AI.pickRichestOpponent(this.g, this.b, p, opp) } : undefined);
+    if (t < 0) return;
     await this.pay(p, fee);
     const T = this.g.players[t];
     if (T.status.smallmanImmune > 0 || T.status.badGodImmune > 0) {
