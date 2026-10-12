@@ -42,8 +42,8 @@ export function chooseCard(g: GameState, b: Board, p: Player): { card: number; t
   const opp = g.players.filter(o => o.alive && o.seat !== p.seat && o.status.hospital <= 0 && o.status.jail <= 0 && o.status.frozen <= 0);
   const s = p.status;
   const has = (id: number) => p.cards.includes(id);
-  if (s.badGod > 0 && has(11)) return { card: 11, target: p.seat };
-  if ((s.confused > 0 || s.dropMoney > 0) && has(15)) return { card: 15, target: p.seat };
+  // card 11 時來運轉 is a no-op in exe (@0x4138a0); do not waste it on badGod
+  if ((s.confused > 0 || s.dropMoney > 0) && has(15)) return { card: 15, target: p.seat }; // clears 6/7 only
   if (!opp.length) return null;
   const richest = pickRichestOpponent(g, b, p, opp.map(o => o.seat));
   const R = g.players[richest];
@@ -106,7 +106,7 @@ function tileScore(g: GameState, b: Board, p: Player, t: number) {
     }
   }
   const ev = tile.event;
-  if (ev === 'bank') s += 3; else if (ev === 'gain') s += 1.2; else if (ev === 'lose') s -= 1.2; else if (ev === 'chance') s += p.status.badGod > 0 ? -1.5 : 0.4;
+  if (ev === 'bank') s += 3; else if (ev === 'gain') s += 1.2; else if (ev === 'lose') s -= 1.2; else if (ev === 'chance') s += 0.4;
   return s;
 }
 /**

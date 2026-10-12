@@ -27,11 +27,13 @@ export const RULES = {
   investPctMin: -8,
   investPctMax: 14,
   cardMax: 32,                 // INFERRED
-  statusWeeks: 3,             // VERIFIED (card texts: 三個星期)
-  npcEventChance: 0.05,       // INFERRED per-turn chance of random NPC event (thief/thug/tiger/財神/卡神)
+  statusWeeks: 3,             // VERIFIED mantra status weeks (金鋼/催吉/一曝/神智/得而/魔高 all = 3 @0x418940–0x418b49)
+  npcEventChance: 0.05,       // INFERRED approx — exe thug is tile-collision (@0x416c40 hospital 3w), gods via GodIn (@0x410c00)
   dropMoneyPct: 2,            // VERIFIED @0x416ae8 status 7: each step, 1-in-4 chance to drop (1..2)% of cash on the road
-  wealthGodWeeks: 3,          // INFERRED
-  badGodWeeks: 3,             // INFERRED (打小人 → 衰神附身)
+  wealthGodWeeks: 4,          // VERIFIED @0x410c14 GodIn: player+0x30 = 4 (status = godType+9)
+  smallmanFreezeWeeks: 2,     // VERIFIED @0x410a66/0x410a6f: 打小人 sets status=5 weeks=2 (same status as 一曝十寒)
+  /** @deprecated 打小人 uses frozen, not a separate badGod; kept for HUD/AI leftovers */
+  badGodWeeks: 3,             // UNUSED for 打小人 (was INFERRED)
   spStay: { 2: 2, 3: 1, 4: 1, 5: 2, 7: 1, 8: 2 } as Record<number, number>, // VERIFIED texts (停留N回合)
   bankruptWhen: 'netWorth<0', // VERIFIED-ish rules_core
 };

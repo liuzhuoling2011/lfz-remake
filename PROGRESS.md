@@ -139,3 +139,19 @@
 - Chance apply table @0x442874 mapped for all 26 ids. Lucky `add_cash` now also does jackpot += amount/2 (@0x413620/@0x4139f0). Percents 10 unscaled for cards 4/18/19 (@0x413110). 裹足不前 → frozen=1 (exe status 5 @0x413e00).
 - 四字真言: 隻手遮天 20% and 人棄我取 half dump confirmed; status weeks 3 from texts; 移形換影→屋企, 多勞多得→洋行+salary already matched.
 - Test: `tests/round18_chance_jockey.mjs`. Shots: `screenshots/round18/{jockey,chance_lucky,chance_bad,mantra_01,mantra_05,mantra_07,autoplay_map*}.png`.
+
+## Round 19 — 魔高一丈 weeks, NPC amounts, chance pick filters (2026-10-12 Asia/Shanghai)
+
+| Item | Original (exe) | Remake (before) | Fixed |
+|------|----------------|-----------------|-------|
+| 魔高一丈 duration | @0x418b30 status=8 weeks=**3** | guessed 3 | **verified 3** (no code change; comment) |
+| 打小人 effect | @0x410a66 status=**5** weeks=**2** (same as 一曝十寒/frozen) | badGod=3 “衰神” | **frozen=2** |
+| 財神 weeks | @0x410c14 GodIn: weeks=**4**, status=godType+9 | wealthGod=3 | **wealthGod=4** |
+| Thug / 打手 hospital | @0x416c5d weeks=**3** (tile collision) | hospital 3 via npcEvent ~5% | weeks **OK**; rate still INFERRED (exe is collision) |
+| Chance pick @0x413060 | no plots → re-roll {1,9,10,17,19,25}; else no cards → re-roll {20}; else any | badGod→bad-only pool | **ported exe filters**; removed badGod filter |
+| 否極泰來 (card 15) | @0x418b60 clears status 6 or 7 only | cleared frozen too | **confused/dropMoney only** |
+| 時來運轉 (card 11) | @0x4138a0 nop | cleared badGod | **nop** |
+
+Still open: npcEventChance 5% (exe thug/gods are walkers/GodIn, not a per-turn roll); card-god as instant card vs status≥9 buff; hospital fee on entry (chance cards carry their own cash penalty; thug path has none).
+
+tests/round19_npc_chance.mjs; screenshots/round19/; autoplay 26w maps 0–2 OK 0 errors.

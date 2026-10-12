@@ -620,10 +620,30 @@ export class Engine {
   drawCardId() { return 1 + Math.floor(Math.random() * D.words.length); }
   giveCard(p: Player, id: number) { if (p.cards.length < RULES.cardMax) p.cards.push(id); this.onChange(); }
 
+  /**
+   * VERIFIED @0x413060: pick a chance card index (0-based) with re-roll filters.
+   * - No owned plots ([player+0x24].count==0): re-roll ids 1,9,10,17,19,25
+   *   (步步高昇/一帆風順/捷足先登/鼠輩橫行/山泥傾瀉/阿公收地 — remake ids 2,10,11,18,20,26)
+   * - Else if no word cards ([player+0x20]==0): re-roll id 20 (無心之失, remake id 21)
+   * - Else: any of the 26 cards
+   * Remake previously filtered to bad-only under badGod — that path is not in the exe.
+   */
+  pickChanceIndex(p: Player, rand: () => number = Math.random): number {
+    const n = D.chance.length; // 26
+    const noProp = new Set([1, 9, 10, 17, 19, 25]);
+    const hasProp = ownedPlots(this.g, p).length > 0;
+    const hasCards = p.cards.length > 0;
+    for (let i = 0; i < 200; i++) {
+      const id = Math.floor(rand() * n);
+      if (!hasProp && noProp.has(id)) continue;
+      if (hasProp && !hasCards && id === 20) continue;
+      return id;
+    }
+    return 0;
+  }
+
   async chance(p: Player) {
-    let pool = D.chance;
-    if (p.status.badGod > 0) pool = pool.filter(c => c.kind === 'bad');
-    const card: ChanceCard = pool[Math.floor(Math.random() * pool.length)];
+    const card: ChanceCard = D.chance[this.pickChanceIndex(p)];
     let amount = 0; let gotCard = 0;
     const e0 = card.effects.find(e => e.op === 'add_cash');
     if (e0) amount = scale(Math.abs(e0.amount), this.g.week);
@@ -787,11 +807,14 @@ export class Engine {
       case 8: T.status.dropMoney = W; break;
       case 9: if (p.homePlot !== null) await this.teleportTo(p, this.b.plots[p.homePlot].tiles[0]); break;
       case 10: await this.teleportTo(p, this.nearestBank(p)); await this.salary(p); break;
-      case 11: p.status.badGod = 0; break;
+      case 11: break; // VERIFIED @0x4138a0: 時來運轉 apply handler is a no-op (ret)
       case 12: p.status.cardImmune = W; break;
       case 13: p.status.badGodImmune = W; p.status.badGod = 0; break;
-      case 14: p.status.smallmanImmune = W; break;
-      case 15: Object.assign(p.status, { confused: 0, frozen: 0, dropMoney: 0, badGod: 0 }); break;
+      case 14: p.status.smallmanImmune = W; break; // VERIFIED @0x418b30: status=8 weeks=3 (魔高一丈)
+      // VERIFIED @0x418b60: 否極泰來 clears only status 6 (神智不清) or 7 (得而復失) — not frozen/badGod
+      case 15:
+        if (p.status.confused > 0 || p.status.dropMoney > 0) Object.assign(p.status, { confused: 0, dropMoney: 0 });
+        break;
     }
     this.onChange();
   }
@@ -881,9 +904,11 @@ export class Engine {
       this.speak(T, L.defended);
       await this.info(`${this.name(T)}有四字真言護身，打小人失效！`, {}, p); return;
     }
-    T.status.badGod = RULES.badGodWeeks;
+    // VERIFIED @0x410a66: status=5 (一曝十寒 / frozen), weeks=2 — not a separate badGod
+    const w = RULES.smallmanFreezeWeeks;
+    T.status.frozen = Math.max(T.status.frozen, w);
     this.speak(T, L.eerie); // line 24 (有股陰風吹過…)
-    await this.info(`${this.name(T)}被打小人，衰神附身 ${RULES.badGodWeeks} 個星期！`, {}, p);
+    await this.info(`${this.name(T)}被打小人，動彈不得 ${w} 個星期！`, {}, p);
   }
 
   async landmark(p: Player, lm: Landmark) {
@@ -921,7 +946,7 @@ export class Engine {
       const tiger = this.b.key === 'ancient';
       if (p.status.cardImmune > 0) return;
       await this.info(msg('NPC', tiger ? 'PK3' : 'PK1', this.name(p)), { title: tiger ? '猛虎' : charName(8), image: 'images/cards/' + (tiger ? 'tiger_attack.jpg' : 'character08_attack.jpg'), kind: 'npc' }, p);
-      await this.sendTo(p, 'hospital', 3);
+      await this.sendTo(p, 'hospital', 3); // VERIFIED @0x416c5d thug: hospital weeks=3
       this.speak(p, L.assaulted); // VERIFIED line 16 next to 'ho'
     } else if (r < 0.75) { // god of wealth
       this.sfxi(SFXI.godIn);
