@@ -49,7 +49,7 @@ const attach = await page.evaluate(async () => {
   };
 });
 ok(attach.weeks === 4 && attach.attached === 0, 'attach weeks=4: ' + JSON.stringify(attach));
-ok(attach.cards === attach.n0 - 1, 'same-turn tick discards 1 card: ' + attach.cards + '/' + attach.n0);
+ok(attach.cards === attach.n0 - 1, 'same-turn tick transfers 1 card away: ' + attach.cards + '/' + attach.n0);
 ok(attach.fx.filter(f => f === 'map/godin').length === 1, 'exactly one GodIn VFX on attach: ' + attach.fx);
 ok(attach.fx.filter(f => f === 'map/godout').length === 0, 'no GodOut on attach');
 
@@ -62,7 +62,7 @@ const mid = await page.evaluate(async () => {
   await e.godTick(p);
   return { cards: p.cards.length, n0, fx: window.__fx.slice(), sfxGodIn: window.__sfx.filter(i => i === 17).length };
 });
-ok(mid.cards === mid.n0 - 2, 'two mid ticks discard 2: ' + mid.cards + '/' + mid.n0);
+ok(mid.cards === mid.n0 - 2, 'two mid ticks transfer 2: ' + mid.cards + '/' + mid.n0);
 ok(mid.fx.filter(f => f === 'map/godin').length === 0, 'no GodIn mid-attach: ' + mid.fx);
 ok(mid.fx.filter(f => f === 'map/godout').length === 0, 'no GodOut mid-attach');
 
@@ -117,11 +117,11 @@ const U = 'window.__lfz.engine.ui';
 const open = js => page.evaluate(js => { window.__r = 'pending'; Promise.resolve(eval(js)).then(v => { window.__r = v; }); }, js);
 const close = async () => { await page.evaluate(() => { const s = window.__lfz.scene; while (s.dlgs.length) s.dlgs[s.dlgs.length - 1].resolve(undefined); }); await page.waitForTimeout(200); };
 
-await open(`${U}.message('衰神附身！往後每回合將隨機失去一張四字真言！', { title: '衰神', kind: 'npc' })`);
+await open(`${U}.message('衰神附身！往後每回合將隨機把一張四字真言送給其他玩家！', { title: '衰神', kind: 'npc' })`);
 await page.waitForTimeout(500); await page.screenshot({ path: out + '/attach.png' }); await close();
 
-await open(`${U}.message('衰神作祟！老夫子失去四字真言「人棄我取」！', { title: '衰神', kind: 'card', cardId: 1 })`);
-await page.waitForTimeout(500); await page.screenshot({ path: out + '/discard.png' }); await close();
+await open(`${U}.message('老夫子贈送四字真言「人棄我取」給大番薯！', { title: '衰神', kind: 'card', cardId: 1 })`);
+await page.waitForTimeout(500); await page.screenshot({ path: out + '/transfer.png' }); await close();
 
 // mid-attach: board with wealthGod>0, no dialog
 await page.evaluate(() => {

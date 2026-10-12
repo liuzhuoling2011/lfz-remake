@@ -70,7 +70,7 @@ export function residenceIncome(plotVal: number) {
 /**
  * 士多 owner investment — VERIFIED omasterq.exe @0x412912: X = land base price ([ctx+0x44], same base passed to the
  * value fn @0x40e9f0); delta = rand() % (4X) - 2X  → uniform integer in [-2X, 2X-1], every owner landing.
- * If the context flag [ctx+0x14] == 1 the -2X is skipped (gain only, [0, 4X-1]); flag meaning unidentified → `gainOnly`.
+ * If land ctx [+0x14] == 1 (財神 type attached) the -2X is skipped (gain only, [0, 4X-1]); remake passes isWealthGod → `gainOnly`.
  */
 export function investDelta(base: number, gainOnly = false, rnd = Math.random): number {
   const x = Math.max(1, Math.floor(base));

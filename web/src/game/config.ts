@@ -34,7 +34,7 @@ export const RULES = {
   walkerStepsMin: 1,          // VERIFIED @0x4165a0: NPC walkers rand()%6+1 steps per turn
   walkerStepsMax: 6,
   smallmanFreezeWeeks: 2,     // VERIFIED @0x410a66/0x410a6f: 打小人 sets status=5 weeks=2
-  /** @deprecated 打小人→frozen; map 衰神 is god type 3 (per-turn card discard). */
+  /** @deprecated 打小人→frozen; map 衰神 is god type 3 (per-turn card transfer to another player). */
   badGodWeeks: 3,
   spStay: { 2: 2, 3: 1, 4: 1, 5: 2, 7: 1, 8: 2 } as Record<number, number>, // VERIFIED texts (停留N回合)
   bankruptWhen: 'netWorth<0', // VERIFIED-ish rules_core

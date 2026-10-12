@@ -454,11 +454,11 @@ export class Engine {
         case 'chance': await this.chance(p); break;
         case 'bank': break; // start tile: no landing effect in the exe dispatcher; salary is paid at 洋行 'of' (@0x4169d4)
         case 'gain': { // VERIFIED case 2 @0x41715d: +scale(50); 財神 → ×2 and jackpot += X, else jackpot += X/2
-          const x = scale(RULES.moneyAddBase, this.g.week); const god = p.status.wealthGod > 0;
+          const x = scale(RULES.moneyAddBase, this.g.week); const god = this.isWealthGod(p);
           const amt = god ? 2 * x : x; this.g.jackpot += god ? x : Math.floor(x / 2);
           this.gain(p, amt); this.speak(p, GOOD); await this.info(`拾到 ${amt} 元！`, {}, p); break; }
         case 'lose': {
-          if (p.status.wealthGod > 0) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); break; }
+          if (this.isWealthGod(p)) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); break; }
           const amt = scale(RULES.moneyDesBase, this.g.week); await this.pay(p, amt); this.speak(p, BAD); await this.info(`失去 ${amt} 元！`, {}, p); break;
         }
         case 'minigame': await this.minigame(p); break;
@@ -530,7 +530,7 @@ export class Engine {
       }
       const tname = plotTypeName(type, ancient);
       if (p.ai) this.ui.toast(`${this.name(p)}在 ${plot.lotId}號地 興建${tname}（$${costs[type]}）`, { seat: p.seat });
-      if (p.status.wealthGod <= 0) await this.pay(p, costs[type]); // VERIFIED @0x4128c2: 財神 builds for free
+      if (!this.isWealthGod(p)) await this.pay(p, costs[type]); // VERIFIED @0x4128c2: ctx+0x14==1 (財神 type) builds free
       this.sfxi(SFXI.build);
       this.speak(p, L.buy);
       await this.view.construct(pl, false, () => { this.g.plots[pl] = { owner: p.seat, type, level: 0 }; });
@@ -547,7 +547,7 @@ export class Engine {
       const ok = p.ai ? await this.ask(p, '', {}, AI.wantUpgrade(this.g, p, cost), `${this.name(p)}將 ${plot.lotId}號地 升至 ${ps.level + 2} 級（$${cost}）`)
         : await this.ui.buildConfirm('upgrade', msg('SelectBuilding', 'uplevelBuilding', cost));
       if (!ok) return;
-      if (p.status.wealthGod <= 0) await this.pay(p, cost); // VERIFIED @0x410900: 財神 upgrades for free
+      if (!this.isWealthGod(p)) await this.pay(p, cost); // VERIFIED @0x410900: ctx+0x14==1 (財神) upgrades free
       this.sfxi(SFXI.build);
       this.speak(p, GOOD);
       await this.view.construct(pl, false, () => { ps.level++; });
@@ -556,7 +556,7 @@ export class Engine {
     // Opponent's property — VERIFIED FUN_00417b90: type 3 (住宅) never charges; 1/2 rent value/2; 4 visit %
     const owner = this.g.players[ps.owner];
     if (!owner.alive) return;
-    if (p.status.wealthGod > 0) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); return; }
+    if (this.isWealthGod(p)) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); return; }
     if (owner.status.hospital > 0) { await this.info(msg('Misc', 'GiveMoney4', this.name(owner)), {}, p); return; }
     if (owner.status.jail > 0) { await this.info(msg('Misc', 'GiveMoney5', this.name(owner)), {}, p); return; }
     if (ps.type === PLOT.RESIDENCE) return; // 住宅：訪客不付錢
@@ -619,7 +619,7 @@ export class Engine {
 
   /** 士多：所有者停靠時隨機投資盈虧（ExtText type1_1 / type1_2）. */
   async ownerInvest(p: Player, pl: number) {
-    const delta = investDelta(landPrice(this.g, this.b, pl), p.status.wealthGod > 0); // 財神 flag [ctx+0x14]
+    const delta = investDelta(landPrice(this.g, this.b, pl), this.isWealthGod(p)); // VERIFIED @0x41292e: type==1 gain-only
     if (delta === 0) return;
     const amt = Math.abs(delta);
     if (delta > 0) {
@@ -931,7 +931,7 @@ export class Engine {
     if (lm.kind === 'sp' && lm.sp) {
       const txt = D.main.SpBuilding?.['c' + lm.sp] ?? '';
       const fee = lm.value ? scale(lm.value, wk) : 0;
-      if (p.status.wealthGod > 0 && txt.includes('%d')) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); return; }
+      if (this.isWealthGod(p) && txt.includes('%d')) { this.speak(p, GOOD); await this.info(msg('Misc', 'GiveMoney0'), {}, p); return; }
       if (txt.includes('%d') && fee) this.speak(p, BAD);
       await this.info(fmt(txt, fee), { title: '特別建築' }, p);
       if (txt.includes('%d') && fee) await this.pay(p, fee);
@@ -985,6 +985,13 @@ export class Engine {
     this.speak(p, L.assaulted);
   }
 
+
+  /** VERIFIED: land ctx [+0x14]==1 is god *type* 1 (財神), not merely status≥9. Free build/upgrade/invest-gain-only. */
+  isWealthGod(p: Player) {
+    const g = this.g.mapGod;
+    return !!g && g.attachedTo === p.seat && g.type === 1 && p.status.wealthGod > 0;
+  }
+
   /**
    * Map god weekly relocate when unattached (@0x4140c3): new random tile + type 0..3.
    * No player attach VFX/SFX here — only the sprite moves (user: VFX only on attach/detach).
@@ -1028,13 +1035,13 @@ export class Engine {
     this.sfxi(SFXI.godIn);
     void this.view.fx('map/godin', a.x, a.y, 24);
     g.attachedTo = p.seat;
-    p.status.wealthGod = RULES.wealthGodWeeks; // duration + free-spend for all status≥9 types
+    p.status.wealthGod = RULES.wealthGodWeeks; // attach duration counter (all types); free-spend gated by isWealthGod (type===1 only)
     this.speak(p, type === 3 ? BAD : GOOD);
     this.syncGodActor();
     if (type === 1) {
       await this.info(`${name}降臨！` + msg('Misc', 'GiveMoney0'), { title: name, kind: 'npc' }, p);
     } else if (type === 3) {
-      await this.info(`${name}附身！往後每回合將隨機失去一張四字真言！`, { title: name, kind: 'npc' }, p);
+      await this.info(`${name}附身！往後每回合將隨機把一張四字真言送給其他玩家！`, { title: name, kind: 'npc' }, p);
     } else {
       await this.info(`${name}降臨！附身 ${RULES.wealthGodWeeks} 個星期！`, { title: name, kind: 'npc' }, p);
     }
@@ -1044,9 +1051,9 @@ export class Engine {
   /**
    * Per-turn (per-land) god effect while attached — VERIFIED @0x410460 → @0x418110.
    * No GodIn/GodOut VFX here.
-   * type0 機械人: downgrade/demolish; type2 工程女神: upgrade; type3 衰神: discard 1 card;
+   * type0 機械人: downgrade/demolish; type2 工程女神: upgrade; type3 衰神: transfer 1 card to another player (CardGodMsg);
    * type1 財神: no-op (passive free-spend only).
-   * Note: exe type3 @0x418180 transfers a card to another player (CardGodMsg); user design = discard.
+   * VERIFIED exe type3 @0x418180: transfer card to random other player via CardGodMsg.
    */
   async godTick(p: Player) {
     const g = this.g.mapGod;
@@ -1055,12 +1062,18 @@ export class Engine {
     const name = this.godName(type);
     if (type === 1) return; // 財神: passive only
     if (type === 3) {
+      // VERIFIED @0x418180: require hand nonempty + other alive players; transfer random card
       if (!p.cards.length) return;
+      const others = this.alive().filter(o => o.seat !== p.seat && o.cards.length < RULES.cardMax);
+      if (!others.length) return;
       const i = Math.floor(Math.random() * p.cards.length);
       const id = p.cards.splice(i, 1)[0];
-      this.speak(p, BAD);
+      const recv = others[Math.floor(Math.random() * others.length)];
+      this.giveCard(recv, id);
+      this.speak(p, BAD); this.speak(recv, GOOD, 1);
       this.onChange();
-      await this.info(`${name}作祟！${this.name(p)}失去四字真言「${D.words[id - 1]?.title ?? id}」！`, {
+      // CardGodMsg: "%s贈送四字真言「%s」給%s！" → giver, title, receiver
+      await this.info(msg('Misc', 'CardGodMsg', this.name(p), D.words[id - 1]?.title ?? '', this.name(recv)), {
         title: name, image: 'images/cards/' + (D.words[id - 1]?.jpg ?? ''), kind: 'card', cardId: id,
       }, p);
       return;

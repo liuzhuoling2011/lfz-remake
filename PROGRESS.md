@@ -178,6 +178,21 @@ User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人
 
 tests/round20_walkers_gods.mjs; screenshots/round20/.
 
+## Round 22 — 衰神 CardGodMsg transfer; 財神-only free build/upgrade/invest (2026-10-12 Asia/Shanghai)
+
+User: switch 衰神 from discard to exe `@0x418180` transfer; confirm 財神 free build+upgrade + 士多 gain-only under attach/status≥9.
+
+| Item | Original | Before R22 | Fixed |
+|------|----------|------------|-------|
+| Type3 衰神 | `@0x418180` transfer 1 card → other (CardGodMsg) | per-turn discard | **transfer + CardGodMsg**; skip if no others / hand full |
+| Attach copy | — | 「隨機失去一張」 | **「送給其他玩家」** |
+| Free spend gate | land ctx `[+0x14]==1` (財神 type) `@0x4128c2`/`@0x410900`/`@0x41292e` | any `wealthGod>0` | **`isWealthGod` = attached && type===1 && weeks>0** |
+| New build free | yes `@0x4128c2` | yes (but all gods) | **財神 only** — new builds + upgrades |
+| 士多 invest | gain-only when type==1 | gainOnly via wealthGod | **`investDelta(..., isWealthGod)`** |
+| Other gods | duration only | wrongly free-spend | duration via `wealthGod`; no free-spend |
+
+tests/round22_caishen_transfer.mjs; screenshots/round22/; autoplay maps 0–2.
+
 ## Round 21 — 衰神 per-turn discard; GodIn/Out only on attach/detach (2026-10-12 Asia/Shanghai)
 
 User: 卡神 = 衰神; each turn while attached, discard 1 四字真言; VFX only on attach & expire.
