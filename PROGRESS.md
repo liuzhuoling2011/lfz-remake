@@ -198,6 +198,8 @@ User: extra popup after build/upgrade looking like "tile"; slow load on poor net
 Local unthrottled: SD ~0.7 s, `?q=hd` ~2.5 s (similar to pre-R25 for forced-HD URL).
 
 tests/round25_build_load.mjs; screenshots/round25/; autoplay map0 OK 0 errors.
+Deploy: main `8dd75c6`, Pages `8688b93`, NAS `/volume4/web/lfz/`.
+
 
 ## Round 24 — single status field + AI card gates (2026-10-13 Asia/Shanghai)
 
