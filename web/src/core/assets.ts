@@ -45,7 +45,11 @@ export function hdBytes() { return hdIndex?.bytes ?? 0; }
 export async function setQuality(mode: number) {
   const before = hdOn + hdTier;
   decide(mode);
-  if (before === hdOn + hdTier) return;
+  if (hdOn) hdUpgradeGate = true;
+  if (before === hdOn + hdTier) {
+    if (hdOn) enableHdUpgrades(true);
+    return;
+  }
   imgCache.clear();
   await Promise.all([...sheets.values()].map(sh => fetchSheetImage(sh).catch(() => undefined)));
   assetEpoch++;
@@ -58,6 +62,18 @@ function scheduleEpoch() {
 }
 /** Background HD upgrades in flight (name → promise) so play isn't blocked on slow links. */
 const hdUpgrade = new Map<string, Promise<void>>();
+/** When false, sheets stay SD even if hdOn — first paint / poor networks. Flipped after game ready. */
+let hdUpgradeGate = false;
+/** Allow background SD→HD swaps (and future sheet loads to kick HD). Call after first frame. */
+export function enableHdUpgrades(on = true) {
+  hdUpgradeGate = on;
+  if (!on || !hdOn) return;
+  // kick upgrades for sheets already loaded as SD
+  for (const sh of sheets.values()) {
+    if (sh.hs === 1 && hdAllowed(sh.name) && hdIndex?.sheets[sh.name]) void fetchSheetImage(sh).catch(() => undefined);
+  }
+}
+export function hdUpgradesEnabled() { return hdUpgradeGate; }
 async function fetchSheetImage(sh: Sheet) {
   const want = sheetURL(sh.name);
   // Prefer SD first when the target is HD: unblocks the main menu / first frame on slow networks, then swap.
@@ -68,7 +84,8 @@ async function fetchSheetImage(sh: Sheet) {
       sh.sf = sh.f; sh.hs = 1; sh.img = sd;
       if (prev && prev !== sd) (prev as ImageBitmap).close?.();
     } catch { /* fall through to HD-only attempt below */ }
-    if (!hdUpgrade.has(sh.name)) {
+    // Defer HD swap until enableHdUpgrades() — keeps first paint on SD only (poor network).
+    if (hdUpgradeGate && !hdUpgrade.has(sh.name)) {
       const p = (async () => {
         try {
           const img = await toBitmap(await loadImage(want.url));
@@ -124,13 +141,17 @@ export async function toBitmap(im: HTMLImageElement): Promise<CanvasImageSource>
 }
 
 export async function initSprites(quality = 0) {
-  const [idx, hd] = await Promise.all([fetchJSON('sprites/index.json'), fetchJSON('hd/index.json').catch(() => null)]);
-  index = idx; hdIndex = hd;
+  // SD index first so menu sheets can start; HD catalog is small but still defer quality until both known.
+  index = await fetchJSON('sprites/index.json');
+  const hdP = fetchJSON('hd/index.json').catch(() => null);
+  hdIndex = await hdP;
   // ?q=sd|hd|lite forces a set (tests / comparisons)
   const q = new URLSearchParams(location.search).get('q');
   decide(q === 'sd' ? 1 : q === 'hd' || q === 'lite' ? 2 : quality);
   if (q === 'lite') hdTier = 'lite';
-  (window as any).__lfzHD = () => ({ on: hdOn, tier: hdTier, sheets: [...sheets.values()].filter(s => s.hs > 1).length, loaded: sheets.size });
+  // Forced ?q=hd in tests: allow upgrades immediately so comparisons still see HD
+  if (q === 'hd' || q === 'lite') hdUpgradeGate = true;
+  (window as any).__lfzHD = () => ({ on: hdOn, tier: hdTier, sheets: [...sheets.values()].filter(s => s.hs > 1).length, loaded: sheets.size, gate: hdUpgradeGate });
 }
 
 export function hasSheet(name: string) { return name in index; }

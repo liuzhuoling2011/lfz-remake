@@ -15,7 +15,7 @@ import { setup } from './setup';
 import { LoadSaveWin, drawMsgBox } from '../ui/origdlg';
 import { winBegin, winEnd, wbtn, wr, centredWin, sysScale, type Win } from '../ui/origwin';
 import { settings, saveSettings, applyVolumes, toggleFullscreen, isFullscreen } from '../core/audio';
-import { setQuality, hdActive, hdAvailable } from '../core/assets';
+import { setQuality, hdActive, hdAvailable, enableHdUpgrades, hdFull } from '../core/assets';
 import { setSpeedIndex } from '../core/app';
 import { startMiniGame } from '../mini/host';
 import type { Runner } from '../mini/core';
@@ -123,10 +123,14 @@ export class GameScene implements Scene {
         loadSheets(GAME_UI_SHEETS),
         // season / winner art is big and rarely shown → fetched on demand (seasonChange / winner) instead of up front
       ]);
-      // pre-decode card art; pre-load the sounds used every turn + each player's voice lines (no first-play latency)
-      void Promise.all(D.words.map(c => preloadImage('images/cards/' + c.jpg).catch(() => null)));
-      void preloadAudio(['sfx/dice/dice1.mp3', 'sfx/dice/dice2.mp3', 'sfx/interface/sfx065.mp3', ...SFX.map(x => 'sfx/' + x + '.mp3'),
-        ...g.players.flatMap(p => Object.values(D.chars[p.char - 1]?.voice_ids ?? {}).map(v => 'voice/' + String(v).toLowerCase() + '.mp3'))]);
+      // Defer card art + full voice bank until after first paint (keep dice/UI click SFX warm).
+      void preloadAudio(['sfx/dice/dice1.mp3', 'sfx/dice/dice2.mp3', 'sfx/interface/sfx065.mp3']);
+      const warmHeavy = () => {
+        void Promise.all(D.words.map(c => preloadImage('images/cards/' + c.jpg).catch(() => null)));
+        void preloadAudio([...SFX.map(x => 'sfx/' + x + '.mp3'),
+          ...g.players.flatMap(p => Object.values(D.chars[p.char - 1]?.voice_ids ?? {}).map(v => 'voice/' + String(v).toLowerCase() + '.mp3'))]);
+      };
+      (window as any).requestIdleCallback ? requestIdleCallback(warmHeavy, { timeout: 2500 }) : setTimeout(warmHeavy, 400);
       this.view.actors = g.players.map(p => ({ seat: p.seat, char: p.char, x: 0, y: 0, dir: 0, anim: 'stand' as const, t: Math.random() * 1000, hidden: !p.alive }));
       const nT = this.board.tiles.length;
       if (!g.thief) { const t = Math.floor(Math.random() * nT); g.thief = { tile: t, prev: this.board.defaultPrev(t) }; }
@@ -143,6 +147,11 @@ export class GameScene implements Scene {
       this.engine = new Engine(g, this.board, this.view, this.ui);
       (window as any).__lfz = { scene: this, g, engine: this.engine, AI };
       this.ready = true;
+      // Round 25: first paint is SD; open HD upgrades + ground re-bake on idle so poor networks aren't blocked.
+      queueMicrotask(() => {
+        enableHdUpgrades(true);
+        if (hdFull()) void this.view.promoteHd().catch(() => null);
+      });
       if (new URLSearchParams(location.search).has('debug')) { this.debugOn = true; this.debugPanel = true; }
       void this.engine.run().then(() => {
         if (this.engine.stopped) return;

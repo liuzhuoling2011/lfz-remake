@@ -1,5 +1,5 @@
 /* Cache-first for hashed Vite assets + game art; network-first for HTML. */
-const CACHE = 'lfz-v1';
+const CACHE = 'lfz-v2';
 const PRECACHE = ['./', './index.html'];
 
 self.addEventListener('install', e => {

@@ -115,8 +115,11 @@ export class Board {
       if (!['sp', 'te', 'lo', 'ho', 'po', 'of'].includes(kind)) continue;
       const d = (t: Tile) => Math.hypot(t.x - s.x, (t.y - s.y) * 2);
       const cand = [...this.tiles].sort((a, c) => d(a) - d(c));
+      // Never prefer a lot tile — co-locating sp with plots caused a leftover popup after build (Round 25).
       const pick = cand.slice(0, 8).find(t => !t.event && t.plots.length === 0 && t.landmarks.length === 0 && d(t) < 260)
-        ?? cand.find(t => !t.event && t.landmarks.length === 0) ?? cand[0];
+        ?? cand.find(t => !t.event && t.plots.length === 0 && t.landmarks.length === 0)
+        ?? cand.find(t => t.plots.length === 0 && t.landmarks.length === 0)
+        ?? cand.find(t => t.landmarks.length === 0) ?? cand[0];
       const lm: Landmark = { code: s.label, kind, sp: s.sp, value: s.value, x: s.x, y: s.y, tile: pick.id };
       pick.landmarks.push(lm); this.landmarks.push(lm);
     }

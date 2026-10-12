@@ -501,7 +501,8 @@ export class Engine {
         const cost = buildCost(this.g, this.b, pl, PLOT.HOME);
         if (p.cash < cost) return;
         if (!p.ai) this.speak(p, L.choose, 1);
-        const ok = p.ai ? await this.ask(p, '', {}, AI.wantHome(this.g, p, cost), `${this.name(p)}購入 ${plot.lotId}號地 興建${plotTypeName(PLOT.HOME, ancient)}（$${cost}）`)
+        // Original: no remake toast after/during build — AI decides silently (speech bubble + SFX only).
+        const ok = p.ai ? AI.wantHome(this.g, p, cost)
           : await this.ui.buildConfirm('home', msg('SelectBuilding', 'homeTitle') + '\n' + msg('SelectBuilding', 'homeText', cost), `${ancient ? 'map/a_' : 'map/'}home1`, plot.dir ?? 0);
         if (!ok) return;
         await this.pay(p, cost);
@@ -537,8 +538,7 @@ export class Engine {
         if (pick < 0) return;
         type = order[pick];
       }
-      const tname = plotTypeName(type, ancient);
-      if (p.ai) this.ui.toast(`${this.name(p)}在 ${plot.lotId}號地 興建${tname}（$${costs[type]}）`, { seat: p.seat });
+      // No remake-only「N號地」toast (user: superfluous / looked like raw "tile")
       if (!this.isWealthGod(p)) await this.pay(p, costs[type]); // VERIFIED @0x4128c2: ctx+0x14==1 (財神 type) builds free
       this.sfxi(SFXI.build);
       this.speak(p, L.buy);
@@ -553,7 +553,7 @@ export class Engine {
       if (ps.level >= RULES.maxLevel || p.status.confused > 0) return;
       const cost = upgradeCost(this.g, this.b, pl);
       if (p.cash < cost) return;
-      const ok = p.ai ? await this.ask(p, '', {}, AI.wantUpgrade(this.g, p, cost), `${this.name(p)}將 ${plot.lotId}號地 升至 ${ps.level + 2} 級（$${cost}）`)
+      const ok = p.ai ? AI.wantUpgrade(this.g, p, cost)
         : await this.ui.buildConfirm('upgrade', msg('SelectBuilding', 'uplevelBuilding', cost));
       if (!ok) return;
       if (!this.isWealthGod(p)) await this.pay(p, cost); // VERIFIED @0x410900: ctx+0x14==1 (財神) upgrades free
@@ -963,6 +963,8 @@ export class Engine {
 
   async landmark(p: Player, lm: Landmark) {
     const wk = this.g.week;
+    // Remake placement bug could put sp on a lot tile → extra popup right after build/upgrade. Skip when co-located.
+    if (lm.kind === 'sp' && this.b.tiles[p.tile]?.plots.length) return;
     if (lm.kind === 'sp' && lm.sp) {
       const txt = D.main.SpBuilding?.['c' + lm.sp] ?? '';
       const fee = lm.value ? scale(lm.value, wk) : 0;

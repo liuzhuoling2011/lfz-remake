@@ -87,9 +87,11 @@ export class MapView {
       'map/playermark01', 'map/playermark02', 'map/playermark03', 'map/playermark04', 'map/playermark01_2', 'map/playermark02_2', 'map/playermark03_2', 'map/playermark04_2', P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3', P + 'money', P + 'getmoney'];
     for (const k of ['house', 'commcal', 'eating', 'home']) for (const l of [1, 2, 3]) extra.push(`map/${pre}${k}${l}`);
     // stand/walk sheets block the start; use/hit poses, the NPC walkers and the construction fx stream in afterwards
+    // Non-critical for first paint: construction FX, walker/god sprites, card/money VFX (Round 25 load).
     const later: string[] = [P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3',
       'map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02',
-      'map/god01_01', 'map/god02_01', 'map/god03_01', 'map/god04_01'];
+      'map/god01_01', 'map/god02_01', 'map/god03_01', 'map/god04_01',
+      'map/cardhit', 'map/usecard', 'map/godin', 'map/godout', 'map/havemoney', 'map/nomoney', 'map/getmoney', 'map/lostmoney'];
     for (const c of chars) for (const s of ['01', '02', '04', '05']) (s < '04' ? extra : later).push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
     for (const n of later) { const i = extra.indexOf(n); if (i >= 0) extra.splice(i, 1); }
     if (Assets.hdFull()) {
@@ -105,7 +107,7 @@ export class MapView {
   }
   /** warm the sheet cache for a map before the game scene starts (select-map / select-actor screens) */
   static prefetch(key: string, chars: number[] = []) {
-    if (Assets.hdFull()) void MapView.groundTiles(key);
+    if (Assets.hdFull() && Assets.hdUpgradesEnabled()) void MapView.groundTiles(key);
     return MapView.plan(key, chars).then(pl => loadSheets(pl.main)).catch(e => console.warn('prefetch', e));
   }
 
@@ -122,6 +124,13 @@ export class MapView {
     this.bounds = this.computeBounds();
     const bb = board.bounds();
     this.cx = (bb.x0 + bb.x1) / 2; this.cy = (bb.y0 + bb.y1) / 2;
+  }
+
+  /** After first paint: pull HD ground + re-bake chunks (no-op if HD off / already upgraded). */
+  async promoteHd() {
+    if (!Assets.hdFull() || !Assets.hdUpgradesEnabled()) return;
+    await this.loadGround();
+    await this.bakeChunks(this.season);
   }
 
   private computeBounds() {
@@ -245,7 +254,9 @@ export class MapView {
   private async bakeChunks(season: number) {
     this.baking = true;
     const epoch = Assets.assetEpoch;
-    const K = Assets.hdFull() ? 2 : 1;
+    // HD ground tiles are large; bake SD first unless HD upgrades already enabled (post-ready / ?q=hd).
+    const wantHd = Assets.hdFull() && Assets.hdUpgradesEnabled();
+    const K = wantHd ? 2 : 1;
     if (K === 2) await this.loadGround();
     const ground = K === 2 ? this.ground : null;
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;

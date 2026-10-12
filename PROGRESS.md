@@ -178,6 +178,27 @@ User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人
 
 tests/round20_walkers_gods.mjs; screenshots/round20/.
 
+## Round 25 — drop remake「號地」toast; SD-first load (2026-10-13 Asia/Shanghai)
+
+User: extra popup after build/upgrade looking like "tile"; slow load on poor network.
+
+| Item | Original | Remake before | Fixed |
+|------|----------|---------------|-------|
+| After build/upgrade UI | confirm dialog + SFX/speech only | AI remake toast `…N號地 興建/升級…` (read as raw "tile") | **removed** those toasts; AI builds silently |
+| Landmark on lot tile | never co-located | sp could share plot walk tile → SpBuilding popup after build | **placement skips lots**; land skips `sp` if tile has plots |
+| First paint / HD | n/a | HD sheet upgrades + ground tiles contend during `loadSheets` | **`enableHdUpgrades` after ready**; bake SD first; defer cards/voices; more FX/gods in `later`; SW `lfz-v2` |
+
+### Load numbers (Playwright, cache off, ~1.6 Mbps throttle)
+| Mode | Time to `scene.ready` |
+|------|------------------------|
+| Quality HD, upgrades **deferred** (new) | **~13.2 s** |
+| Quality HD, upgrades during load (`?q=hd`) | ~44.9 s |
+| Quality SD | ~35.9 s |
+
+Local unthrottled: SD ~0.7 s, `?q=hd` ~2.5 s (similar to pre-R25 for forced-HD URL).
+
+tests/round25_build_load.mjs; screenshots/round25/; autoplay map0 OK 0 errors.
+
 ## Round 24 — single status field + AI card gates (2026-10-13 Asia/Shanghai)
 
 User: 按原版继续扣 — AI 四字真言 strategy, status field model, sweep soft gaps.
