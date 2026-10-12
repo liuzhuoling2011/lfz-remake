@@ -193,6 +193,8 @@ User: switch 衰神 from discard to exe `@0x418180` transfer; confirm 財神 fre
 
 tests/round22_caishen_transfer.mjs; screenshots/round22/; autoplay maps 0–2.
 
+Deploy: main `62ae809`, Pages `6260bca`, NAS `/volume4/web/lfz/`.
+
 ## Round 21 — 衰神 per-turn discard; GodIn/Out only on attach/detach (2026-10-12 Asia/Shanghai)
 
 User: 卡神 = 衰神; each turn while attached, discard 1 四字真言; VFX only on attach & expire.
