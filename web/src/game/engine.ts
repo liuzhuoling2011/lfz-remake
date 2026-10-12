@@ -1,7 +1,7 @@
 // Turn engine: async state machine driving rules + view + UI.
 import { wait, TURBO } from '../core/app';
 import { sfx, voice, music } from '../core/audio';
-import { RULES, MAPS, SFX, SFXI, SEASONS, PLOT, plotTypeName, plotSpriteKind } from './config';
+import { RULES, MAPS, SFX, SFXI, SEASONS, PLOT, plotTypeName, plotSpriteKind, GOD_NAMES } from './config';
 import { D, msg, fmt, charName, type ChanceCard, type WordCard } from './data';
 import type { Board, Landmark } from './board';
 import type { GameState, Player } from './state';
@@ -267,6 +267,7 @@ export class Engine {
       await this.move(p, steps);
       if (!p.alive) return;
       await this.land(p);
+      if (p.alive) await this.godTick(p); // VERIFIED @0x410460→0x418110: per-land god effect while attached
       if (this.extraRoll && p.alive && p.status.hospital + p.status.jail === 0) rolls++;
     }
     this.tickStatuses(p);
@@ -985,20 +986,17 @@ export class Engine {
   }
 
   /**
-   * Map god weekly relocate when unattached (@0x4140c3–0x414127): new random tile + new type 0..3
-   * (avoid repeating last type). Plays GodIn on the tile — not an independent walker.
+   * Map god weekly relocate when unattached (@0x4140c3): new random tile + type 0..3.
+   * No player attach VFX/SFX here — only the sprite moves (user: VFX only on attach/detach).
    */
   async godWeek() {
     const g = this.g.mapGod; if (!g) return;
-    if (g.attachedTo !== null) return; // stays on the attached player until weeks expire
+    if (g.attachedTo !== null) return;
     const tile = Math.floor(Math.random() * this.b.tiles.length);
     let type = Math.floor(Math.random() * 4);
     if (type === g.type) type = (type + 1 + Math.floor(Math.random() * 3)) % 4;
     g.tile = tile; g.type = type;
     this.syncGodActor();
-    const T = this.b.tiles[tile];
-    this.sfxi(SFXI.godIn);
-    void this.view.fx('map/godin', T.x, T.y, 24);
   }
 
   /** Place/hide seat-6 god actor on the board. */
@@ -1007,7 +1005,7 @@ export class Engine {
     let a = this.view.actors.find(x => x.seat === 6);
     const hide = g.attachedTo !== null;
     const T = this.b.tiles[g.tile];
-    const char = 9 + g.type; // 9機械人 10財神 11工程女神 12卡神
+    const char = 9 + g.type; // 9機械人 10財神 11工程女神 12(衰神/卡神)
     if (!a) {
       this.view.actors.push({ seat: 6, char, x: T.x, y: T.y, dir: 0, anim: 'stand', t: 0, hidden: hide });
     } else {
@@ -1015,59 +1013,83 @@ export class Engine {
     }
   }
 
+  godName(type: number) { return GOD_NAMES[type] ?? charName(9 + type); }
+
   /**
-   * Player lands on unattached map god (@0x410c00): attach weeks=4, status=type+9.
-   * Instant effects by type (@0x418110): 0機械人 demolish/downgrade, 2工程女神 upgrade,
-   * 3卡神 give card, 1財神 passive free-spend only (GiveMoney0).
+   * First land on unattached god (@0x4143c0 / @0x410c00): GodIn VFX/SFX once, attach weeks=4.
+   * Ongoing type effects run in godTick (each subsequent land while attached), not here —
+   * except 財神 shows GiveMoney0 on attach (passive free-spend flag).
    */
   async godAttach(p: Player) {
     const g = this.g.mapGod; if (!g || g.attachedTo !== null) return;
     const type = g.type;
-    const names = [charName(9), charName(10), charName(11), charName(12)];
+    const name = this.godName(type);
     const a = this.view.actor(p.seat);
     this.sfxi(SFXI.godIn);
     void this.view.fx('map/godin', a.x, a.y, 24);
     g.attachedTo = p.seat;
-    p.status.wealthGod = RULES.wealthGodWeeks; // all god attaches share the 4-week timer; 財神 free-spend uses this flag
-    this.speak(p, GOOD);
+    p.status.wealthGod = RULES.wealthGodWeeks; // duration + free-spend for all status≥9 types
+    this.speak(p, type === 3 ? BAD : GOOD);
     this.syncGodActor();
-
     if (type === 1) {
-      await this.info(`${names[1]}降臨！` + msg('Misc', 'GiveMoney0'), { title: names[1], kind: 'npc' }, p);
-      return;
+      await this.info(`${name}降臨！` + msg('Misc', 'GiveMoney0'), { title: name, kind: 'npc' }, p);
+    } else if (type === 3) {
+      await this.info(`${name}附身！往後每回合將隨機失去一張四字真言！`, { title: name, kind: 'npc' }, p);
+    } else {
+      await this.info(`${name}降臨！附身 ${RULES.wealthGodWeeks} 個星期！`, { title: name, kind: 'npc' }, p);
     }
+    // godTick runs after land() in playTurn — same land that attached (exe @0x410460)
+  }
+
+  /**
+   * Per-turn (per-land) god effect while attached — VERIFIED @0x410460 → @0x418110.
+   * No GodIn/GodOut VFX here.
+   * type0 機械人: downgrade/demolish; type2 工程女神: upgrade; type3 衰神: discard 1 card;
+   * type1 財神: no-op (passive free-spend only).
+   * Note: exe type3 @0x418180 transfers a card to another player (CardGodMsg); user design = discard.
+   */
+  async godTick(p: Player) {
+    const g = this.g.mapGod;
+    if (!g || g.attachedTo !== p.seat) return;
+    const type = g.type;
+    const name = this.godName(type);
+    if (type === 1) return; // 財神: passive only
     if (type === 3) {
-      const id = this.drawCardId(); this.giveCard(p, id);
-      await this.info(msg('Misc', 'CardGodMsg', names[3], D.words[id - 1].title, this.name(p)), {
-        title: names[3], image: 'images/cards/' + D.words[id - 1].jpg, kind: 'card', cardId: id,
+      if (!p.cards.length) return;
+      const i = Math.floor(Math.random() * p.cards.length);
+      const id = p.cards.splice(i, 1)[0];
+      this.speak(p, BAD);
+      this.onChange();
+      await this.info(`${name}作祟！${this.name(p)}失去四字真言「${D.words[id - 1]?.title ?? id}」！`, {
+        title: name, image: 'images/cards/' + (D.words[id - 1]?.jpg ?? ''), kind: 'card', cardId: id,
       }, p);
       return;
     }
-    // type 0 機械人: downgrade random owned building; type 2 工程女神: upgrade
     const own = ownedPlots(this.g, p);
     if (type === 2) {
       const up = own.filter(i => this.g.plots[i]!.level < RULES.maxLevel);
-      if (!up.length) { await this.info(`${names[2]}降臨！但沒有可升級的建築。`, { title: names[2], kind: 'npc' }, p); return; }
+      if (!up.length) return;
       const pl = up[Math.floor(Math.random() * up.length)];
       const pv = this.b.plots[pl]; this.view.focusOn(pv.x, pv.y);
       this.sfxi(SFXI.build);
       await this.view.construct(pl, false, () => { this.g.plots[pl]!.level++; });
-      await this.info(`${names[2]}降臨！替${this.name(p)}升級了一座建築！`, { title: names[2], kind: 'npc' }, p);
+      await this.info(`${name}替${this.name(p)}升級了一座建築！`, { title: name, kind: 'npc' }, p);
       return;
     }
-    // type 0
-    if (!own.length) { await this.info(`${names[0]}降臨！但沒有可拆的建築。`, { title: names[0], kind: 'npc' }, p); return; }
+    // type 0 機械人
+    if (!own.length) return;
     const pl = own[Math.floor(Math.random() * own.length)];
     const pv = this.b.plots[pl]; this.view.focusOn(pv.x, pv.y);
     const ps = this.g.plots[pl]!;
     if (ps.level > 0) {
       await this.view.construct(pl, true, () => { ps.level--; });
-      await this.info(`${names[0]}降臨！拆低了${this.name(p)}的一座建築！`, { title: names[0], kind: 'npc' }, p);
+      await this.info(`${name}拆低了${this.name(p)}的一座建築！`, { title: name, kind: 'npc' }, p);
     } else {
       await this.view.construct(pl, true, () => { this.g.plots[pl] = null; if (p.homePlot === pl) p.homePlot = null; });
-      await this.info(`${names[0]}降臨！拆掉了${this.name(p)}的一座建築！`, { title: names[0], kind: 'npc' }, p);
+      await this.info(`${name}拆掉了${this.name(p)}的一座建築！`, { title: name, kind: 'npc' }, p);
     }
   }
+
 }
 
 export { SEASONS, value };

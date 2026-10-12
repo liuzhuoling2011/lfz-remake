@@ -34,7 +34,7 @@ export const RULES = {
   walkerStepsMin: 1,          // VERIFIED @0x4165a0: NPC walkers rand()%6+1 steps per turn
   walkerStepsMax: 6,
   smallmanFreezeWeeks: 2,     // VERIFIED @0x410a66/0x410a6f: 打小人 sets status=5 weeks=2
-  /** @deprecated no exe 衰神 walker/tile; card text only. 打小人→frozen. */
+  /** @deprecated 打小人→frozen; map 衰神 is god type 3 (per-turn card discard). */
   badGodWeeks: 3,
   spStay: { 2: 2, 3: 1, 4: 1, 5: 2, 7: 1, 8: 2 } as Record<number, number>, // VERIFIED texts (停留N回合)
   bankruptWhen: 'netWorth<0', // VERIFIED-ish rules_core
@@ -63,6 +63,11 @@ export const SFX = ['sfx/sfx004', 'sfx/sfx010', 'sfx/sfx080', 'sfx/sfx030', 'sfx
 export const SFXI = { gain: 19, lose: 2, build: 3, useCard: 12, cardHit: 17, godIn: 17, godOut: 21, balloon: 22, lucky: 16, bad: 17, minigame: 21, demolish: 0, home: 15 } as const;
 
 export const CHAR_VOICE_PREFIX = ['', 'mq', 'bp', 'mc', 'mh', 'pg', 'sm'];
+
+/** Map-god types 0..3 — player-facing names. Type 3 is 衰神 (data ActorName still says 卡神). */
+export const GOD_NAMES = ['機械人', '財神', '工程女神', '衰神'] as const;
+export const GOD_CHARS = [9, 10, 11, 12] as const; // character sheet ids
+
 
 
 /** Building type ids — VERIFIED FUN_00417b90 / economy.type_mult (logic by id, not by display name). */

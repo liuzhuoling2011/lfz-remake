@@ -22,7 +22,7 @@ export interface GameState {
   thug?: { tile: number; prev: number };
   /**
    * Map god (not a walker): teleports to a random tile each week when unattached (@0x4140c3).
-   * type 0..3 → 機械人/財神/工程女神/卡神 (chars 9..12). attachedTo = seat while buff active.
+   * type 0..3 → 機械人/財神/工程女神/衰神 (chars 9..12). attachedTo = seat while buff active.
    */
   mapGod?: { tile: number; type: number; attachedTo: number | null };
   winner: number | null; rngSeed: number; turnCount: number;

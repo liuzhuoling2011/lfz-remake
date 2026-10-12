@@ -52,17 +52,17 @@ const god1 = await page.evaluate(async () => {
 ok(god1.wealthGod === 4 && god1.attached === 1, '財神 attach weeks=4: ' + JSON.stringify(god1));
 ok(god1.hidden === true, 'god actor hidden while attached');
 
-// --- 卡神 type 3 → +1 card ---
+// --- 衰神 type 3 → attach 4w (discard is per-turn via godTick, not grant) ---
 const god3 = await page.evaluate(async () => {
   const e = window.__lfz.engine; const g = e.g; const p = g.players[2];
-  const n0 = p.cards.length;
+  p.cards = [1, 2, 3];
   g.mapGod = { tile: p.tile, type: 3, attachedTo: null };
   p.status.wealthGod = 0;
   e.info = async () => {};
   await e.godAttach(p);
-  return { dCards: p.cards.length - n0, wealthGod: p.status.wealthGod };
+  return { wealthGod: p.status.wealthGod, name: e.godName(3), cards: p.cards.length };
 });
-ok(god3.dCards === 1 && god3.wealthGod === 4, '卡神 +card & 4w: ' + JSON.stringify(god3));
+ok(god3.wealthGod === 4 && god3.name === '衰神', '衰神 attach 4w: ' + JSON.stringify(god3));
 
 // --- godWeek relocates when unattached ---
 const rel = await page.evaluate(async () => {

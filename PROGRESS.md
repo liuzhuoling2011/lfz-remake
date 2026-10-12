@@ -177,3 +177,19 @@ User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人
 | Chance hospital fee | card add_cash −500 scaled | same | verified |
 
 tests/round20_walkers_gods.mjs; screenshots/round20/.
+
+## Round 21 — 衰神 per-turn discard; GodIn/Out only on attach/detach (2026-10-12 Asia/Shanghai)
+
+User: 卡神 = 衰神; each turn while attached, discard 1 四字真言; VFX only on attach & expire.
+
+| Item | Original | Before | Fixed |
+|------|----------|--------|-------|
+| Type3 name | ActorName 卡神; card text 衰神 | 卡神 + grant card | **衰神** (GOD_NAMES); discard |
+| Type3 effect | @0x418180 per-land: transfer card to other (CardGodMsg) | grant on attach | **per-turn discard** (user); note exe transfers |
+| Effect cadence | @0x410460→418110 after land while attached | once on attach | **godTick after each land** |
+| 機械人/女神 | same 418110 per-land | once on attach | **godTick per land** |
+| 財神 | 418110 no-op; free-spend | GiveMoney0 on attach | attach msg + passive; tick no-op |
+| GodIn VFX | attach @0x4143c0 SFX 0x11; weekly relocate also GodIn | attach + godWeek | **attach only** (relocate silent) |
+| GodOut VFX | @0x414530 on expire | on wealthGod expire | kept |
+
+tests/round21_suishen.mjs; screenshots/round21/.
