@@ -127,8 +127,15 @@ export class GameScene implements Scene {
       void preloadAudio(['sfx/dice/dice1.mp3', 'sfx/dice/dice2.mp3', 'sfx/interface/sfx065.mp3', ...SFX.map(x => 'sfx/' + x + '.mp3'),
         ...g.players.flatMap(p => Object.values(D.chars[p.char - 1]?.voice_ids ?? {}).map(v => 'voice/' + String(v).toLowerCase() + '.mp3'))]);
       this.view.actors = g.players.map(p => ({ seat: p.seat, char: p.char, x: 0, y: 0, dir: 0, anim: 'stand' as const, t: Math.random() * 1000, hidden: !p.alive }));
-      if (!g.thief) { const t = Math.floor(this.board.tiles.length / 2); g.thief = { tile: t, prev: this.board.defaultPrev(t) }; }
+      const nT = this.board.tiles.length;
+      if (!g.thief) { const t = Math.floor(Math.random() * nT); g.thief = { tile: t, prev: this.board.defaultPrev(t) }; }
+      if (!g.thug) { const t = Math.floor(Math.random() * nT); g.thug = { tile: t, prev: this.board.defaultPrev(t) }; }
+      if (!g.mapGod) { const t = Math.floor(Math.random() * nT); g.mapGod = { tile: t, type: Math.floor(Math.random() * 4), attachedTo: null }; }
       { const T = this.board.tiles[g.thief.tile]; this.view.actors.push({ seat: 4, char: 7, x: T.x, y: T.y, dir: 0, anim: 'stand', t: 0 }); }
+      { const T = this.board.tiles[g.thug.tile]; const thugChar = this.board.key === 'ancient' ? 13 : 8;
+        this.view.actors.push({ seat: 5, char: thugChar, x: T.x, y: T.y, dir: 0, anim: 'stand', t: 0 }); }
+      { const T = this.board.tiles[g.mapGod.tile]; const hide = g.mapGod.attachedTo !== null;
+        this.view.actors.push({ seat: 6, char: 9 + g.mapGod.type, x: T.x, y: T.y, dir: 0, anim: 'stand', t: 0, hidden: hide }); }
       for (const p of g.players) this.view.placeActor(p.seat, p.tile, p.prev);
       const cp = g.players[g.current];
       this.view.focusOn(this.board.tiles[cp.tile].x, this.board.tiles[cp.tile].y, true);

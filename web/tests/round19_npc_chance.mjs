@@ -48,37 +48,24 @@ const rules = await page.evaluate(async () => {
   ui.confirm = realConfirm; ui.pickPlayer = realPick; e.info = realInfo;
   const sm = { frozen: T.status.frozen, badGod: T.status.badGod, info: infoLog[infoLog.length - 1] || '' };
 
-  // wealthGod weeks from RULES via npcEvent branch — set directly using same constant path
-  // Trigger by evaluating the assignment pattern: import RULES through a side channel
-  // Engine uses RULES.wealthGodWeeks — force via setting and reading config from a mini eval
+  // wealthGod weeks via godAttach type=1
   p.status.wealthGod = 0;
-  // Dynamically import not available; use the fact that npcEvent sets it — stub random
-  const realRand = Math.random;
-  let phase = 0;
-  Math.random = () => {
-    // first call npcEventChance check: return 0 to always fire; second for branch: 0.5 → wealth (0.3..0.75)
-    phase++;
-    if (phase === 1) return 0;
-    return 0.5;
-  };
+  g.mapGod = { tile: p.tile, type: 1, attachedTo: null };
   const realInfo2 = e.info.bind(e);
   e.info = async () => {};
-  await e.npcEvent(p);
+  await e.godAttach(p);
   e.info = realInfo2;
-  Math.random = realRand;
   const wealth = p.status.wealthGod;
 
-  // thug hospital weeks
+  // thug hospital weeks via thugAssault
   const Th = g.players[2];
-  Th.status.hospital = 0; Th.status.cardImmune = 0;
-  phase = 0;
-  Math.random = () => { phase++; if (phase === 1) return 0; return 0.1; }; // r<0.3 thug
+  Th.status.hospital = 0; Th.status.cardImmune = 0; Th.status.jail = 0;
   e.info = async () => {};
   const realSend = e.sendTo.bind(e);
   let hospWeeks = null;
   e.sendTo = async (pl, where, weeks) => { hospWeeks = { where, weeks }; pl.status.hospital = weeks; };
-  await e.npcEvent(Th);
-  e.sendTo = realSend; e.info = realInfo2; Math.random = realRand;
+  await e.thugAssault(Th);
+  e.sendTo = realSend; e.info = realInfo2;
 
   // 魔高一丈: useCard case 14 sets smallmanImmune = RULES.statusWeeks (3)
   p.status.smallmanImmune = 0;

@@ -28,12 +28,14 @@ export const RULES = {
   investPctMax: 14,
   cardMax: 32,                 // INFERRED
   statusWeeks: 3,             // VERIFIED mantra status weeks (金鋼/催吉/一曝/神智/得而/魔高 all = 3 @0x418940–0x418b49)
-  npcEventChance: 0.05,       // INFERRED approx — exe thug is tile-collision (@0x416c40 hospital 3w), gods via GodIn (@0x410c00)
   dropMoneyPct: 2,            // VERIFIED @0x416ae8 status 7: each step, 1-in-4 chance to drop (1..2)% of cash on the road
-  wealthGodWeeks: 4,          // VERIFIED @0x410c14 GodIn: player+0x30 = 4 (status = godType+9)
-  smallmanFreezeWeeks: 2,     // VERIFIED @0x410a66/0x410a6f: 打小人 sets status=5 weeks=2 (same status as 一曝十寒)
-  /** @deprecated 打小人 uses frozen, not a separate badGod; kept for HUD/AI leftovers */
-  badGodWeeks: 3,             // UNUSED for 打小人 (was INFERRED)
+  wealthGodWeeks: 4,          // VERIFIED @0x410c14 GodIn attach: weeks=4 (all god types share duration)
+  thugHospitalWeeks: 3,       // VERIFIED @0x416c5d: 惡人/猛虎 collision → hospital weeks=3 (no separate entry fee)
+  walkerStepsMin: 1,          // VERIFIED @0x4165a0: NPC walkers rand()%6+1 steps per turn
+  walkerStepsMax: 6,
+  smallmanFreezeWeeks: 2,     // VERIFIED @0x410a66/0x410a6f: 打小人 sets status=5 weeks=2
+  /** @deprecated no exe 衰神 walker/tile; card text only. 打小人→frozen. */
+  badGodWeeks: 3,
   spStay: { 2: 2, 3: 1, 4: 1, 5: 2, 7: 1, 8: 2 } as Record<number, number>, // VERIFIED texts (停留N回合)
   bankruptWhen: 'netWorth<0', // VERIFIED-ish rules_core
 };

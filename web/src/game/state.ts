@@ -17,8 +17,14 @@ export interface RoadMoney { tile: number; amount: number }
 export interface GameState {
   v: 1; map: number; weeksLimit: number; week: number; current: number;
   players: Player[]; plots: (PlotState | null)[]; jackpot: number; roadMoney: RoadMoney[];
-  /** thief walker (exe NPC slot 4) */
+  /** Walkers: exe slots 4=小偷 char07, 5=惡人/猛虎 char08/13 (@0x4040b0..4480bc). */
   thief?: { tile: number; prev: number };
+  thug?: { tile: number; prev: number };
+  /**
+   * Map god (not a walker): teleports to a random tile each week when unattached (@0x4140c3).
+   * type 0..3 → 機械人/財神/工程女神/卡神 (chars 9..12). attachedTo = seat while buff active.
+   */
+  mapGod?: { tile: number; type: number; attachedTo: number | null };
   winner: number | null; rngSeed: number; turnCount: number;
 }
 
@@ -41,7 +47,11 @@ export function newGame(board: Board, map: number, weeksLimit: number, seats: Se
   });
   return {
     v: 1, map, weeksLimit, week: 0, current: 0, players, plots: board.plots.map(() => null),
-    jackpot: RULES.jackpotInit, roadMoney: [], thief: (() => { const t = Math.floor(board.tiles.length / 2); return { tile: t, prev: board.defaultPrev(t) }; })(), winner: null, rngSeed: (Math.random() * 1e9) | 0, turnCount: 0,
+    jackpot: RULES.jackpotInit, roadMoney: [],
+    thief: (() => { const t = Math.floor(Math.random() * board.tiles.length); return { tile: t, prev: board.defaultPrev(t) }; })(),
+    thug: (() => { const t = Math.floor(Math.random() * board.tiles.length); return { tile: t, prev: board.defaultPrev(t) }; })(),
+    mapGod: (() => { const t = Math.floor(Math.random() * board.tiles.length); return { tile: t, type: Math.floor(Math.random() * 4), attachedTo: null }; })(),
+    winner: null, rngSeed: (Math.random() * 1e9) | 0, turnCount: 0,
   };
 }
 

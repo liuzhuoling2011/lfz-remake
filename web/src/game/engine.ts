@@ -157,7 +157,7 @@ export class Engine {
     let i = this.g.current;
     for (let k = 0; k < n; k++) {
       i = (i + 1) % n;
-      if (i === 0) { await this.newWeek(); await this.thiefTurn(); }
+      if (i === 0) { await this.newWeek(); await this.thiefTurn(); await this.thugTurn(); await this.godWeek(); }
       if (this.g.players[i].alive) break;
     }
     this.g.current = i; this.g.turnCount++;
@@ -269,7 +269,6 @@ export class Engine {
       await this.land(p);
       if (this.extraRoll && p.alive && p.status.hospital + p.status.jail === 0) rolls++;
     }
-    if (p.alive) await this.npcEvent(p);
     this.tickStatuses(p);
     this.view.actor(p.seat).anim = 'stand';
     this.view.clearFlash(); // owner markers stop blinking after the turn
@@ -277,7 +276,14 @@ export class Engine {
 
   tickStatuses(p: Player) {
     const s = p.status;
+    const hadGod = s.wealthGod > 0;
     for (const k of ['confused', 'dropMoney', 'cardImmune', 'badGodImmune', 'smallmanImmune', 'badGod', 'wealthGod'] as const) if (s[k] > 0) s[k]--;
+    // GodOut when attach weeks expire (@0x414530 / status clear)
+    if (hadGod && s.wealthGod <= 0) {
+      const g = this.g.mapGod;
+      if (g && g.attachedTo === p.seat) { g.attachedTo = null; this.sfxi(SFXI.godOut); void this.view.fx('map/godout', this.view.actor(p.seat).x, this.view.actor(p.seat).y, 24); }
+      this.syncGodActor();
+    }
   }
 
   // ---------------- movement ----------------
@@ -299,7 +305,13 @@ export class Engine {
     // The exe resolves 洋行 salary (@0x4169d4) and the thief walker (@0x4168df) inside the per-step routine, i.e. the
     // moment the token reaches that tile. Walk in segments that end on those tiles, resolve, then keep walking.
     const stops: number[] = [];
-    path.forEach((t, i) => { if (this.b.tiles[t].landmarks.some(l => l.kind === 'of') || (this.g.thief && this.g.thief.tile === t)) stops.push(i); });
+    path.forEach((t, i) => {
+      const hit = this.b.tiles[t].landmarks.some(l => l.kind === 'of')
+        || (this.g.thief && this.g.thief.tile === t)
+        || (this.g.thug && this.g.thug.tile === t)
+        || (this.g.mapGod && !this.g.mapGod.attachedTo && this.g.mapGod.tile === t);
+      if (hit) stops.push(i);
+    });
     let start = 0;
     for (const end of [...stops.filter(i => i < path.length - 1), path.length - 1]) {
       const seg = path.slice(start, end + 1); const from = start === 0 ? p.tile : path[start - 1]; const base = start;
@@ -308,6 +320,8 @@ export class Engine {
       const tile = path[end];
       if (this.b.tiles[tile].landmarks.some(l => l.kind === 'of')) await this.salary(p);
       if (this.g.thief && this.g.thief.tile === tile) await this.thiefPickpocket(p, end === path.length - 1);
+      if (this.g.thug && this.g.thug.tile === tile) { await this.thugAssault(p); if (!p.alive || p.status.hospital > 0) return; }
+      if (this.g.mapGod && !this.g.mapGod.attachedTo && this.g.mapGod.tile === tile) await this.godAttach(p);
       start = end + 1;
       if (start >= path.length) break;
     }
@@ -355,7 +369,7 @@ export class Engine {
    */
   async thiefTurn() {
     const th = this.g.thief; if (!th) return;
-    const steps = 1 + Math.floor(Math.random() * 6);
+    const steps = RULES.walkerStepsMin + Math.floor(Math.random() * (RULES.walkerStepsMax - RULES.walkerStepsMin + 1));
     const path: number[] = []; let cur = th.tile, prev = th.prev;
     for (let i = 0; i < steps; i++) { const o = this.b.options(cur, prev); const nx = o[Math.floor(Math.random() * o.length)]; path.push(nx); prev = cur; cur = nx; }
     await this.view.walkPath(4, th.tile, path, () => {});
@@ -937,28 +951,121 @@ export class Engine {
     }
   }
 
-  async npcEvent(p: Player) {
-    if (Math.random() >= RULES.npcEventChance) return;
-    const r = Math.random();
+  /**
+   * Thug walker (exe NPC slot 5, character08; ancient → tiger char13 @0x40fbb2).
+   * Same cadence as thief: 1–6 steps (@0x4165a0). Collision → hospital 3 weeks (@0x416c5d), no entry fee.
+   */
+  async thugTurn() {
+    const th = this.g.thug; if (!th) return;
+    const steps = RULES.walkerStepsMin + Math.floor(Math.random() * (RULES.walkerStepsMax - RULES.walkerStepsMin + 1));
+    const path: number[] = []; let cur = th.tile, prev = th.prev;
+    for (let i = 0; i < steps; i++) { const o = this.b.options(cur, prev); const nx = o[Math.floor(Math.random() * o.length)]; path.push(nx); prev = cur; cur = nx; }
+    const seat = 5;
+    if (this.view.actor(seat)) await this.view.walkPath(seat, th.tile, path, () => {});
+    if (this.view.actor(seat)) this.view.actor(seat).anim = 'stand';
+    th.prev = prev; th.tile = cur;
+    // Assault any player standing on the arrival tile
+    for (const p of this.alive()) {
+      if (p.tile === cur && p.status.hospital <= 0 && p.status.jail <= 0) await this.thugAssault(p);
+    }
+  }
+
+  /** VERIFIED @0x416c40–0x416c9b: set hospital status=1 weeks=3, play PK dialog. */
+  async thugAssault(p: Player) {
+    if (p.status.hospital > 0 || p.status.jail > 0) return;
+    if (p.status.cardImmune > 0) return; // 金鋼護體 blocks card-like hits; thug uses similar gate in remake
+    const tiger = this.b.key === 'ancient';
+    await this.info(msg('NPC', tiger ? 'PK3' : 'PK1', this.name(p)), {
+      title: tiger ? '猛虎' : charName(8),
+      image: 'images/cards/' + (tiger ? 'tiger_attack.jpg' : 'character08_attack.jpg'),
+      kind: 'npc',
+    }, p);
+    await this.sendTo(p, 'hospital', RULES.thugHospitalWeeks);
+    this.speak(p, L.assaulted);
+  }
+
+  /**
+   * Map god weekly relocate when unattached (@0x4140c3–0x414127): new random tile + new type 0..3
+   * (avoid repeating last type). Plays GodIn on the tile — not an independent walker.
+   */
+  async godWeek() {
+    const g = this.g.mapGod; if (!g) return;
+    if (g.attachedTo !== null) return; // stays on the attached player until weeks expire
+    const tile = Math.floor(Math.random() * this.b.tiles.length);
+    let type = Math.floor(Math.random() * 4);
+    if (type === g.type) type = (type + 1 + Math.floor(Math.random() * 3)) % 4;
+    g.tile = tile; g.type = type;
+    this.syncGodActor();
+    const T = this.b.tiles[tile];
+    this.sfxi(SFXI.godIn);
+    void this.view.fx('map/godin', T.x, T.y, 24);
+  }
+
+  /** Place/hide seat-6 god actor on the board. */
+  syncGodActor() {
+    const g = this.g.mapGod; if (!g) return;
+    let a = this.view.actors.find(x => x.seat === 6);
+    const hide = g.attachedTo !== null;
+    const T = this.b.tiles[g.tile];
+    const char = 9 + g.type; // 9機械人 10財神 11工程女神 12卡神
+    if (!a) {
+      this.view.actors.push({ seat: 6, char, x: T.x, y: T.y, dir: 0, anim: 'stand', t: 0, hidden: hide });
+    } else {
+      a.char = char; a.x = T.x; a.y = T.y; a.hidden = hide; a.anim = 'stand';
+    }
+  }
+
+  /**
+   * Player lands on unattached map god (@0x410c00): attach weeks=4, status=type+9.
+   * Instant effects by type (@0x418110): 0機械人 demolish/downgrade, 2工程女神 upgrade,
+   * 3卡神 give card, 1財神 passive free-spend only (GiveMoney0).
+   */
+  async godAttach(p: Player) {
+    const g = this.g.mapGod; if (!g || g.attachedTo !== null) return;
+    const type = g.type;
+    const names = [charName(9), charName(10), charName(11), charName(12)];
     const a = this.view.actor(p.seat);
-    // the thief is now a real board walker (thiefTurn / thiefPickpocket), no longer a random event
-    if (r < 0.3) { // thug / tiger
-      const tiger = this.b.key === 'ancient';
-      if (p.status.cardImmune > 0) return;
-      await this.info(msg('NPC', tiger ? 'PK3' : 'PK1', this.name(p)), { title: tiger ? '猛虎' : charName(8), image: 'images/cards/' + (tiger ? 'tiger_attack.jpg' : 'character08_attack.jpg'), kind: 'npc' }, p);
-      await this.sendTo(p, 'hospital', 3); // VERIFIED @0x416c5d thug: hospital weeks=3
-      this.speak(p, L.assaulted); // VERIFIED line 16 next to 'ho'
-    } else if (r < 0.75) { // god of wealth
-      this.sfxi(SFXI.godIn);
-      void this.view.fx('map/godin', a.x, a.y, 24);
-      p.status.wealthGod = RULES.wealthGodWeeks; this.speak(p, GOOD);
-      await this.info(`${charName(10)}降臨！` + msg('Misc', 'GiveMoney0'), { title: charName(10), kind: 'npc' }, p);
-    } else { // card god
+    this.sfxi(SFXI.godIn);
+    void this.view.fx('map/godin', a.x, a.y, 24);
+    g.attachedTo = p.seat;
+    p.status.wealthGod = RULES.wealthGodWeeks; // all god attaches share the 4-week timer; 財神 free-spend uses this flag
+    this.speak(p, GOOD);
+    this.syncGodActor();
+
+    if (type === 1) {
+      await this.info(`${names[1]}降臨！` + msg('Misc', 'GiveMoney0'), { title: names[1], kind: 'npc' }, p);
+      return;
+    }
+    if (type === 3) {
       const id = this.drawCardId(); this.giveCard(p, id);
-      this.sfxi(SFXI.godIn);
-      void this.view.fx('map/godin', a.x, a.y, 24);
-      this.speak(p, GOOD); // VERIFIED GOOD table next to CardGodMsg
-      await this.info(msg('Misc', 'CardGodMsg', charName(12), D.words[id - 1].title, this.name(p)), { title: charName(12), image: 'images/cards/' + D.words[id - 1].jpg, kind: 'card', cardId: id }, p);
+      await this.info(msg('Misc', 'CardGodMsg', names[3], D.words[id - 1].title, this.name(p)), {
+        title: names[3], image: 'images/cards/' + D.words[id - 1].jpg, kind: 'card', cardId: id,
+      }, p);
+      return;
+    }
+    // type 0 機械人: downgrade random owned building; type 2 工程女神: upgrade
+    const own = ownedPlots(this.g, p);
+    if (type === 2) {
+      const up = own.filter(i => this.g.plots[i]!.level < RULES.maxLevel);
+      if (!up.length) { await this.info(`${names[2]}降臨！但沒有可升級的建築。`, { title: names[2], kind: 'npc' }, p); return; }
+      const pl = up[Math.floor(Math.random() * up.length)];
+      const pv = this.b.plots[pl]; this.view.focusOn(pv.x, pv.y);
+      this.sfxi(SFXI.build);
+      await this.view.construct(pl, false, () => { this.g.plots[pl]!.level++; });
+      await this.info(`${names[2]}降臨！替${this.name(p)}升級了一座建築！`, { title: names[2], kind: 'npc' }, p);
+      return;
+    }
+    // type 0
+    if (!own.length) { await this.info(`${names[0]}降臨！但沒有可拆的建築。`, { title: names[0], kind: 'npc' }, p); return; }
+    const pl = own[Math.floor(Math.random() * own.length)];
+    const pv = this.b.plots[pl]; this.view.focusOn(pv.x, pv.y);
+    const ps = this.g.plots[pl]!;
+    if (ps.level > 0) {
+      await this.view.construct(pl, true, () => { ps.level--; });
+      await this.info(`${names[0]}降臨！拆低了${this.name(p)}的一座建築！`, { title: names[0], kind: 'npc' }, p);
+    } else {
+      await this.view.construct(pl, true, () => { this.g.plots[pl] = null; if (p.homePlot === pl) p.homePlot = null; });
+      await this.info(`${names[0]}降臨！拆掉了${this.name(p)}的一座建築！`, { title: names[0], kind: 'npc' }, p);
     }
   }
 }

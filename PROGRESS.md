@@ -155,3 +155,25 @@
 Still open: npcEventChance 5% (exe thug/gods are walkers/GodIn, not a per-turn roll); card-god as instant card vs status≥9 buff; hospital fee on entry (chance cards carry their own cash penalty; thug path has none).
 
 tests/round19_npc_chance.mjs; screenshots/round19/; autoplay 26w maps 0–2 OK 0 errors.
+
+## Round 20 — walkers vs tile gods (2026-10-12 Asia/Shanghai)
+
+User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人/工程女神/卡神 are tile gods** (teleport + attach), not walkers. Removed remake `npcEventChance` 5% roll.
+
+| Item | Original | Remake before | Fixed |
+|------|----------|---------------|-------|
+| Entity slots | 4 players + slot4 thief + slot5 thug + god mgr @4480bc | thief only + random npcEvent | **thief+thug walkers + mapGod** |
+| Walker steps | @0x4165a0 rand%6+1 | thief 1–6 | both 1–6 |
+| Thug hit | @0x416c5d hospital **3w**, no entry fee | npcEvent ~5% | **tile collision** |
+| Ancient thug | slot5 → char13 tiger | PK3 in random event | **char 13 actor** |
+| God spawn | @0x4140c3 weekly teleport + type 0..3 | random event | **mapGod relocate** |
+| God attach | @0x410c14 weeks=**4**, status=type+9 | wealthGod=3/4 via roll | **land on tile → attach 4w** |
+| Type0 機械人 | @0x4182b8 downgrade/demolish | — | **on attach** |
+| Type1 財神 | passive free-spend (status≥9) | wealthGod | **GiveMoney0 + free-spend** |
+| Type2 工程女神 | @0x418251 upgrade +1 | — | **on attach** |
+| Type3 卡神 | @0x418180 CardGodMsg + card | instant via roll | **on attach** |
+| 衰神 | **no** ActorName / no tile god; card flavor only | badGod invent | **stuck: not a god entity** |
+| Hospital fee (thug) | none on entry | none | verified none |
+| Chance hospital fee | card add_cash −500 scaled | same | verified |
+
+tests/round20_walkers_gods.mjs; screenshots/round20/.

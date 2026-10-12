@@ -88,7 +88,8 @@ export class MapView {
     for (const k of ['house', 'commcal', 'eating', 'home']) for (const l of [1, 2, 3]) extra.push(`map/${pre}${k}${l}`);
     // stand/walk sheets block the start; use/hit poses, the NPC walkers and the construction fx stream in afterwards
     const later: string[] = [P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3',
-      'map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02'];
+      'map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02',
+      'map/god01_01', 'map/god02_01', 'map/god03_01', 'map/god04_01'];
     for (const c of chars) for (const s of ['01', '02', '04', '05']) (s < '04' ? extra : later).push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
     for (const n of later) { const i = extra.indexOf(n); if (i >= 0) extra.splice(i, 1); }
     if (Assets.hdFull()) {
@@ -600,12 +601,18 @@ export class MapView {
   }
 
   drawActor(ctx: CanvasRenderingContext2D, a: Actor) {
+    // Map gods (seat 6): prefer god01..04 tile sprites; fall back to character sheets.
+    if (a.seat === 6) {
+      const gi = (a.char >= 9 && a.char <= 12) ? a.char - 8 : 1; // char9→god01
+      const godName = `map/god0${gi}_01`;
+      drawFrame(ctx, 'map/shadow', 0, a.x, a.y, 0.8, 0.6);
+      if (sheet(godName)) { drawFrame(ctx, godName, Math.floor(app.time / 140) % Math.max(1, sheet(godName)!.f.length), a.x, a.y); return; }
+    }
     const c = a.char < 10 ? '0' + a.char : String(a.char);
     const suffix = a.seat >= 4 || a.anim === 'walk' ? '02' : a.anim === 'use' ? '04' : a.anim === 'hit' ? '05' : '01';
     const name = `map/character/character${c}_${suffix}`;
     const gi = groupInfo(name); const g = Math.min(a.dir, gi.g.length - 1);
-    const n = gi.g[g];
-    // walk cycle is driven by distance travelled (feet never slide); idle/use/hit by time
+    const n = Math.max(1, gi.g[g] || 1);
     const fi = a.seat >= 4 && a.anim !== 'walk' ? gi.start[g] : gi.start[g] + (a.anim === 'walk' ? Math.floor((a.walkDist ?? 0) / STRIDE * n) % n : Math.floor(a.t * 12 / 1000) % n);
     if (a.seat < 4) { ctx.globalAlpha = 0.85; ctx.strokeStyle = PLAYER_COLORS[a.seat]; ctx.lineWidth = a.seat === this.current ? 4 : 2.5;
     ctx.beginPath(); ctx.ellipse(a.x, a.y, 24, 11, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
