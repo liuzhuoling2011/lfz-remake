@@ -178,6 +178,21 @@ User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人
 
 tests/round20_walkers_gods.mjs; screenshots/round20/.
 
+## Round 23 — 四字真言 grey tables, usecard feel, 驅鬼, hand cap (2026-10-12 Asia/Shanghai)
+
+User: continue restoring mantra flow to original after R22 audit.
+
+| Item | Original | Before | Fixed |
+|------|----------|--------|-------|
+| Grey tables | `@0x44224c/5c/6c` via status `@0x40cb10`; paint `@0x40d171` | only selectPlayer=-1 | **`cardUsable`**: god→only 驅鬼; 6/7→+和氣; else grey 驅鬼/和氣/化險 |
+| 驅鬼捉邪 | `@0x410ee0` case 10 → clear + GodOut `@0x414530` | nop (wrong 時來運轉 note) | **detach mapGod + GodOut** |
+| Cast UI | usecard anim + SFX12 + line `@0x417980` | full card.spr text modal | **toast + anim** (human+AI) |
+| Start hand | `@0x40407f` push 0..15 (16) | 1..16 | **verified same 16** |
+| cardMax | `@0x423140` growable, no hard cap | 32 INFERRED | **256 soft-cap** (doc: no hard max) |
+| 步步為營 | immediate steps (R22 `179214b`) | — | kept; **deployed this round** |
+
+tests/round23_mantra_grey.mjs; screenshots/round23/; autoplay maps 0–2.
+
 ## Round 22 — 衰神 CardGodMsg transfer; 財神-only free build/upgrade/invest (2026-10-12 Asia/Shanghai)
 
 User: switch 衰神 from discard to exe `@0x418180` transfer; confirm 財神 free build+upgrade + 士多 gain-only under attach/status≥9.

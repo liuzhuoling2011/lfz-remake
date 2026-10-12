@@ -26,7 +26,8 @@ export const RULES = {
   /** (unused) old inferred invest %; real formula in rules.investDelta (exe @0x412912). */
   investPctMin: -8,
   investPctMax: 14,
-  cardMax: 32,                 // INFERRED
+  /** VERIFIED @0x423140: hand is a growable vector (capacity doubles); temple/chance push with no hard cap. Soft UI/safety only. */
+  cardMax: 256,
   statusWeeks: 3,             // VERIFIED mantra status weeks (金鋼/催吉/一曝/神智/得而/魔高 all = 3 @0x418940–0x418b49)
   dropMoneyPct: 2,            // VERIFIED @0x416ae8 status 7: each step, 1-in-4 chance to drop (1..2)% of cash on the road
   wealthGodWeeks: 4,          // VERIFIED @0x410c14 GodIn attach: weeks=4 (all god types share duration)

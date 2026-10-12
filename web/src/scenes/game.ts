@@ -203,11 +203,11 @@ export class GameScene implements Scene {
     turnMenu: p => { this.walkOpen = true; return new Promise(res => { this.turnMenuRes = a => { this.turnMenuRes = null; res(a); }; if (AUTO) this.turnMenuRes('roll2'); }); },
     pickCard: p => {
       if (!p.cards.length) return this.ui.message(msg('Misc', 'NoneCard')).then(() => null);
-      // Grey passive cards (selectPlayer===-1, e.g. 化險為夷) — exe card.spr list disables unusable rows
+      // VERIFIED paint @0x40d171 + tables @0x44224c/5c/6c via engine.cardUsable
+      const eng = this.engine;
       return this.push({ kind: 'cards', title: '四字真言', buttons: [...p.cards.map(c => {
         const w = D.words[c - 1];
-        const disabled = w.selectPlayer === -1;
-        return { label: w.title, value: c, primary: true, disabled };
+        return { label: w.title, value: c, primary: true, disabled: !eng.cardUsable(p, c) };
       }), { label: '返回', value: null }] });
     },
     pickPlayer: (title, cands, o) => this.push({ kind: 'players', text: title, title: '選擇對象', buttons: [...cands.map(s => ({ label: charName(this.g.players[s].char), value: s, primary: true })), { label: '取消', value: -1 }],

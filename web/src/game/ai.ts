@@ -44,6 +44,9 @@ export function chooseCard(g: GameState, b: Board, p: Player): { card: number; t
   const has = (id: number) => p.cards.includes(id);
   // card 11 時來運轉 is a no-op in exe (@0x4138a0); do not waste it on badGod
   if ((s.confused > 0 || s.dropMoney > 0) && has(15)) return { card: 15, target: p.seat }; // clears 6/7 only
+  // VERIFIED table @0x44224c: while god attached only 驅鬼捉邪 (11) is usable
+  const godOn = !!(g.mapGod && g.mapGod.attachedTo === p.seat && s.wealthGod > 0);
+  if (godOn) return has(11) ? { card: 11, target: p.seat } : null;
   if (!opp.length) return null;
   const richest = pickRichestOpponent(g, b, p, opp.map(o => o.seat));
   const R = g.players[richest];

@@ -635,7 +635,7 @@ export class Engine {
 
   // ---------------- chance ----------------
   drawCardId() { return 1 + Math.floor(Math.random() * D.words.length); }
-  giveCard(p: Player, id: number) { if (p.cards.length < RULES.cardMax) p.cards.push(id); this.onChange(); }
+  giveCard(p: Player, id: number) { /* VERIFIED @0x423140: no hard max; soft-cap only */ if (p.cards.length < RULES.cardMax) p.cards.push(id); this.onChange(); }
 
   /**
    * VERIFIED @0x413060: pick a chance card index (0-based) with re-roll filters.
@@ -767,7 +767,10 @@ export class Engine {
   async useCardInteractive(p: Player, id: number) {
     const c = D.words[id - 1];
     let target = p.seat;
-    if (c.selectPlayer === -1) { await this.ui.message(`「${c.title}」會在被攻擊時自動生效。`); return; }
+    if (!this.cardUsable(p, id)) {
+      if (c.selectPlayer === -1) await this.ui.message(`「${c.title}」會在被攻擊時自動生效。`);
+      return;
+    }
     if (c.selectPlayer === 1 || c.selectPlayer === 2) {
       const cands = this.targetCandidates(p, c.selectPlayer === 2);
       if (!cands.length) { await this.ui.message(msg('Misc', 'SelectCardError')); return; }
@@ -786,14 +789,10 @@ export class Engine {
     const va = this.view.actor(p.seat);
     va.anim = 'use'; this.speak(p, L.attack); this.sfxi(SFXI.useCard); // VERIFIED line 5 + SFX 12 (用卡)
     void this.view.fx('map/usecard', va.x, va.y - 50, 26);
+    // VERIFIED @0x417980: usecard anim + SFX 12 + speak line 5; no card.spr text popup on cast
     const caption = `${this.name(p)}使用四字真言「${c.title}」${T.seat !== p.seat ? '對' + this.name(T) : ''}！`;
-    if (p.ai) {
-      // AI casts never block: brief toast with the card art + the cast/hit animations
-      this.ui.toast(caption, { cardId: id, seat: p.seat, ms: 2600 });
-      await wait(900);
-    } else {
-      await this.ui.message(c.text, { title: c.title, image: 'images/cards/' + c.jpg, kind: 'card', cardId: id, caption });
-    }
+    this.ui.toast(caption, { cardId: id, seat: p.seat, ms: p.ai ? 2600 : 1800 });
+    await wait(p.ai ? 900 : 1100);
     va.anim = 'stand';
     if (T.seat !== p.seat) {
       if (T.status.cardImmune > 0) { this.speak(T, L.defended); this.speak(p, L.blocked, 1); await this.info(msg('Misc', 'CantAttack2'), {}, p); return; }
@@ -824,7 +823,16 @@ export class Engine {
       case 8: T.status.dropMoney = W; break;
       case 9: if (p.homePlot !== null) await this.teleportTo(p, this.b.plots[p.homePlot].tiles[0]); break;
       case 10: await this.teleportTo(p, this.nearestBank(p)); await this.salary(p); break;
-      case 11: break; // VERIFIED @0x4138a0: 時來運轉 apply handler is a no-op (ret)
+      case 11: { // 驅鬼捉邪 — VERIFIED @0x410ee0 case 10: clear god weeks + GodOut @0x414530 (table entry @0x4138a0 is nop)
+        const g = this.g.mapGod;
+        if (g && g.attachedTo === p.seat) {
+          g.attachedTo = null; p.status.wealthGod = 0;
+          this.sfxi(SFXI.godOut); void this.view.fx('map/godout', va.x, va.y, 24);
+          this.syncGodActor();
+          await this.info(`${this.name(p)}使用「${c.title}」把${this.godName(g.type)}驅除了！`, { title: c.title, kind: 'npc' }, p);
+        }
+        break;
+      }
       case 12: p.status.cardImmune = W; break;
       case 13: p.status.badGodImmune = W; p.status.badGod = 0; break;
       case 14: p.status.smallmanImmune = W; break; // VERIFIED @0x418b30: status=8 weeks=3 (魔高一丈)
@@ -987,6 +995,27 @@ export class Engine {
     this.speak(p, L.assaulted);
   }
 
+
+
+  /**
+   * Exe card.spr enable tables @0x44224c / @0x44225c / @0x44226c (1=lit, 0=grey).
+   * Picked in FUN_0040cb10 from player+0x34: ≥9 → 44224c; status 6|7 → 44226c; else → 44225c.
+   * Remake maps: god attach → ≥9; confused→6; dropMoney→7.
+   */
+  static readonly CARD_ENABLE_GOD = [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0]; // only 驅鬼捉邪
+  static readonly CARD_ENABLE_NORMAL = [1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,0]; // grey 驅鬼/和氣/化險
+  static readonly CARD_ENABLE_CLEAR = [1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0]; // +和氣 when status 6/7
+
+  /** Whether a hand card (1-based id) is usable now — paint @0x40d171. */
+  cardUsable(p: Player, id: number) {
+    const i = id - 1; if (i < 0 || i > 15) return false;
+    const g = this.g.mapGod;
+    const god = !!g && g.attachedTo === p.seat && p.status.wealthGod > 0;
+    const tab = god ? Engine.CARD_ENABLE_GOD
+      : (p.status.confused > 0 || p.status.dropMoney > 0) ? Engine.CARD_ENABLE_CLEAR
+      : Engine.CARD_ENABLE_NORMAL;
+    return tab[i] === 1;
+  }
 
   /** VERIFIED: land ctx [+0x14]==1 is god *type* 1 (財神), not merely status≥9. Free build/upgrade/invest-gain-only. */
   isWealthGod(p: Player) {

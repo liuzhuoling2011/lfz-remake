@@ -32,7 +32,7 @@ export function emptyStatus(): Status {
   return { hospital: 0, jail: 0, frozen: 0, confused: 0, dropMoney: 0, cardImmune: 0, badGodImmune: 0, smallmanImmune: 0, skip: 0, badGod: 0, wealthGod: 0, stay: 0 };
 }
 
-/** Every player starts with one of each of the 16 四字真言 cards. */
+/** VERIFIED @0x40407f: new-game loop pushes card ids 0..15 (16 unique) into player+0x20; remake uses 1..16. */
 export function startHand() { return Array.from({ length: 16 }, (_, i) => i + 1); }
 
 export interface SeatSetup { char: number; ai: boolean }
