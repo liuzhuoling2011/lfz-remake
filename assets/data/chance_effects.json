@@ -558,10 +558,12 @@
       "effects": [
         {
           "op": "skip_turn",
-          "turns": 1
+          "turns": 1,
+          "exeStatus": 5,
+          "note": "exe @0x413e00 status=5 weeks=1 → remake frozen"
         }
       ],
-      "confidence": "VERIFIED_TEXT",
+      "confidence": "VERIFIED_EXE",
       "codeRefs": [
         "FUN_00413060",
         "FUN_00413110",
