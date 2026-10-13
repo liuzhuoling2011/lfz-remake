@@ -145,6 +145,7 @@ export class GameScene implements Scene {
       const cp = g.players[g.current];
       this.view.focusOn(this.board.tiles[cp.tile].x, this.board.tiles[cp.tile].y, true);
       this.engine = new Engine(g, this.board, this.view, this.ui);
+      this.engine.syncGodActor(); // ensure seat-6 visible after load (unattached)
       (window as any).__lfz = { scene: this, g, engine: this.engine, AI };
       this.ready = true;
       // Round 25: first paint is SD; open HD upgrades + ground re-bake on idle so poor networks aren't blocked.

@@ -312,13 +312,12 @@ export class Engine {
   async move(p: Player, steps: number) {
     const v = this.view;
     const path = this.route(p, steps);
-    // The exe resolves 洋行 salary (@0x4169d4) and the thief walker (@0x4168df) inside the per-step routine, i.e. the
-    // moment the token reaches that tile. Walk in segments that end on those tiles, resolve, then keep walking.
+    // Exe: 洋行 + thief resolve per-step (@0x4169d4 / @0x4168df). Thug @0x416bf0 only when SAME tile
+    // (pos cmp @0x416cad); remake must NOT hospitalize on pass-through — only final co-occupancy (user R26).
     const stops: number[] = [];
     path.forEach((t, i) => {
       const hit = this.b.tiles[t].landmarks.some(l => l.kind === 'of')
         || (this.g.thief && this.g.thief.tile === t)
-        || (this.g.thug && this.g.thug.tile === t)
         || (this.g.mapGod && !this.g.mapGod.attachedTo && this.g.mapGod.tile === t);
       if (hit) stops.push(i);
     });
@@ -328,9 +327,11 @@ export class Engine {
       await this.walkSeg(p, from, seg, base, path);
       if (!p.alive) return;
       const tile = path[end];
+      const last = end === path.length - 1;
       if (this.b.tiles[tile].landmarks.some(l => l.kind === 'of')) await this.salary(p);
-      if (this.g.thief && this.g.thief.tile === tile) await this.thiefPickpocket(p, end === path.length - 1);
-      if (this.g.thug && this.g.thug.tile === tile) { await this.thugAssault(p); if (!p.alive || p.status.hospital > 0) return; }
+      if (this.g.thief && this.g.thief.tile === tile) await this.thiefPickpocket(p, last);
+      // Thug/tiger: hospital only if this step is the destination (same-tile end), not mid-path pass
+      if (last && this.g.thug && this.g.thug.tile === tile) { await this.thugAssault(p); if (!p.alive || p.status.hospital > 0) return; }
       if (this.g.mapGod && !this.g.mapGod.attachedTo && this.g.mapGod.tile === tile) await this.godAttach(p);
       start = end + 1;
       if (start >= path.length) break;
@@ -991,7 +992,8 @@ export class Engine {
 
   /**
    * Thug walker (exe NPC slot 5, character08; ancient → tiger char13 @0x40fbb2).
-   * Same cadence as thief: 1–6 steps (@0x4165a0). Collision → hospital 3 weeks (@0x416c5d), no entry fee.
+   * Same cadence as thief: 1–6 steps (@0x4165a0). Same-tile co-occupancy → hospital 3 weeks (@0x416c5d);
+   * pass-through does not assault (exe pos check @0x416cad; user R26).
    */
   async thugTurn() {
     const th = this.g.thug; if (!th) return;

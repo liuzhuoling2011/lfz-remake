@@ -83,14 +83,14 @@ export class MapView {
     const pre = ancient ? 'a_' : '';
     // lazy per map: only this map's building style and the characters actually in the game are fetched
     const P = 'map/' + pre;
-    const extra = ['map/shadow', 'map/getmoney', 'map/lostmoney', 'map/cardhit', 'map/usecard', 'map/havemoney', 'map/nomoney', 'map/godin', 'map/godout', 'map/money',
+    const extra = ['map/shadow', 'map/getmoney', 'map/lostmoney', 'map/cardhit', 'map/usecard', 'map/havemoney', 'map/nomoney', 'map/godin', 'map/godout', 'map/god01_01', 'map/god02_01', 'map/god03_01', 'map/god04_01', 'map/money',
       'map/playermark01', 'map/playermark02', 'map/playermark03', 'map/playermark04', 'map/playermark01_2', 'map/playermark02_2', 'map/playermark03_2', 'map/playermark04_2', P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3', P + 'money', P + 'getmoney'];
     for (const k of ['house', 'commcal', 'eating', 'home']) for (const l of [1, 2, 3]) extra.push(`map/${pre}${k}${l}`);
     // stand/walk sheets block the start; use/hit poses, the NPC walkers and the construction fx stream in afterwards
-    // Non-critical for first paint: construction FX, walker/god sprites, card/money VFX (Round 25 load).
+    // Non-critical for first paint: construction FX, walkers, card/money VFX.
+    // Map gods (god01..04) stay in main — Round 25 deferred them and they vanished until (or unless) later finished.
     const later: string[] = [P + 'downhouse', P + 'buildhouse1', P + 'buildhouse2', P + 'buildhouse3',
       'map/character/character08_02', 'map/character/character13_02', 'map/character/character10_02', 'map/character/character07_02', 'map/character/character12_02',
-      'map/god01_01', 'map/god02_01', 'map/god03_01', 'map/god04_01',
       'map/cardhit', 'map/usecard', 'map/godin', 'map/godout', 'map/havemoney', 'map/nomoney', 'map/getmoney', 'map/lostmoney'];
     for (const c of chars) for (const s of ['01', '02', '04', '05']) (s < '04' ? extra : later).push(`map/character/character${String(c).padStart(2, '0')}_${s}`);
     for (const n of later) { const i = extra.indexOf(n); if (i >= 0) extra.splice(i, 1); }
@@ -612,12 +612,17 @@ export class MapView {
   }
 
   drawActor(ctx: CanvasRenderingContext2D, a: Actor) {
-    // Map gods (seat 6): prefer god01..04 tile sprites; fall back to character sheets.
+    // Map gods (seat 6): god01..04 when image ready; else character sheet fallback (must not early-return on img=null).
     if (a.seat === 6) {
       const gi = (a.char >= 9 && a.char <= 12) ? a.char - 8 : 1; // char9→god01
       const godName = `map/god0${gi}_01`;
       drawFrame(ctx, 'map/shadow', 0, a.x, a.y, 0.8, 0.6);
-      if (sheet(godName)) { drawFrame(ctx, godName, Math.floor(app.time / 140) % Math.max(1, sheet(godName)!.f.length), a.x, a.y); return; }
+      const gsh = sheet(godName);
+      if (gsh?.img) {
+        drawFrame(ctx, godName, Math.floor(app.time / 140) % Math.max(1, gsh.f.length), a.x, a.y);
+        return;
+      }
+      // fall through — character10/12_02 etc. while god webp streams in
     }
     const c = a.char < 10 ? '0' + a.char : String(a.char);
     const suffix = a.seat >= 4 || a.anim === 'walk' ? '02' : a.anim === 'use' ? '04' : a.anim === 'hit' ? '05' : '01';

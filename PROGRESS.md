@@ -178,6 +178,20 @@ User clarification (verified in exe): **小偷/惡人 walk**; **財神/機械人
 
 tests/round20_walkers_gods.mjs; screenshots/round20/.
 
+## Round 26 — thug same-tile only; map gods visible again (2026-10-13 Asia/Shanghai)
+
+User: thug hospital on pass; 財神/衰神/仙女/机器人 missing from map.
+
+| Item | Original (exe) | Remake before | Fixed |
+|------|----------------|---------------|-------|
+| Thug/tiger hit | `@0x416bf0` same-tile pos cmp `@0x416cad` then hospital `@0x416c5d` | mid-path pass also assaulted | **only final-step co-occupancy** (+ thug walks onto player) |
+| Thief | pass vs land formulas `@0x4168df` | already matched | unchanged |
+| Map gods missing | tile gods always drawn | R25 put `god01..04` in `later`; `drawActor` returned early when `sheet()` existed but `img==null` → invisible | **gods back in main load**; draw only if `gsh.img`; `syncGodActor` on enter |
+
+Root causes: (1) remake treated every step onto thug as assault; (2) Round 25 deferred god webps + early-return without image.
+
+tests/round26_thug_gods.mjs; screenshots/round26/; autoplay maps 0–2 OK 0 errors.
+
 ## Round 25 — drop remake「號地」toast; SD-first load (2026-10-13 Asia/Shanghai)
 
 User: extra popup after build/upgrade looking like "tile"; slow load on poor network.
