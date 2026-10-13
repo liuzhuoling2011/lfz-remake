@@ -191,6 +191,8 @@ User: thug hospital on pass; 財神/衰神/仙女/机器人 missing from map.
 Root causes: (1) remake treated every step onto thug as assault; (2) Round 25 deferred god webps + early-return without image.
 
 tests/round26_thug_gods.mjs; screenshots/round26/; autoplay maps 0–2 OK 0 errors.
+Deploy: main `ffb5e4f`, Pages `88a6507`, NAS `/volume4/web/lfz/`.
+
 
 ## Round 25 — drop remake「號地」toast; SD-first load (2026-10-13 Asia/Shanghai)
 
